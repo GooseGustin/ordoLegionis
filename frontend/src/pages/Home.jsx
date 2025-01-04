@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import axios from "axios";
 
 export default function Home() {
     const [username, setUsername] = useState(""); 
     const [isLoggedIn, setIsLoggedIn] = useState(false); 
     const [questions, setQuestions] = useState([]); 
+    const navigate = useNavigate(); 
 
     useEffect(() => {
         const checkLoggedInUser = async () => {
@@ -68,25 +69,26 @@ export default function Home() {
           const accessToken = localStorage.getItem("accessToken");
           const refreshToken = localStorage.getItem("refreshToken");
     
-          if(accessToken && refreshToken) {
+          if (accessToken && refreshToken) {
             const config = {
               headers: {
                 "Authorization":`Bearer ${accessToken}`
               }
             };
-            await axios.post("http://127.0.0.1:8000/api/accounts/logout/", {"refresh":refreshToken}, config)
+            await axios.post("http://localhost:8000/api-auth/logout", {"refresh":refreshToken}, config)
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
             setIsLoggedIn(false);
             setUsername("");
             console.log("Log out successful!")
+            navigate('/');
           }
         }
         catch(error){
           console.error("Failed to logout", error.response?.data || error.message)
         }
       }
-    console.log(`${username} is logged in: ${isLoggedIn}`);
+    // console.log(`${username} is logged in: ${isLoggedIn}`);
 
     return (
         <div>

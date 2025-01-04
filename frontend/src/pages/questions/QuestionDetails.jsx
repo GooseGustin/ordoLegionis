@@ -1,9 +1,36 @@
-import { useLoaderData, Link } from 'react-router-dom'
+import { useNavigate, useLoaderData, Link } from 'react-router-dom'
 import axios from 'axios'
 
 const QuestionDetails = () => {
     const question = useLoaderData(); 
     console.log("in details", question)
+
+    const navigate = useNavigate(); 
+
+    const deleteQuestion = async () => {
+        try {
+            const token = localStorage.getItem('accessToken'); 
+            if (token) {
+                console.log('Get the question');
+                const config = {
+                    headers: {
+                        "Authorization": `Bearer ${token}` 
+                    }
+                }; 
+                const res = await axios.delete("http://localhost:8000/api/social/questions/"+question.id+"/", config); 
+                console.log("Successfully deleted"); 
+                navigate("../")
+            }  else {
+                console.log("Sign in to delete the question")
+            }
+        } catch (err) {
+            if (err.status === 401) {
+                console.log("The session is expired. Please sign in again to delete this question")
+            } else {
+                console.error("Error deleting the question:", err);          
+            }
+        }
+    }
     
     if (!question) {
         return (
@@ -25,7 +52,7 @@ const QuestionDetails = () => {
             <div className="">
                 <ul>
                     <li><Link to={'edit'}>Edit</Link></li>
-                    <li><Link to={'delete'}>Delete</Link></li>
+                    <li><a onClick={deleteQuestion}>Delete</a></li>
                 </ul>
             </div>
         </div>
