@@ -18,6 +18,11 @@ import QuestionList from './pages/questions/QuestionList'
 import QuestionDetails, { questionDetailsLoader } from './pages/questions/QuestionDetails'
 import QuestionEdit from './pages/questions/QuestionEdit'
 import QuestionForm from './pages/questions/QuestionForm'
+import PostList from './pages/posts/PostList'
+import PostLayout from './pages/posts/PostLayout'
+import PostForm from './pages/posts/PostForm'
+import PostDetails, { postDetailsLoader } from './pages/posts/PostDetails'
+import PostEdit from './pages/posts/PostEdit'
 
 function App() {
     const router = createBrowserRouter(
@@ -43,6 +48,24 @@ function App() {
                         />
                     </Route>
                 </Route>
+                <Route path='posts' element={<PostLayout />}>
+                    <Route index element={<PostList />} />
+                    <Route path='create' element={<PostForm method='create' />} />
+                    <Route path=":id">
+                        <Route 
+                            index
+                            element={<PostDetails />} 
+                            loader={postDetailsLoader}
+                        />
+                        <Route 
+                            path='edit' 
+                            element={<PostEdit />} 
+                            method='edit'
+                            loader={postDetailsLoader}
+                        />
+                    </Route>
+                </Route>
+                
 
                 <Route path='*' element={<NotFound />} />
             </Route>

@@ -27,8 +27,8 @@ Post:
 '''
 
 class Question(models.Model):
-    content = models.TextField()
     # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="questions")
+    content = models.CharField(max_length=200)
     date = models.DateTimeField(auto_now_add=True)
 
 class Answer(models.Model):
@@ -36,17 +36,17 @@ class Answer(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
-    upvotes = models.IntegerField()
-    downvotes = models.IntegerField()
+    upvotes = models.IntegerField(default=0)
+    downvotes = models.IntegerField(default=0)
 
 class Post(models.Model):
     title = models.CharField(max_length=150)
     content = models.TextField()
-    # image = models.ImageField(upload_to="images/posts/")
+    # image = models.ImageField(upload_to="images/posts/", required=False, null=True)
     date = models.DateTimeField(auto_now_add=True)
     # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="posts")
-    upvotes = models.IntegerField()
-    downvotes = models.IntegerField()
+    upvotes = models.IntegerField(default=0)
+    downvotes = models.IntegerField(default=0)
 
 class Comment(models.Model):
     # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="comments")
@@ -56,7 +56,7 @@ class Comment(models.Model):
 
 class PrayerRequest(models.Model):
     # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="prayer_requests")
-    content = models.TextField()
+    content = models.CharField(max_length=150)
     date = models.DateTimeField(auto_now_add=True)
 
 flag_choices = [

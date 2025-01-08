@@ -6,7 +6,7 @@ class AnswerSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Answer
         fields = [
-            'content', 'date', #'legionary', 
+            'id', 'content', 'date', #'legionary', 
             'question', 'upvotes', 'downvotes', 
             'flags'
         ]
@@ -15,7 +15,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Post
         fields = [
-            'title', 'content', 
+            'id', 'title', 'content', 
             #'image', 
             'date', #'legionary', 
             'upvotes', 'downvotes', 'flags'
