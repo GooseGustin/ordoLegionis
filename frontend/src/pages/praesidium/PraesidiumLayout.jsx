@@ -1,9 +1,9 @@
 import { Outlet, NavLink } from 'react-router-dom'
 
-const QuestionLayout = () => {
+const PraesidiumLayout = () => {
     return (
-        <div className='question-layout'>
-            <h2>Questions</h2>
+        <div>
+            <h2>Praesidium</h2>
             <nav className="question-nav">
                 <ul>
                     <li>
@@ -19,4 +19,4 @@ const QuestionLayout = () => {
     )
 }
 
-export default QuestionLayout
+export default PraesidiumLayout

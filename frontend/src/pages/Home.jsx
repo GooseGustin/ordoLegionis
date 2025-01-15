@@ -52,7 +52,7 @@ export default function Home() {
                     }
                   };
                 await axios.post(
-                    'http://127.0.0.1:8000/api/accounts/logout/', {"refresh": refreshToken}, config
+                    'http://127.0.0.1:8000/api/api-auth/logout/', {"refresh": refreshToken}, config
                     )
                 localStorage.removeItem("accessToken")
                 localStorage.removeItem("refreshToken")
@@ -62,6 +62,11 @@ export default function Home() {
         } catch(err) {
             console.log("Failed to log out", error.response?.data || error.message) 
         }
+    }
+
+    function Logout() {
+        localStorage.clear() 
+        return navigate('/login')
     }
 
     const handleLogout2 = async () => {

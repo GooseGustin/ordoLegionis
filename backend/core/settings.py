@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from os import path 
 from datetime import timedelta
 
 
@@ -49,6 +50,8 @@ INSTALLED_APPS = [
     # created apps
     'api', 
     'accounts', 
+    'curia', 
+    'praesidium', 
     'social',
 ]
 
@@ -125,11 +128,17 @@ USE_I18N = True
 
 USE_TZ = True
 
+# APPEND_SLASH=False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = path.join(BASE_DIR, 'staticfiles') 
+STATICFILES_DIRS = (path.join(BASE_DIR, 'static'), )
+
+MEDIA_URL = '/media/' 
+MEDIA_ROOT = path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -173,7 +182,7 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
 
     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=10), # 5
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 
     "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",

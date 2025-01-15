@@ -15,6 +15,9 @@ export default function Layout() {
                     <NavLink to='/posts'>Posts</NavLink>
                 </li>
                 <li>
+                    <NavLink to='/curia'>Curia</NavLink>
+                </li>
+                <li>
                     <NavLink to='/profile'>Profile</NavLink>
                 </li>
                 <li>
@@ -22,6 +25,16 @@ export default function Layout() {
                 </li>
                 <li>
                     <NavLink to='/register'>Register</NavLink>
+                </li>
+            </ul>
+        </nav>
+        <nav className="navbar">
+            <ul>
+                <li>
+                    <NavLink to='/announcements'>Announcements</NavLink>
+                </li>
+                <li>
+                    <NavLink to='/praesidium'>Praesidium</NavLink>
                 </li>
             </ul>
         </nav>

@@ -4,7 +4,7 @@ import axios from 'axios'
 const CuriaDetails = () => {
     const curia = useLoaderData(); 
     console.log("in details", curia)
-    const legUsername = curia.legionaryDetails.user.username; 
+    const creator = curia.legionaryDetails.user.username; 
 
     const navigate = useNavigate(); 
 
@@ -54,7 +54,7 @@ const CuriaDetails = () => {
                 <p>Created at: {curia.created_at}</p>
                 <p>Managers: {curia.managers}</p>
                 <p>Requests: {curia.management_requests}</p>
-                <p>Created by: {legUsername}</p>
+                <p>Created by: {creator}</p>
             </div>
             <nav className="navbar">
                 <ul>

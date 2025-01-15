@@ -9,6 +9,7 @@ class Curia(models.Model):
     country = models.CharField(max_length=50, default="Nigeria")
     parish = models.CharField(max_length=100)
     spiritual_director = models.CharField(max_length=100)
+    # spiritual_director_inaug_date = models.DateField()
     iden = models.CharField(max_length=20)
     creator = models.ForeignKey(
                 Legionary, 

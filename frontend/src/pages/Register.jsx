@@ -17,6 +17,7 @@ export default function Register() {
         }); 
         // console.log(formData);
     }
+    
 
     const [isLoading, setIsLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState(""); 
@@ -36,6 +37,12 @@ export default function Register() {
             setSuccessMessage("Registration Successful!"); 
         } catch (err) {
             console.log("Error during registration", err.response.data)
+            
+            // if (err.status === 400) {
+            //     console.log("The session is expired. Please sign in again to operate on questions")
+            // } else {
+            //     console.log("Error during registration", err.response.data) 
+            // }
             if (err.response && err.response.data) {
                 Object.keys(err.response.data).forEach(field => {
                     const errorMessages = err.response.data[field]; 

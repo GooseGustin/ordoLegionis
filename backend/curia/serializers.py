@@ -12,7 +12,12 @@ class AnnouncementSerializer(serializers.ModelSerializer):
             'body', 'image', 
             'hidden_by', 'acknowledged_by'
         ]
-        read_only_fields = ['date']
+        read_only_fields = ['date', 'hidden_by', 'acknowledged_by']
+
+    def create(self, validated_data):
+        validated_data['hidden_by'] = []
+        validated_data['acknowledged_by'] = []
+        return super().create(validated_data)
 
 def getIden(name):
     letters = [i[0] for i in name.split(' ')]

@@ -1,4 +1,5 @@
 from django.db import models
+from accounts.models import Legionary
 
 # Create your models here.
 '''
@@ -27,14 +28,14 @@ Post:
 '''
 
 class Question(models.Model):
-    # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="questions")
+    legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="questions")
     content = models.CharField(max_length=200)
     date = models.DateTimeField(auto_now_add=True)
 
 class Answer(models.Model):
     content = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
-    # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="answers")
+    legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
     upvotes = models.IntegerField(default=0)
     downvotes = models.IntegerField(default=0)
@@ -42,20 +43,20 @@ class Answer(models.Model):
 class Post(models.Model):
     title = models.CharField(max_length=150)
     content = models.TextField()
-    # image = models.ImageField(upload_to="images/posts/", required=False, null=True)
+    image = models.ImageField(upload_to="images/posts/", null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
-    # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="posts")
+    legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="posts")
     upvotes = models.IntegerField(default=0)
     downvotes = models.IntegerField(default=0)
 
 class Comment(models.Model):
-    # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="comments")
+    legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="comments")
     content = models.TextField()
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     date = models.DateTimeField(auto_now_add=True)
 
 class PrayerRequest(models.Model):
-    # legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="prayer_requests")
+    legionary = models.ForeignKey(Legionary, on_delete=models.CASCADE, related_name="prayer_requests")
     content = models.CharField(max_length=150)
     date = models.DateTimeField(auto_now_add=True)
 

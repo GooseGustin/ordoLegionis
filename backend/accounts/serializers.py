@@ -1,4 +1,5 @@
-from .models import CustomUser
+from .models import Alert, CustomUser, Legionary
+# from django.contrib.auth.models import Group
 from django.contrib.auth import authenticate
 from rest_framework import serializers 
 
@@ -6,7 +7,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta: 
         model = CustomUser
         fields = ['id', 'username', 'email'] 
-
     
 class UserRegistrationSerializer(serializers.ModelSerializer): 
     password1 = serializers.CharField(write_only=True) 
@@ -35,7 +35,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password1') 
         validated_data.pop('password2') 
 
-        return CustomUser.objects.create_user(password=password, **validated_data)  # type: ignore
+        user = CustomUser.objects.create_user(password=password, **validated_data)  # type: ignore
+        # Add new user to default basic group 
+        # Basic_Group, _ = Group.objects.get_or_create(name='Basic_Group')
+        # user.groups.add(Basic_Group)
+        # user.save()
+        # Create new legionary
+        Legionary.objects.create(user=user) # , **validated_data)
+        return user 
 
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.CharField()
@@ -47,3 +54,13 @@ class UserLoginSerializer(serializers.Serializer):
             return user 
         else: 
             raise serializers.ValidationError("Incorrect credentials")
+
+class LegionarySerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer()
+
+    class Meta: 
+        model = Legionary        
+        fields = [
+            'user', 
+            'status', 
+        ]
