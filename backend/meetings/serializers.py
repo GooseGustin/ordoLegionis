@@ -6,6 +6,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Meeting
         fields = [
+            'id', 
             'date', 
             'praesidium', 
             'meeting_no',

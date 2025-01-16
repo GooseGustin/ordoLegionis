@@ -9,6 +9,7 @@ class Meeting(models.Model):
     no_present = models.IntegerField()
     officers_meeting_attendance = models.JSONField(default=list)
     officers_curia_attendance = models.JSONField(default=list)
+    # last_edited = models.DateTimeField(auto_now=True) # display last meeting worked on on home page 
 
     def __str__(self):
         return "Meeting " + str(self.meeting_no) + " of " + self.praesidium.name
