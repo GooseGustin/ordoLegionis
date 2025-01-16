@@ -55,6 +55,6 @@ class Reminder(models.Model):
     content = models.TextField()
     deadline = models.DateField()
     hidden_by = models.JSONField(default=list, blank=True) 
-    ack_by = models.JSONField(default=list, blank=True) 
+    acknowledged_by = models.JSONField(default=list, blank=True) 
 
 # Reminders willl be deleted 1 month after their deadlines 

@@ -30,9 +30,8 @@ class PraesidiumSerializer(serializers.ModelSerializer):
             validated_data['managers'].extend([legionary])
             validated_data['members'] = []
             validated_data['members'].extend([legionary])
-            validated_data['iden'] = getIden(validated_data['name'])
+            validated_data['iden'] = getIden(validated_data['name']) # iden remains the same even though the praesidium or curia name is changd
         return super().create(validated_data)
-
 
 # praesidium serializer for staff 
 
@@ -40,10 +39,10 @@ class ReminderSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Reminder 
         fields = [
-            'id', 
-            'praesidium', 
-            'content', 
-            'deadline'
+            'id', 'praesidium', 
+            'content', 'deadline',
+            'hidden_by', 'acknowledged_by'
         ]
+        read_only_fields = ['hidden_by', 'acknowledged_by']
 
     
