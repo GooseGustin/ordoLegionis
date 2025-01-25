@@ -36,6 +36,40 @@ export default function Layout() {
                 <li>
                     <NavLink to='/praesidium'>Praesidium</NavLink>
                 </li>
+                <li>
+                    <NavLink to='/reminders'>Reminder</NavLink>
+                </li>
+                <li>
+                    <NavLink to='/meetings'>Meetings</NavLink>
+                </li>
+                <li>
+                    <NavLink to='/works'>Works</NavLink>
+                </li>
+                <li>
+                    <NavLink to='/worklists'>Worklists</NavLink>
+                </li>
+            </ul>
+        </nav>
+        <nav className="navbar">
+            <ul>
+                <li>
+                    <NavLink to='/expenses'>Expenses</NavLink>
+                </li>
+                <li>
+                    <NavLink></NavLink>
+                </li>
+                <li>
+                    <NavLink></NavLink>
+                </li>
+                <li>
+                    <NavLink></NavLink>
+                </li>
+                <li>
+                    <NavLink></NavLink>
+                </li>
+                <li>
+                    <NavLink></NavLink>
+                </li>
             </ul>
         </nav>
         

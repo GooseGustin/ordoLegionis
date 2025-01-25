@@ -1,10 +1,10 @@
 import React from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
-const AnnouncementLayout = () => {
+const PageLayout = ({ pageName }) => {
     return (
         <div>
-            <h2>Announcements</h2>
+            <h2>{pageName}</h2>
             <nav className="question-nav">
                 <ul>
                     <li>
@@ -20,4 +20,4 @@ const AnnouncementLayout = () => {
     )
 }
 
-export default AnnouncementLayout
+export default PageLayout

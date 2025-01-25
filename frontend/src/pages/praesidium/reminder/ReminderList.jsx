@@ -2,57 +2,57 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 import { Link } from 'react-router-dom'
 
-const AnnouncementList = () => {
-    const [announcements, setAnnouncements] = useState([]); 
+const ReminderList = () => {
+    const [reminders, setReminders] = useState([]); 
     const [errStatus, setErrStatus] = useState(); 
 
     useEffect(() => {
-        const getAnnouncements = async () => {
+        const getReminders = async () => {
             try {
                 const token = localStorage.getItem('accessToken'); 
                 if (token) {
-                    console.log('Get the announcements');
+                    console.log('Get the reminders');
                     const config = {
                         headers: {
                             "Authorization": `Bearer ${token}` 
                         }
                     }; 
-                    const response = await axios.get("http://127.0.0.1:8000/api/curia/announcements", config); 
+                    const response = await axios.get("http://127.0.0.1:8000/api/praesidium/reminders", config); 
                     console.log('Post response', response.data)
-                    setAnnouncements(response.data)
+                    setReminders(response.data)
                 } else {
-                    console.log("Sign in to get announcements")
+                    console.log("Sign in to get reminders")
                 }
             } catch (err) {
                 if (err.status === 401) {
-                    console.log("The session is expired. Please sign in again to view announcements")
+                    console.log("The session is expired. Please sign in again to view reminders")
                     setErrStatus(401); 
                 } else {
-                    console.error("Error fetching announcements:", err);                    
+                    console.error("Error fetching reminders:", err);                    
                 }
             }
         }
-        getAnnouncements();
+        getReminders();
     }, [])
 
     if (errStatus === 401) {
         return (
             <div>
-                <p>You are logged out. Please sign in again to view announcements.</p>
+                <p>You are logged out. Please sign in again to view reminders.</p>
                 <p><Link to='../login'>Login</Link></p>
             </div>
         )
     }
     return (
-        <div className="announcement-list">
-            {announcements.map(announcement => 
+        <div className="reminder-list">
+            {reminders.map(reminder => 
             (
-                <Link to={announcement.id.toString()} key={announcement.id}>
-                    <p>{announcement.title}</p>
+                <Link to={reminder.id.toString()} key={reminder.id}>
+                    <p>{reminder.content.substring(0, 50)} ...</p>
                 </Link>
             ))}  
         </div>
     )
 }
 
-export default AnnouncementList
+export default ReminderList

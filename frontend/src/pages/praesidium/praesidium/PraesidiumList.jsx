@@ -7,7 +7,7 @@ const PraesidiumList = () => {
     const [errStatus, setErrStatus] = useState(); 
 
     useEffect(() => {
-        const getPraesidiume = async () => {
+        const getPraesidium = async () => {
             try {
                 const token = localStorage.getItem('accessToken'); 
                 if (token) {
@@ -32,7 +32,7 @@ const PraesidiumList = () => {
                 }
             }
         }
-        getPraesidiume();
+        getPraesidium();
     }, [])
 
     if (errStatus === 401) {

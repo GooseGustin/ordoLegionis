@@ -63,12 +63,6 @@ const AnnouncementDetails = () => {
                     ''
                 }
                 
-                {/* [
-                        'id', 'curia', 'date', 
-                        'deadline', 'title', 
-                        'body', 'image', 
-                        'hidden_by', 'acknowledged_by'
-                    ] */}
             </div>
             <nav className="navbar">
                 <ul>

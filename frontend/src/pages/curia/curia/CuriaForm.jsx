@@ -33,12 +33,6 @@ const CuriaForm = (props) => {
 
     const submitCuria = async (e) => {
         e.preventDefault();
-        // if (isLoading) {
-        //     return
-        // }
-
-        // setIsLoading(true); 
-
         try {
             console.log('Trying to send', formData); 
             const token = localStorage.getItem('accessToken'); 
@@ -99,7 +93,6 @@ const CuriaForm = (props) => {
                         defaultValue={defaultState}
                     />
                 </label><br /><br />
-                {/* Change to select for countries */}
                 <label htmlFor="country"> 
                     <input 
                         type="text" name='country' 

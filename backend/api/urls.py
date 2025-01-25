@@ -7,4 +7,6 @@ urlpatterns = [
     path('curia/', include('curia.urls')), 
     path('praesidium/', include('praesidium.urls')), 
     path('meetings/', include('meetings.urls')), 
+    path('works/', include('works.urls')), 
+    path('finance/', include('finance.urls')), 
 ] 

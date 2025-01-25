@@ -70,11 +70,6 @@ const AnnouncementForm = (props) => {
                 [e.target.name]:e.target.value,
             }); 
         }
-        // if ([e.target.name] == 'curia') {
-        //     console.log(e.target.value)
-        // }
-        // const fish = announceImage ? announceImage[0]: null; 
-        // console.log("After loading image", fish)
         
     }
 
