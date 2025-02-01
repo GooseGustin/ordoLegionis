@@ -48,9 +48,11 @@ import WorkListDetails, { workListDetailsLoader } from './pages/works/worklist/W
 import WorkListForm, { workTypesLoader } from './pages/works/worklist/WorkListForm'
 import WorkListEdit, { workEditLoader } from './pages/works/worklist/WorkListEdit'
 import PageLayout from './pages/PageLayout'
-import ExpenseList, { expensesListLoader } from './pages/finance/expenses/ExpenseList'
-import ExpenseForm from './pages/finance/expenses/ExpenseForm'
-import ExpenseEdit, { expensesEditLoader } from './pages/finance/expenses/ExpenseEdit'
+import FinancialRecordList, { financialRecordsListLoader } from './pages/finance/records/FinancialRecordList'
+import FinancialRecordDetails, { financialRecordDetailsLoader } from './pages/finance/records/FinancialRecordDetails'
+import FinancialRecordForm, { financialRecordsFormLoader } from './pages/finance/records/FinancialRecordForm'
+import ReportList, { reportsListLoader } from './pages/reports/ReportList'
+import ReportForm from './pages/reports/ReportForm'
 
 function App() {
     const router = createBrowserRouter(
@@ -224,34 +226,59 @@ function App() {
                         />
                     </Route>
                 </Route>
-                <Route path='expenses' element={<PageLayout pageName="Expenses" />}>
+                <Route path='records' element={<PageLayout pageName="Financial Records" />}>
                     <Route 
                         index 
-                        element={<ExpenseList />} 
-                        loader={expensesListLoader}
+                        element={<FinancialRecordList />} 
+                        loader={financialRecordsListLoader}
                     />
                     <Route 
                         path='create' 
-                        element={<ExpenseForm method='create' />} 
-                        // loader={workTypesLoader}
+                        element={<FinancialRecordForm method='create' />} 
+                        loader={financialRecordsFormLoader}
                     />
                     <Route path=":id">
-                        {/* <Route 
+                        <Route 
                             index
-                            element={<WorkListDetails />} 
-                            loader={workListDetailsLoader}
-                        /> */}
+                            element={<FinancialRecordDetails />} 
+                            loader={financialRecordDetailsLoader}
+                        />
                         <Route 
                             path='edit' 
-                            element={<ExpenseEdit />} 
+                            element={<FinancialRecordForm method='edit' />} 
                             method='edit'
-                            loader={expensesEditLoader}
+                            loader={financialRecordDetailsLoader}
                         />
                     </Route>
-
+                </Route>
+                
+                <Route path='reports' element={<PageLayout pageName="Reports" />}>
+                    <Route 
+                        index 
+                        element={<ReportList />} 
+                        loader={reportsListLoader}
+                    />
+                    <Route 
+                        path='create' 
+                        element={<ReportForm />} 
+                        // loader={financialRecordsFormLoader}
+                    />
+                    <Route path=":id">
+                        <Route 
+                            index
+                            element={<FinancialRecordDetails />} 
+                            loader={financialRecordDetailsLoader}
+                        />
+                        <Route 
+                            path='edit' 
+                            element={<FinancialRecordForm method='edit' />} 
+                            method='edit'
+                            loader={financialRecordDetailsLoader}
+                        />
+                    </Route>
+                </Route>
                 <Route path='*' element={<NotFound />} />
             </Route>
-        </Route>
         )
     )
 

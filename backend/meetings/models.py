@@ -8,7 +8,7 @@ class Meeting(models.Model):
     praesidium = models.ForeignKey(Praesidium, on_delete=models.CASCADE, related_name="meetings")
     no_present = models.IntegerField()
     officers_meeting_attendance = models.JSONField(default=list)
-    officers_curia_attendance = models.JSONField(default=list)
+    officers_curia_attendance = models.JSONField(default=list, blank=True)
     # last_edited = models.DateTimeField(auto_now=True) # display last meeting worked on on home page 
 
     def __str__(self):

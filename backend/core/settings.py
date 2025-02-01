@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'social',
     'works', 
     'finance', 
+    'reports', 
 ]
 
 MIDDLEWARE = [
@@ -151,7 +152,7 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
 

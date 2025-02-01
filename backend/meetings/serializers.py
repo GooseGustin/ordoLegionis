@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Meeting
 
 
-class AnnouncementSerializer(serializers.ModelSerializer):
+class MeetingSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Meeting
         fields = [

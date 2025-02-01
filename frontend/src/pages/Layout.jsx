@@ -53,22 +53,10 @@ export default function Layout() {
         <nav className="navbar">
             <ul>
                 <li>
-                    <NavLink to='/expenses'>Expenses</NavLink>
+                    <NavLink to='/records'>Financial Records</NavLink>
                 </li>
                 <li>
-                    <NavLink></NavLink>
-                </li>
-                <li>
-                    <NavLink></NavLink>
-                </li>
-                <li>
-                    <NavLink></NavLink>
-                </li>
-                <li>
-                    <NavLink></NavLink>
-                </li>
-                <li>
-                    <NavLink></NavLink>
+                    <NavLink to='/reports'>Reports</NavLink>
                 </li>
             </ul>
         </nav>
