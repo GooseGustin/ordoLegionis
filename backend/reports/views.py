@@ -66,28 +66,37 @@ class ReportPrepGetView(APIView):
         if meetings_within_range: 
             for meeting in meetings_within_range: 
                 for officer in ['President', 'Vice President', 'Secretary', 'Treasurer']: 
-                    if meeting.officers_meeting_attendance.contains(officer): 
+                    if officer in meeting.officers_meeting_attendance: 
                         officers_meeting_attendance[officer] += 1
-                    if meeting.officers_curia_attendance.contains(officer):
+                    if officer in meeting.officers_curia_attendance:
                         officers_curia_attendance[officer] += 1
                 average_attendance += meeting.no_present
         average_attendance = ceil(average_attendance / no_of_meetings_held)
 
         last_report = Report.objects.filter(praesidium=praesidium).last()
-        last_submission_date = last_report.last_submission_date if last_report else None
-        last_report_number = last_report.report_number if last_report else 0
+        # Perhaps the last report is the current report, the submission date
+        # will be in the future not the past, so we take the last submision
+        # date instead 
+        last_submission_date = today = datetime.today().date()
+        last_report_number = 1
+        if last_report: 
+            if last_report.submission_date < today:
+                last_submission_date = last_report.submission_date 
+            else: 
+                last_submission_date = last_report.last_submission_date
+            last_report_number = last_report.report_number
 
         processed_data = {
             'last_submission_date': last_submission_date, 
             'last_report_number': last_report_number, 
             'officers_curia_attendance': officers_curia_attendance, 
             'officers_meeting_attendance': officers_meeting_attendance, 
-            'no_of_meetings_expected': no_of_meetings_expected, 
-            'no_of_meetings_held': no_of_meetings_held, 
+            'no_meetings_expected': no_of_meetings_expected, 
+            'no_meetings_held': no_of_meetings_held, 
             'average_attendance': average_attendance, 
+            # 'legion_functions_attendance': attendances_within_range
 
-#         - legion functions attendance ?? 
         }
-        
+
         serializer = ReportPrepGetSerializer(processed_data)
         return Response(serializer.data, status=status.HTTP_200_OK)

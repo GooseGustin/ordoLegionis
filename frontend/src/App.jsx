@@ -52,7 +52,7 @@ import FinancialRecordList, { financialRecordsListLoader } from './pages/finance
 import FinancialRecordDetails, { financialRecordDetailsLoader } from './pages/finance/records/FinancialRecordDetails'
 import FinancialRecordForm, { financialRecordsFormLoader } from './pages/finance/records/FinancialRecordForm'
 import ReportList, { reportsListLoader } from './pages/reports/ReportList'
-import ReportForm from './pages/reports/ReportForm'
+import ReportForm, { reportFormLoader } from './pages/reports/ReportForm'
 
 function App() {
     const router = createBrowserRouter(
@@ -261,7 +261,7 @@ function App() {
                     <Route 
                         path='create' 
                         element={<ReportForm />} 
-                        // loader={financialRecordsFormLoader}
+                        loader={reportFormLoader}
                     />
                     <Route path=":id">
                         <Route 

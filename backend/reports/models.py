@@ -4,7 +4,6 @@ from praesidium.models import Praesidium
 # Create your models here.
 
 class MembershipDetail(models.Model):
-    # report = models.OneToOneField(Report, on_delete=models.CASCADE)
     senior_praesidia = models.IntegerField(default=0)
     junior_praesidia = models.IntegerField(default=0)
     active_members = models.IntegerField(default=0)
@@ -14,7 +13,6 @@ class MembershipDetail(models.Model):
     praetorian_members = models.IntegerField(default=0)
 
 class Achievement(models.Model):
-    # report = models.OneToOneField(Report, on_delete=models.CASCADE)
     no_recruited = models.IntegerField(default=0)
     no_baptized = models.IntegerField(default=0)
     no_confirmed = models.IntegerField(default=0)
@@ -46,7 +44,6 @@ class Report(models.Model):
         return "Report " + str(self.report_number) + " of " + self.praesidium.name
 
 class FunctionAttendance(models.Model):
-    # report = models.ForeignKey(Report, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     date = models.DateField(null=True, blank=True)
     current_year_attendance = models.IntegerField(default=0)
