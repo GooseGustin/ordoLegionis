@@ -17,7 +17,7 @@ function findall(a, x) {
     return results;
 }
 
-const FunctionRow = ({name, title, handler}) => {
+const FunctionRow = ({name, title, handler, fxnAttendance}) => {
     const 
     fxn_date = name+'_fxn_date',
     current_year = name + '_current_year', 
@@ -29,6 +29,7 @@ const FunctionRow = ({name, title, handler}) => {
             <td>
                 <input 
                     type="date" name={fxn_date} id="" 
+                    defaultValue={fxnAttendance[name]['date']}
                     onChange={handler}
                 />
             </td>
@@ -36,6 +37,7 @@ const FunctionRow = ({name, title, handler}) => {
                 <input 
                     type="number" 
                     name={current_year} id="" 
+                    defaultValue={fxnAttendance[name]['current_year_attendance']}
                     onChange={handler}
                 />
             </td>
@@ -43,6 +45,7 @@ const FunctionRow = ({name, title, handler}) => {
                 <input 
                     type="number" 
                     name={previous_year} id="" 
+                    defaultValue={fxnAttendance[name]['previous_year_attendance']}
                     onChange={handler}
                 />
             </td>
@@ -51,8 +54,10 @@ const FunctionRow = ({name, title, handler}) => {
 }
 
 const ReportForm = () => {
+    const loc = "In report form component"; 
+    console.log(loc)
     const [obj, praesidia, prepData] = useLoaderData();
-    console.log('prepData:', prepData); 
+    // console.log('prepData:', prepData); 
     const [report, setReport] = useState({
         "praesidium": 1,
         "submission_date": new Date().toISOString().substring(0, 10),
@@ -91,14 +96,14 @@ const ReportForm = () => {
     })
     const [fxnAttendance, setFxnAttendance] = useState({
         'acies': {name:'Acies', date: '',  current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'may_devotion': {name:'May Devotion', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'edel_quinn': {name:"Edel Quinn's Mass", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'may_devotion': {name:'May Devotion', date: '2024-05-01', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'edel_quinn': {name:"Edel Quinn Mass", date: '2024-05-12', current_year_attendance:0, previous_year_attendance:0, report:0}, 
         'aer': {name:'Annual Enclosed Retreat', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'marys_birthday': {name:"Mary's Birthday", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'marys_birthday': {name:"Mary's Birthday", date: '2024-09-08', current_year_attendance:0, previous_year_attendance:0, report:0}, 
         'officers_workshop': {name:"Officers' Workshop", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'oct_devotion': {name:"October Devotion", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'departed_leg': {name:"Departed Legionaries' Mass", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'frank_duff': {name:"Frank Duff's Mass", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'oct_devotion': {name:"October Devotion", date: '2024-10-01', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'departed_leg': {name:"Departed Legionaries' Mass", date: '2024-11-02', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'frank_duff': {name:"Frank Duff Mass", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
         'leg_congress': {name:'Legion Congress', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
         'outdoor_fxn': {name:"Outdoor Function", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
         'patricians': {name:"Patricians Meeting", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
@@ -171,7 +176,7 @@ const ReportForm = () => {
     //     ...prepData
     // })
 
-    console.log(defaultObj.officers_curia_attendance)
+    // console.log(defaultObj.officers_curia_attendance)
 
     const handleChange = (e) => {
         let value = e.target.value; 
@@ -234,6 +239,8 @@ const ReportForm = () => {
                 [keyName]: value
             }
         })
+
+        console.log(fxnAttendance)
     };
 
     const handleAttendanceChange = (e) => {
@@ -305,6 +312,21 @@ const ReportForm = () => {
 
                 // Bulk create function attendances
                 console.log(loc, 'fxn attendances', fxnAttendance);
+                for (let key in fxnAttendance) {
+                    const fxn = fxnAttendance[key];
+                    if (fxn.date) {
+                        const attendanceObj = {
+                            name: fxn.name, 
+                            date: fxn.date, 
+                            current_year_attendance: fxn.current_year_attendance, 
+                            previous_year_attendance: fxn.previous_year_attendance,
+                            report: reportId
+                        }
+                        const fxnAttendanceResponse = await axios.post(BASEURL + "reports/attendance/", attendanceObj, config)
+                        console.log(fxn.name, "attendance created!", fxnAttendanceResponse.data.id);
+                    }
+                }
+                
 
 
                 // Navigate to edit form filled with obj details
@@ -656,20 +678,25 @@ const ReportForm = () => {
                 {/* legion fxns with attendance  */}
                 <fieldset>
                     <table>
+                        <thead>
                         <tr>
                             <td>Function Name</td>
                             <td>Date</td>
                             <td>Current Year</td>
                             <td>Previous Year</td>
                         </tr>
+                        </thead>
+                        <tbody>
                         {fxnNameAndTitle.map(itemPair => (
                             <FunctionRow 
                                 key={itemPair[0]} 
                                 name={itemPair[0]} 
                                 title={itemPair[1]}
                                 handler={handleFxnAttendanceChange}
+                                fxnAttendance={fxnAttendance}
                             />
                         ))}
+                        </tbody>
                     </table>
                 </fieldset>
 
