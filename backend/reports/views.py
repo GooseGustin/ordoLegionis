@@ -5,6 +5,7 @@ from .serializers import *
 from .models import (
     Report, FunctionAttendance, MembershipDetail, Achievement
 )
+from praesidium.models import Praesidium
 from meetings.models import Meeting
 from datetime import datetime, timezone 
 from math import ceil
@@ -17,6 +18,28 @@ class ReportViewSet(viewsets.ModelViewSet):
 class FunctionAttendanceViewSet(viewsets.ModelViewSet):
     queryset = FunctionAttendance.objects.all()
     serializer_class = FunctionAttendanceSerializer
+    
+    def list(self, request):
+        # if request.method == 'GET': 
+        print("In list method of FxnAttendanceView\n\n")
+        praes_id = request.GET.get('pid') 
+        report_id = request.GET.get('id')
+        if praes_id and report_id: # filter by both praesidium and report
+            praesidium = Praesidium.objects.get(id=praes_id)
+            report = praesidium.reports.get(id=report_id)
+            serializer = self.get_serializer(report.function_attendances, many=True)
+            return Response(serializer.data)
+        # if praes_id: # filter by praesidium only
+        #     prae = Report.objects.get(praesidium=praes_id)
+        #     serializer = self.get_serializer(reports, many=True)
+        #     return Response(serializer.data)
+        # if report_id: # filter by report only
+        #     reports = Report.objects.get(id=report_id)
+        #     serializer = self.get_serializer(reports, many=True)
+        #     return Response(serializer.data)
+        return super().list(self, request)
+
+
 
 class MembershipDetailsViewSet(viewsets.ModelViewSet):
     queryset = MembershipDetail.objects.all()

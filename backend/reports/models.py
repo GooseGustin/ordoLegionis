@@ -21,7 +21,7 @@ class Achievement(models.Model):
 
 class Report(models.Model):
     # A manager can create a report for whatever time range they specify for that praesidium
-    praesidium = models.ForeignKey(Praesidium, on_delete=models.CASCADE)
+    praesidium = models.ForeignKey(Praesidium, on_delete=models.CASCADE, related_name='reports')
     submission_date = models.DateField(null=True, blank=True)
     last_submission_date = models.DateField(null=True, blank=True)
     report_number = models.IntegerField(default=0)
@@ -48,7 +48,7 @@ class FunctionAttendance(models.Model):
     date = models.DateField(null=True, blank=True)
     current_year_attendance = models.IntegerField(default=0)
     previous_year_attendance = models.IntegerField(default=0)
-    report = models.ForeignKey(Report, on_delete=models.CASCADE)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="function_attendances")
 
     def __str__(self): 
         string = self.name + " for report " + str(self.report.report_number) + " of " + self.report.praesidium.name
