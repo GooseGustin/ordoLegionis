@@ -29,9 +29,12 @@ class Work(models.Model):
 
 class WorkList(models.Model):
     praesidium = models.OneToOneField(Praesidium, on_delete=models.CASCADE)
-    details = models.JSONField(default=dict) 
+    details = models.JSONField(default=list) 
     # work: {'reported items': x, 'reported items': y}
 
 class WorkTypeOption(models.Model):
     name = models.CharField(max_length=50)
     metrics = models.JSONField(default=list)
+
+    def __str__(self): 
+        return self.name + "_work_type"
