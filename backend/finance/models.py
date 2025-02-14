@@ -26,7 +26,7 @@ class AcctAnnouncement(models.Model):
     collection_2 = models.FloatField(null=True, blank=True)
 
 class FinancialRecord(models.Model):
-    meeting = models.OneToOneField(Meeting, on_delete=models.CASCADE)
+    meeting = models.OneToOneField(Meeting, on_delete=models.CASCADE, related_name='records')
     acct_statement = models.OneToOneField(AcctStatement, on_delete=models.CASCADE)
     acct_announcement = models.OneToOneField(AcctAnnouncement, on_delete=models.CASCADE)
     

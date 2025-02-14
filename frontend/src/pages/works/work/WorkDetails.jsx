@@ -1,14 +1,33 @@
 import { useNavigate, useLoaderData, Link } from 'react-router-dom'
 import axios from 'axios'
 
+function isAnEmptyObject(value) {
+    return typeof value === 'object' && 
+           value !== null && 
+           !Array.isArray(value) && 
+           Object.keys(value).length === 0;
+}
+
+function parseObjectKeys(someObj) {
+    console.log('parse', someObj)
+    let keys = []; 
+    if (!isAnEmptyObject(someObj)) {
+        for (let key in someObj) {
+            keys.push(key); 
+        }
+    }
+    return keys; 
+}
+
+
 const WorkDetails = () => {
     const work = useLoaderData(); 
-    console.log("in details", work)
-    const meetingNo = work.meetingDetails.meeting_no; 
-    // let deadline = work.deadline;
-    // if (work.deadline == '1777-01-01') {
-    //     deadline = null; 
-    // } 
+    const loc = "In work details"; 
+    console.log(loc, work)
+    // const meetingNo = ; 
+    const workDetails = work.details; 
+    const workMetrics = parseObjectKeys(workDetails); 
+    console.log(loc, 'work metrics', workMetrics); 
 
     const navigate = useNavigate(); 
 
@@ -49,12 +68,16 @@ const WorkDetails = () => {
     return (
         <div>
             <div className="work-details">
-                <p>Meeting: {meetingNo}</p>                
+                <p>Meeting: {work.meetingDetails.meeting_no}</p>                
                 <p>Date: {work.meetingDetails.date}</p>
                 <p>Work type: {work.type}</p>
                 <p>Active: {work.active? "True": "False"}</p>
                 <p>Done: {work.done? "Done": "Undone"}</p>
-                {/* <p>Details: {work.details}</p> */}
+                <ul>
+                    {workMetrics.map(metric => (
+                        <li key={metric}>{metric} : {workDetails[metric]}</li>
+                    ))}
+                </ul>
             </div>
             <nav className="navbar">
                 <ul>

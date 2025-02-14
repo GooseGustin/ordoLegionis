@@ -1,0 +1,52 @@
+
+components 
+    - Navbar
+    - Sidebar
+    - Titlebar
+    - Footer
+
+home
+    - Home
+social
+    - Question
+        - Answer
+    - Post
+        - Comment
+    - PrayerRequest
+praesidium 
+    - Praesidia
+    - Praesidium (
+        - view details 
+        - continue current meeting 
+        - continue editing current report 
+        - 
+    )
+        - WorkList
+        - Meeting
+            - AcctStatement
+                - Expenses
+            - AcctAnnouncement
+            - FinancialRecord
+            - Work 
+        - Reminder
+        - Report
+            - FunctionAttendance
+            - MembershipDetails
+            - Achievement
+            - WorkSummary
+            - FinancialSummary
+    - Curia 
+        - Announcement 
+account 
+    - Login 
+    - Profile
+    - Legionary
+contact 
+    - Feedback
+    - MessageDeveloper
+
+User Stories
+- Praesidium:
+    - User can go to Praesidia tab for a list of curia and praesidia he's member to. Here user can easily create new meeting and view current report for any praesidia 
+    - In creating a new meeting, the user will create a Meeting, a FinancialRecord, and the selected Works, all associated to the Meeting object
+    - Inside the Praesidium details user can edit praesidium details, edit worklists, edit reports, view all meetings

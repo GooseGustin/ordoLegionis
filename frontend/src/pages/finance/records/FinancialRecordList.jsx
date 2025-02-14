@@ -9,34 +9,6 @@ const FinancialRecordList = () => {
     const [finRecList, errStatus] = useLoaderData();
     const [financialRecordsList, setFinancialRecordsList] = useState(finRecList);
 
-    const deleteFinancialRecord = async (id) => {
-        try {
-            const token = localStorage.getItem('accessToken'); 
-            if (token) {
-                console.log('Get the workList');
-                const config = {
-                    headers: {
-                        "Authorization": `Bearer ${token}` 
-                    }
-                }; 
-                const res = await axios.delete(BASEURL+"finance/records/"+id+"/", config); 
-                console.log("Successfully deleted"); 
-                // navigate("../")
-                const updatedFinancialRecordsList = financialRecordsList.filter(function (exp) {
-                    return exp.id !== id;
-                })
-                setFinancialRecordsList(updatedFinancialRecordsList);
-            }  else {
-                console.log("Sign in to delete the workList")
-            }
-        } catch (err) {
-            if (err.status === 401) {
-                console.log("The session is expired. Please sign in again to delete this workList")
-            } else {
-                console.error("Error deleting the workList:", err);
-            }
-        }
-    }
 
     if (errStatus === 401) {
         return (
@@ -51,7 +23,6 @@ const FinancialRecordList = () => {
         <div className="financialRecord-list">
             {financialRecordsList.map(financialRecord => 
                 (
-                    
                     <Link to={financialRecord.id.toString()} key={financialRecord.id}>
                         Financial Record of Meeting ID {financialRecord.meeting}<br />
                     </Link>

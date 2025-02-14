@@ -90,3 +90,9 @@ a.active {
 label {
     color: rgb(22, 237, 237);
 }
+
+div.box {
+    color: blueviolet;
+    border-color: #1a1a1a;
+    border-width: 3px;
+}

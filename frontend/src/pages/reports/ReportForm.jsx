@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLoaderData } from "react-router-dom";
 import axios from "axios";
 
@@ -17,11 +17,47 @@ function findall(a, x) {
     return results;
 }
 
+const FxnNameAndTitle = [
+    ['acies', 'Acies'], 
+    ['may_devotion', 'May Devotion'], 
+    ['edel_quinn', 'Edel Quinn Mass'], 
+    ['aer', 'Annual Enclosed Retreat'], 
+    ['marys_birthday', "Mary's Birthday"], 
+    ["officers_workshop", "Officers' Workshop"], 
+    ["oct_devotion", "October Devotion"], 
+    ["departed_leg", "Departed Legionaries' Mass"], 
+    ["frank_duff", 'Frank Duff Mass'], 
+    ["leg_congress", "Legion Congress"], 
+    ["outdoor_fxn", "Outdoor Function"], 
+    ["patricians", "Patricians Meeting"], 
+    ["agr", "Annual General Reunion"], 
+    ["exp_dom", "Exploratio Dominicalis"]
+]
+
+function performFxnAttendanceMapping(fxnAttendanceList) {
+    let outputObj = {}
+    for (let i=0; i<FxnNameAndTitle.length; i++) {
+        let [nickname, name] = FxnNameAndTitle[i]; 
+        const fxnAttendanceObj = fxnAttendanceList.filter(innerObj => {
+            return innerObj.name === name; 
+        })[0]; 
+        if (fxnAttendanceObj) {
+            outputObj[nickname] = fxnAttendanceObj;
+        }
+    }
+    console.log('Function-attendance mapping complete', outputObj);
+    return outputObj; 
+}
+
 const FunctionRow = ({name, title, handler, fxnAttendance}) => {
     const 
     fxn_date = name+'_fxn_date',
     current_year = name + '_current_year', 
     previous_year = name + '_previous_year'; 
+    const loc = "In function row"; 
+    const predicate = fxnAttendance[name]; 
+    // console.log(loc, name, fxnAttendance[name]['date'], fxnAttendance[name]['current_year_attendance'])
+
 
     return (
         <tr>
@@ -29,7 +65,7 @@ const FunctionRow = ({name, title, handler, fxnAttendance}) => {
             <td>
                 <input 
                     type="date" name={fxn_date} id="" 
-                    defaultValue={fxnAttendance[name]['date']}
+                    defaultValue={predicate? fxnAttendance[name]['date']: null}
                     onChange={handler}
                 />
             </td>
@@ -37,7 +73,7 @@ const FunctionRow = ({name, title, handler, fxnAttendance}) => {
                 <input 
                     type="number" 
                     name={current_year} id="" 
-                    defaultValue={fxnAttendance[name]['current_year_attendance']}
+                    defaultValue={predicate? fxnAttendance[name]['current_year_attendance']: 0}
                     onChange={handler}
                 />
             </td>
@@ -45,7 +81,7 @@ const FunctionRow = ({name, title, handler, fxnAttendance}) => {
                 <input 
                     type="number" 
                     name={previous_year} id="" 
-                    defaultValue={fxnAttendance[name]['previous_year_attendance']}
+                    defaultValue={predicate? fxnAttendance[name]['previous_year_attendance']: 0}
                     onChange={handler}
                 />
             </td>
@@ -53,11 +89,27 @@ const FunctionRow = ({name, title, handler, fxnAttendance}) => {
     )
 }
 
-const ReportForm = () => {
+const ReportForm = ({method}) => {
     const loc = "In report form component"; 
-    console.log(loc)
+    console.log(loc, method)
     const [obj, praesidia, prepData] = useLoaderData();
     // console.log('prepData:', prepData); 
+    const defaultFxnAttendance = {
+        'acies': {name:'Acies', date: '',  current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'may_devotion': {name:'May Devotion', date: '2024-05-01', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'edel_quinn': {name:"Edel Quinn Mass", date: '2024-05-12', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'aer': {name:'Annual Enclosed Retreat', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'marys_birthday': {name:"Mary's Birthday", date: '2024-09-08', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'officers_workshop': {name:"Officers' Workshop", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'oct_devotion': {name:"October Devotion", date: '2024-10-01', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'departed_leg': {name:"Departed Legionaries' Mass", date: '2024-11-02', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'frank_duff': {name:"Frank Duff Mass", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'leg_congress': {name:'Legion Congress', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'outdoor_fxn': {name:"Outdoor Function", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'patricians': {name:"Patricians Meeting", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'agr': {name:"Annual General Reunion", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
+        'exp_dom': {name:'Exploratio Dominicalis', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}
+    }
     const [report, setReport] = useState({
         "praesidium": 1,
         "submission_date": new Date().toISOString().substring(0, 10),
@@ -79,74 +131,29 @@ const ReportForm = () => {
         "achievements": 1
     })
     const [membership, setMembership] = useState({
-        senior_praesidia: 0,
-        junior_praesidia: 0,
-        active_members: 0,
-        probationary_members: 0,
-        auxiliary_members: 0,
-        adjutorian_members: 0,
-        praetorian_members: 0
+        senior_praesidia: obj? obj.membershipDetails.senior_praesidia: 0,
+        junior_praesidia:obj? obj.membershipDetails.junior_praesidia: 0,
+        active_members: obj? obj.membershipDetails.active_members: 0,
+        probationary_members: obj? obj.membershipDetails.probationary_members: 0,
+        auxiliary_members: obj? obj.membershipDetails.auxiliary_members: 0,
+        adjutorian_members: obj? obj.membershipDetails.adjutorian_members: 0,
+        praetorian_members: obj? obj.membershipDetails.praetorian_members: 0
     })
     const [achievement, setAchievement] = useState({
-        no_recruited: 0,
-        no_baptized: 0,
-        no_confirmed: 0,
-        no_first_communicants: 0,
-        others: {}
+        no_recruited: obj? obj.achievements.no_recruited: 0,
+        no_baptized: obj? obj.achievements.no_baptized: 0,
+        no_confirmed: obj? obj.achievements.no_confirmed: 0,
+        no_first_communicants: obj? obj.achievements.no_first_communicants: 0,
+        others: obj? obj.achievements.others: {}
     })
-    const [fxnAttendance, setFxnAttendance] = useState({
-        'acies': {name:'Acies', date: '',  current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'may_devotion': {name:'May Devotion', date: '2024-05-01', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'edel_quinn': {name:"Edel Quinn Mass", date: '2024-05-12', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'aer': {name:'Annual Enclosed Retreat', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'marys_birthday': {name:"Mary's Birthday", date: '2024-09-08', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'officers_workshop': {name:"Officers' Workshop", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'oct_devotion': {name:"October Devotion", date: '2024-10-01', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'departed_leg': {name:"Departed Legionaries' Mass", date: '2024-11-02', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'frank_duff': {name:"Frank Duff Mass", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'leg_congress': {name:'Legion Congress', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'outdoor_fxn': {name:"Outdoor Function", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'patricians': {name:"Patricians Meeting", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'agr': {name:"Annual General Reunion", date: '', current_year_attendance:0, previous_year_attendance:0, report:0}, 
-        'exp_dom': {name:'Exploratio Dominicalis', date: '', current_year_attendance:0, previous_year_attendance:0, report:0}
-    })
-
-    // const obj = {
-    //     "id": 1,
-    //     "praesidium": 1,
-    //     "submission_date": "2025-02-16",
-    //     "last_submission_date": "2024-02-11",
-    //     "report_number": 2,
-    //     "report_period": 52,
-    //     "last_curia_visit_date": "2025-01-31",
-    //     "last_curia_visitors": [
-    //         "Bro. Jacob Kim"
-    //     ],
-    //     "officers_curia_attendance": {
-    //         "President": 8,
-    //         "Vice President": 12,
-    //         "Secretary": 10,
-    //         "Treasurer": 9
-    //     },
-    //     "officers_meeting_attendance": {
-    //         "President": 48,
-    //         "Vice President": 52,
-    //         "Secretary": 50,
-    //         "Treasurer": 49
-    //     },
-    //     "extension_plans": "To talk to lapsed members",
-    //     "problems": "To many student members",
-    //     "remarks": "",
-    //     "no_meetings_expected": 52,
-    //     "no_meetings_held": 52,
-    //     "avg_attendance": 4,
-    //     "poor_attendance_reason": "Students make up the bulk of the members",
-    //     "membership_details": 1,
-    //     "achievements": 1
-    // };
-
-
-    // let obj2 = null;
+    const [fxnAttendance, setFxnAttendance] = useState(
+            obj? 
+            {
+                ...defaultFxnAttendance, 
+                ...obj.fxnAttendance
+            }
+            : defaultFxnAttendance
+        )
 
     const today = new Date().toISOString().substring(0, 10);
 
@@ -167,16 +174,9 @@ const ReportForm = () => {
         no_meetings_held: obj? obj.no_meetings_held: prepData.no_meetings_held, 
         avg_attendance: obj? obj.avg_attendance: prepData.average_attendance, 
         poor_attendance_reason: obj? obj.poor_attendance_reason: "", 
-        membership_details: obj? obj.membership_details: 1, // object 
-        achievements: obj? obj.achievements: 1 // object
+        membership_details: obj? obj.membershipDetails: membership, // object 
+        achievements: obj? obj.achievements: achievement // object
     })
-
-    // setDefaultObj({
-    //     ...defaultObj, 
-    //     ...prepData
-    // })
-
-    // console.log(defaultObj.officers_curia_attendance)
 
     const handleChange = (e) => {
         let value = e.target.value; 
@@ -227,7 +227,7 @@ const ReportForm = () => {
         const keyName = suffixToKeyMapping[targetName.substring(breakPoint+1)];
         const fxnName = targetName.substring(0, breakPoint); 
 
-        console.log(keyName, fxnName);
+        console.log(loc, keyName, fxnName);
         let value = e.target.value; 
         if (!isNaN(value)) {
             value = value * 1; 
@@ -240,7 +240,7 @@ const ReportForm = () => {
             }
         })
 
-        console.log(fxnAttendance)
+        // console.log(fxnAttendance)
     };
 
     const handleAttendanceChange = (e) => {
@@ -288,14 +288,25 @@ const ReportForm = () => {
                 };
                 // Create membership details
                 console.log(loc, 'membership', membership); 
-                const membershipResponse = await axios.post(BASEURL + 'reports/membership/', membership, config)
+                let membershipResponse;
+                if (obj) {
+                    membershipResponse = await axios.put(BASEURL + `reports/membership/${obj.membershipDetails.id}/`, membership, config);
+                } else {
+                    membershipResponse = await axios.post(BASEURL + 'reports/membership/', membership, config)                    
+                }
                 console.log('Membership created!', membershipResponse)
                 const membershipId = membershipResponse.data.id; 
 
                 // Create achievement
                 console.log(loc, 'achievement', achievement); 
-                const achievementResponse = await axios.post(BASEURL + 'reports/achievement/', achievement, config)
-                console.log('Achievement created!', achievementResponse)
+                let achievementResponse;
+                if (obj) {
+                    achievementResponse = await axios.put(BASEURL + `reports/achievement/${obj.achievements.id}/`, achievement, config);
+                } else {
+                    achievementResponse = await axios.post(BASEURL + 'reports/achievement/', achievement, config)
+                }
+                
+                // console.log('Achievement created!', achievementResponse)
                 const achievementId = achievementResponse.data.id; 
 
                 // Create report
@@ -305,26 +316,47 @@ const ReportForm = () => {
                     membership_details: membershipId, 
                     achievements: achievementId
                 }
-                setReport(reportCopy); 
-                const reportResponse = await axios.post(BASEURL + "reports/report/", reportCopy, config)
-                console.log("Report created!", reportResponse.data)
+                // setReport(reportCopy); 
+                let reportResponse;
+                if (obj) {
+                    reportResponse = await axios.put(BASEURL + `reports/report/${obj.id}/`, reportCopy, config); 
+                } else {
+                    reportResponse = await axios.post(BASEURL + "reports/report/", reportCopy, config)
+                }
+                // console.log("Report created!", reportResponse.data)
                 const reportId = reportResponse.data.id; 
 
                 // Bulk create function attendances
-                console.log(loc, 'fxn attendances', fxnAttendance);
+                // console.log(loc, 'fxn attendances', fxnAttendance);
+                let fxnAttendanceResponse;
                 for (let key in fxnAttendance) {
                     const fxn = fxnAttendance[key];
-                    if (fxn.date) {
-                        const attendanceObj = {
-                            name: fxn.name, 
-                            date: fxn.date, 
-                            current_year_attendance: fxn.current_year_attendance, 
-                            previous_year_attendance: fxn.previous_year_attendance,
-                            report: reportId
+                    // console.log(key, fxn)
+                    if (fxn) {
+                        if (fxn.date) { 
+                            // console.log("Obj exists and this fxn attendance is getting...", fxn)
+                            if (fxn.id) { // For update while object
+                                console.log("...updated")
+                                fxnAttendanceResponse = await axios.put(BASEURL + `reports/attendance/${fxn.id}/`, fxn, config);
+                            } else { // for creation while object
+                                console.log("...created")
+                                const attendanceObj = {
+                                    name: fxn.name, 
+                                    date: fxn.date, 
+                                    current_year_attendance: fxn.current_year_attendance, 
+                                    previous_year_attendance: fxn.previous_year_attendance,
+                                    report: reportId
+                                }
+                                fxnAttendanceResponse = await axios.post(BASEURL + `reports/attendance/`, attendanceObj, config); 
+                            }
+                            console.log(fxn.name, "attendance created or updated!", fxnAttendanceResponse.data.id);
+
+                            // continue; 
+                        } else {
+                            // console.log("Fxn is undated. Do nothing") // Do nothing
+                            continue; 
                         }
-                        const fxnAttendanceResponse = await axios.post(BASEURL + "reports/attendance/", attendanceObj, config)
-                        console.log(fxn.name, "attendance created!", fxnAttendanceResponse.data.id);
-                    }
+                    } 
                 }
                 
 
@@ -340,49 +372,26 @@ const ReportForm = () => {
         }
     }
 
-    const fxnNameAndTitle = [
-        ['acies', 'Acies'], 
-        ['may_devotion', 'May Devotion'], 
-        ['edel_quinn', 'Edel Quinn Mass'], 
-        ['aer', 'Annual Enclosed Retreat'], 
-        ['marys_birthday', "Mary's Birthday"], 
-        ["officers_workshop", "Officers' Workshop"], 
-        ["oct_devotion", "October Devotion"], 
-        ["departed_leg", "Departed Legionaries Mass"], 
-        ["frank_duff", 'Frank Duff Mass'], 
-        ["leg_congress", "Legion Congress"], 
-        ["outdoor_fxn", "Outdoor Function"], 
-        ["patricians", "Patricians Meeting"], 
-        ["agr", "Annual General Reunion"], 
-        ["exp_dom", "Exploratio Dominicalis"]
-    ]
+    const pageTitle = method == 'create' ? "Create a Report" : "Edit your Report";
 
     return (
         <div>
-            <h2>Edit Report</h2>
+            <h2>{pageTitle}</h2>
             <hr />
             <form onSubmit={submitReport}>
 
                 <label htmlFor="praesidium">
                     Praesidium:
                     <select name="praesidium" id="praesidium"
-                        onChange={handleChange}>
+                        onChange={handleChange}
+                        defaultValue={obj? obj.praesidium: 1}>
                         {praesidia.map(praesidium =>
-                            // obj
-                            //     ? (
-                            //         <option
-                            //             value={praesidium.id}
-                            //             key={praesidium.id}
-                            //             selected={praesidium.id == obj.praesidium ? true : false}
-                            //         >{praesidium.name}</option>
-                            //     )
-                            //     : 
-                                (
-                                    <option
-                                        value={praesidium.id}
-                                        key={praesidium.id}
-                                    >{praesidium.name}</option>
-                                ))}
+                            (
+                                <option
+                                    value={praesidium.id}
+                                    key={praesidium.id}
+                                >{praesidium.name}</option>
+                            ))}
                     </select>
                 </label><br /><br />
                 <label htmlFor="submission_date">
@@ -573,7 +582,7 @@ const ReportForm = () => {
                             type="number"
                             name="senior_praesidia_membership" id="senior_praesidia_membership"
                             onChange={handleMembershipChange}
-                            defaultValue={0}
+                            defaultValue={defaultObj.membership_details.senior_praesidia}
                         />
                     </label><br /><br />
                     <label htmlFor="junior_praesidia_membership">
@@ -582,7 +591,7 @@ const ReportForm = () => {
                             type="number"
                             name="junior_praesidia_membership" id="junior_praesidia_membership"
                             onChange={handleMembershipChange}
-                            defaultValue={0}
+                            defaultValue={defaultObj.membership_details.junior_praesidia}
                         />
                     </label><br /><br />
                     <label htmlFor="active_members_membership">
@@ -591,7 +600,7 @@ const ReportForm = () => {
                             type="number"
                             name="active_members_membership" id="active_members_membership"
                             onChange={handleMembershipChange}
-                            defaultValue={0} 
+                            defaultValue={defaultObj.membership_details.active_members} 
                         />
                     </label><br /><br />
                     <label htmlFor="probationary_members_membership">
@@ -600,7 +609,7 @@ const ReportForm = () => {
                             type="number"
                             name="probationary_members_membership" id="probationary_members_membership"
                             onChange={handleMembershipChange}
-                            defaultValue={0}  
+                            defaultValue={defaultObj.membership_details.probationary_members}  
                         />
                     </label><br /><br />
                     <label htmlFor="auxiliary_members_membership">
@@ -609,7 +618,7 @@ const ReportForm = () => {
                             type="number"
                             name="auxiliary_members_membership" id="auxiliary_members_membership"
                             onChange={handleMembershipChange}
-                            defaultValue={0} 
+                            defaultValue={defaultObj.membership_details.auxiliary_members} 
                         />
                     </label><br /><br />
                     <label htmlFor="adjutorian_members_membership">
@@ -618,7 +627,7 @@ const ReportForm = () => {
                             type="number"
                             name="adjutorian_members_membership" id="adjutorian_members_membership"
                             onChange={handleMembershipChange}
-                            defaultValue={0} 
+                            defaultValue={defaultObj.membership_details.adjutorian_members} 
                         />
                     </label><br /><br />
                     <label htmlFor="praetorian_members_membership">
@@ -627,7 +636,7 @@ const ReportForm = () => {
                             type="number"
                             name="praetorian_members_membership" id="praetorian_members_membership"
                             onChange={handleMembershipChange}
-                            defaultValue={0} 
+                            defaultValue={defaultObj.membership_details.praetorian_members} 
                         />
                     </label><br /><br />
 
@@ -642,7 +651,7 @@ const ReportForm = () => {
                             type="number"
                             name="no_recruited_achievement" id="recruited_achievement"
                             onChange={handleAchievementChange}
-                            defaultValue={0} 
+                            defaultValue={defaultObj.achievements.no_recruited} 
                         />
                     </label><br /><br />
                     <label htmlFor="no_baptized_achievement">
@@ -651,7 +660,7 @@ const ReportForm = () => {
                             type="number"
                             name="no_baptized_achievement" id="baptized_achievement"
                             onChange={handleAchievementChange}
-                            defaultValue={0} 
+                            defaultValue={defaultObj.achievements.no_baptized} 
                         />
                     </label><br /><br />
                     <label htmlFor="confirmed_achievement">
@@ -660,7 +669,7 @@ const ReportForm = () => {
                             type="number"
                             name="no_confirmed_achievement" id="confirmed_achievement"
                             onChange={handleAchievementChange}
-                            defaultValue={0} 
+                            defaultValue={defaultObj.achievements.no_confirmed} 
                         />
                     </label><br /><br />
                     <label htmlFor="communicants_achievement">
@@ -669,7 +678,7 @@ const ReportForm = () => {
                             type="number"
                             name="no_first_communicants_achievement" id="communicants_achievement"
                             onChange={handleAchievementChange}
-                            defaultValue={0} 
+                            defaultValue={defaultObj.achievements.no_first_communicants} 
                         />
                     </label><br /><br />
 
@@ -687,7 +696,7 @@ const ReportForm = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {fxnNameAndTitle.map(itemPair => (
+                        {FxnNameAndTitle.map(itemPair => (
                             <FunctionRow 
                                 key={itemPair[0]} 
                                 name={itemPair[0]} 
@@ -712,11 +721,12 @@ export default ReportForm
 
 // loader function 
 export const reportFormLoader = async ({ params }) => {
-    const { id } = params;     
+    const { id } = params;  // id of particular praesidium
 
-    console.log("In financialRecords form loader", id);
+    const loc = "In financialRecords form loader";
+    console.log(loc, id);
 
-    const obj = null; 
+    let obj = null; 
     let praesidia = [];
     let prepData = null;
 
@@ -728,13 +738,32 @@ export const reportFormLoader = async ({ params }) => {
                     "Authorization": `Bearer ${token}`
                 }
             };
+            if (id) {
+                // get report of particular praesidium
+                const reportResponse = await axios.get(BASEURL + `reports/report/${id}`, config); 
+                obj = reportResponse.data; 
+                // console.log(loc, 'meb', obj.membership_details)
+
+                const fxnAttendanceResponse = await axios.get(BASEURL + `reports/attendance/?pid=${obj.praesidium}&id=${id}`, config); 
+                obj.fxnAttendance = performFxnAttendanceMapping(fxnAttendanceResponse.data); 
+                
+                const membershipDetailsResponse = await axios.get(BASEURL + `reports/membership/${obj.membership_details}`, config); 
+                obj.membershipDetails = membershipDetailsResponse.data; 
+
+                const achievementResponse = await axios.get(BASEURL + `reports/achievement/${obj.achievements}`, config); 
+                obj.achievements = achievementResponse.data; 
+                // console.log(loc, 'achievementResponse', achievementResponse.data)
+            }
+
             const praesidiaResponse = await axios.get(BASEURL + "praesidium/praesidium/", config);
             praesidia = praesidiaResponse.data;
-            const pid = 1; 
+            const pid = obj? obj.praesidium: 1; 
             const startDate = '2024-8-10'; 
             const endDate = '2024-12-31'; 
             const prepDataResponse = await axios.get(BASEURL + `reports/get_report_prep_data?id=${pid}&startDate=${startDate}&endDate=${endDate}`, config); 
             prepData = prepDataResponse.data; 
+
+            
         } else {
             console.log("Sign in to get meetings paradisei")
         }

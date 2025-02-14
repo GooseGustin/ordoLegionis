@@ -1,8 +1,8 @@
 #root {
   max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  /* margin: 0 auto;
+  padding: 2rem; */
+  /* text-align: center; */
 }
 
 .logo {
@@ -39,4 +39,99 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* sidebar */
+.sidebar {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    height: 100%; 
+    width: 200px; 
+    padding-top: 20px; 
+    margin-top: 40px;
+    background-color: rgb(25,25,25);
+    transition: width 0.3s;
+}
+
+.sidebar .nav-link {
+    display: flex; 
+    align-items: center; 
+    gap: 20px; 
+    padding: 10px 20px; 
+    color: white; 
+}
+
+.sidebar .description {
+    font-size: 14px; 
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgb(0, 0, 0, 0.5); 
+    color: white;
+}
+
+.sidebar .sub-menu {
+    background-color: #076dcd69; 
+    padding-left: 3%; 
+    padding-right: 3%;
+}
+
+.sidebar a.active {
+    color: rgb(22, 227, 230);
+    text-decoration: none;
+}
+
+.sider {
+    background-color: rgb(20, 20, 20);
+    backdrop-filter: blur(10px);
+}
+
+.main-content {
+    height: 100%; 
+    margin-top: 50px;
+    margin-left: 200px; 
+    padding: 20px; 
+}
+
+.sider a.active {
+    color: rgb(22, 227, 230);
+    text-decoration: none;
+}
+
+.sider a {
+    color: white; 
+    text-decoration: none; 
+    margin-top: auto;
+}
+
+.post {
+    border-right: 19px thick black;
+}
+
+.nav-logo {
+    width: 40px; 
+    height: 40px; 
+    margin-right: 10px;
+}
+
+@media (max-width: 500px) {
+    .sidebar {
+        width: 60px; 
+    }
+    .sidebar .description {
+        display: none; 
+    }
+
+    .sidebar .nav-link {
+        justify-content: center; 
+    }
+    
+    .main-content {
+        margin-left: 60px;
+    }
+
+    .sider {
+        background-color: rgb(20, 20, 20);
+    }
 }

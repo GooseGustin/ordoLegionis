@@ -9,7 +9,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'curia', 'date', 
             'deadline', 'title', 
-            'body', 'image', 
+            'content', 'image', 
             'hidden_by', 'acknowledged_by'
         ]
         read_only_fields = ['date', 'hidden_by', 'acknowledged_by']

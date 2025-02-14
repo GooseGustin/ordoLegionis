@@ -44,7 +44,7 @@ class Announcement(models.Model):
     date = models.DateField(auto_now_add=True)
     deadline = models.DateField(null=True, blank=True)  
     title = models.CharField(max_length=100)
-    body = models.TextField()
+    content = models.TextField()
     image = models.ImageField(upload_to='images/curia/', blank=True, null=True)
     hidden_by = models.JSONField(default=list, blank=True) 
     acknowledged_by = models.JSONField(default=list, blank=True) 

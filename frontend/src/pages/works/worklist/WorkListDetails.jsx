@@ -1,26 +1,49 @@
 import { useNavigate, useLoaderData, Link } from 'react-router-dom'
 import axios from 'axios'
 
-const RenderDetails = ({ name, detailsList }) => {
-    console.log('In render details', detailsList)
+function parseObjectKeys(someObj) {
+    let keys = []; 
+    for (let key in someObj) {
+        keys.push(key); 
+    }
+    return keys; 
+}
+
+function allFalseMetrics(obj) {
+    for (let item in obj) {
+        if (obj[item]) {
+            return true; 
+        }
+    }
+    return false 
+}
+
+const RenderDetails = ({ name, metrics }) => {
+    // console.log('In work list details render details', metrics)
+    const metricsKeys = parseObjectKeys(metrics); 
+    const workIsSelected = allFalseMetrics(metrics);
+    // console.log('check 1', workIsSelected); 
     return (
         <>
-        <h4>{name}</h4>
+        {workIsSelected? (<h4>{name}</h4>): (<></>)}
         <ul>
-            {detailsList.map(item => (
-                <li key={name+item}>{item}</li>
-        ))}
+            {metricsKeys.map(item => {
+                if (metrics[item]) {
+                    return (<li key={item}>{item}</li>)
+                } 
+            })}
         </ul>
         </>
     )
 }
 
 const WorkListDetails = () => {
-    console.log("In worklist details")
-    const [workList, keys, workTypes] = useLoaderData(); 
+    const loc = "In worklist details"; 
+    const [workList] = useLoaderData(); 
     
-    console.log("worklist details", workList.details, 'keys', keys)
-    const detailsObject = workList.details; 
+    console.log(loc, workList)
+    const workListDetails = workList.details; 
+    console.log(loc, 'workListDetails', workListDetails)
     const praesidiumName = workList.praesidiumName; 
 
     const navigate = useNavigate(); 
@@ -35,7 +58,7 @@ const WorkListDetails = () => {
                         "Authorization": `Bearer ${token}` 
                     }
                 }; 
-                const res = await axios.delete("http://localhost:8000/api/workLists/workLists/"+workList.id+"/", config); 
+                const res = await axios.delete("http://localhost:8000/api/works/work_list/"+workList.id+"/", config); 
                 console.log("Successfully deleted"); 
                 navigate("../")
             }  else {
@@ -63,13 +86,13 @@ const WorkListDetails = () => {
     return (
         <div>
             <div className="workList-details">
-                <p>Praesidium: {praesidiumName}</p>                
-                {keys.map(keyName => (
+                <p>Praesidium: {praesidiumName}</p>   
+                {workListDetails.map(workType => 
                     <RenderDetails 
-                        name={keyName} 
-                        detailsList={detailsObject[keyName]} 
-                        // keyName={keyName} 
-                    />)
+                        key={workType.name}
+                        name={workType.name}
+                        metrics={workType.metrics}
+                    />
                 )}
             </div>
             <nav className="navbar">
@@ -86,40 +109,41 @@ export default WorkListDetails
 
 // loader function 
 export const workListDetailsLoader = async ({ params }) => {
-    console.log('In worklist details loader');
+    const loc = 'In worklist details loader';
     const { id } = params;     
 
     try {
         const token = localStorage.getItem('accessToken'); 
         if (token) {
-            console.log('Get the workList');
+            console.log(loc, 'check 1', id);
             const config = {
                 headers: {
                     "Authorization": `Bearer ${token}` 
                 }
             }; 
-            const workListResponse = await axios.get("http://127.0.0.1:8000/api/works/work_list/" + id, config); 
+            const workListResponse = await axios.get(`http://127.0.0.1:8000/api/works/work_list/${id}/`, config); 
             const workListData = workListResponse.data;
-            const workTypesResponse = await axios.get("http://localhost:8000/api/works/work_type_options", config);
+            console.log(loc, 'work list data', workListData)
+            const workTypesResponse = await axios.get("http://localhost:8000/api/works/work_type_option/", config);
             const workTypesData = workTypesResponse.data; 
             console.log('Work types data:', workTypesData);
 
-            // Parse the response to obtain the keys 
-            let keys = []; 
-            const printNested = (obj) => {    
-                if (typeof obj === 'object') {
-                    for (let key in obj) {
-                        if (isNaN(key*0)) {
-                            // console.log('test 1', key)
-                            // console.log('test 2', keys, obj[key]);
-                            keys.push(key); 
-                        }
-                        printNested(obj[key]); 
-                    } 
-                } 
-            }
-            printNested(workListData);
-            keys.shift(); keys.shift(); keys.shift();
+            // // Parse the response to obtain the keys 
+            // let keys = []; 
+            // const printNested = (obj) => {    
+            //     if (typeof obj === 'object') {
+            //         for (let key in obj) {
+            //             if (isNaN(key*0)) {
+            //                 // console.log('test 1', key)
+            //                 // console.log('test 2', keys, obj[key]);
+            //                 keys.push(key); 
+            //             }
+            //             printNested(obj[key]); 
+            //         } 
+            //     } 
+            // }
+            // printNested(workListData);
+            // keys.shift(); keys.shift(); keys.shift();
 
             // Extract the praesidium ID from the workList data
             const praesidiumId = workListData.praesidium;
@@ -133,7 +157,7 @@ export const workListDetailsLoader = async ({ params }) => {
 
                 // Add the praesidium details to the workList data
                 workListData.praesidiumName = praesidiumResponse.data.name;
-                return [workListData, keys, workTypesData]; 
+                return [workListData]; 
             } else {
                 console.warn('No praesidium ID found in the workList data');
             }

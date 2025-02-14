@@ -168,6 +168,7 @@ const FinancialRecordForm = (props) => {
                     </select>
                 </label><br /><br />
 
+                {/* Acct Statement */}
                 <fieldset>
                     <div className="acct-statement">
                         <h2>Account Statement</h2>
@@ -189,6 +190,7 @@ const FinancialRecordForm = (props) => {
                     </div>
                 </fieldset>
 
+                {/* Expenses */}
                 <fieldset>
                     <div className="expenses">
                         <h2>Expenses</h2>
@@ -221,6 +223,7 @@ const FinancialRecordForm = (props) => {
                     </div>
                 </fieldset>
 
+                {/* Acct Announcement */}
                 <fieldset>
                     <div className="acct-announcement">
                         <h2>Account Announcement</h2>

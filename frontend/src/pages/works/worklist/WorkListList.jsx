@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { Link, useLoaderData } from 'react-router-dom'
 
+const BASEURL = "http://127.0.0.1:8000/api/";
+
 const WorkListList = () => {
     const [workLists, praesidia, errStatus] = useLoaderData(); 
 
@@ -49,14 +51,14 @@ export const workListListsLoader = async () => {
                     "Authorization": `Bearer ${token}` 
                 }
             };
-            const response = await axios.get("http://127.0.0.1:8000/api/works/work_list", config); 
+            const workListResponse = await axios.get(BASEURL + "works/work_list/", config); 
             // console.log('WorkLists response', response.data)
             // setWorkLists(response.data)
-            worklists = response.data 
-            const response2 = await axios.get("http://localhost:8000/api/praesidium/praesidium", config); 
+            worklists = workListResponse.data 
+            const praesidiaResponse = await axios.get(BASEURL + "praesidium/praesidium/", config); 
             // console.log("Praesidia response", response2.data)
             // setPraesidia(response2.data) 
-            praesidia = response2.data 
+            praesidia = praesidiaResponse.data 
         } else {
             console.log("Sign in to get workLists")
         }

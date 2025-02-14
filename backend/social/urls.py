@@ -5,13 +5,14 @@ from .views import (
     PostViewSet, 
     # question_mixin_view,
     QuestionViewSet, 
-    # QuestionCreateView,
+    PrayerRequestViewSet,
 )
 
 router = routers.DefaultRouter()
 router.register('answers', AnswerViewSet)
 router.register('posts', PostViewSet)
 router.register('questions', QuestionViewSet)
+router.register('requests', PrayerRequestViewSet)
 # router.register('questions', QuestionCreateView)
 
 urlpatterns = router.urls 

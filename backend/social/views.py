@@ -5,8 +5,10 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.response import Response
 from rest_framework import status, generics, mixins
 from rest_framework.decorators import action 
-from .models import Answer, Post, Question
-from .serializers import AnswerSerializer, PostSerializer, QuestionSerializer
+from .models import Answer, Post, Question, PrayerRequest
+from .serializers import (
+    AnswerSerializer, PostSerializer, QuestionSerializer, PrayerRequestSerializer
+)
 from accounts.models import Legionary
 
 class AnswerViewSet(ModelViewSet):
@@ -21,6 +23,10 @@ class PostViewSet(ModelViewSet):
 class QuestionViewSet(ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+
+class PrayerRequestViewSet(ModelViewSet):
+    queryset = PrayerRequest.objects.all()
+    serializer_class = PrayerRequestSerializer
 
 # class QuestionViewSet2(GenericViewSet):
 #     serializer_class = QuestionSerializer

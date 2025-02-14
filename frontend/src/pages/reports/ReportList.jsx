@@ -9,35 +9,6 @@ const ReportList = () => {
     const [reportsList, setReportsList] = useState(finRecList);
     console.log('Reports list', reportsList);
 
-    const deleteReport = async (id) => {
-        try {
-            const token = localStorage.getItem('accessToken'); 
-            if (token) {
-                console.log('Get the workList');
-                const config = {
-                    headers: {
-                        "Authorization": `Bearer ${token}` 
-                    }
-                }; 
-                const res = await axios.delete(BASEURL+"reports/report/"+id+"/", config); 
-                console.log("Successfully deleted"); 
-                // navigate("../")
-                const updatedReportsList = reportsList.filter(function (exp) {
-                    return exp.id !== id;
-                })
-                setReportsList(updatedReportsList);
-            }  else {
-                console.log("Sign in to delete the workList")
-            }
-        } catch (err) {
-            if (err.status === 401) {
-                console.log("The session is expired. Please sign in again to delete this workList")
-            } else {
-                console.error("Error deleting the workList:", err);
-            }
-        }
-    }
-
     if (errStatus === 401) {
         return (
             <div>
@@ -52,7 +23,7 @@ const ReportList = () => {
             {reportsList.map(report => 
                 (
                     <Link to={report.id.toString()} key={report.id}>
-                        Financial Record of Praesidium with ID {report.praesidium}<br />
+                        Financial Record {report.report_number} of Praesidium with ID {report.praesidium}<br />
                     </Link>
                 )  
             )}  

@@ -61,7 +61,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class PrayeRequestSerializer(serializers.ModelSerializer):
+class PrayerRequestSerializer(serializers.ModelSerializer):
     # flags = QuestionFlag
     class Meta: 
         model = PrayerRequest
