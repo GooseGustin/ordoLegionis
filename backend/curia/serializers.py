@@ -31,9 +31,9 @@ class CuriaSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Curia
         fields = [
-            'id', 'name', 'iden', 
+            'id', 'name', 'iden', 'inaug_date',
             'state', 'country', 
-            'parish', 'spiritual_director', 
+            'parish', 'spiritual_director', 'spiritual_director_app_date',
             'creator', 'created_at',
             'managers', 'management_requests'
         ]
@@ -41,6 +41,7 @@ class CuriaSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
+        print("In curia serializer create method", request.user)
         if request and hasattr(request, 'user'):
             user = request.user 
             legionary = Legionary.objects.get(user=user)

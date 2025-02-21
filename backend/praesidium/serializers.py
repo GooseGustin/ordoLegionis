@@ -14,7 +14,7 @@ class PraesidiumSerializer(serializers.ModelSerializer):
             'vp_app_date', 'secretary', 'sec_app_date', 
             'treasurer', 'tres_app_date', 'managers', 'members',
             'membership_requests', 'next_report_deadline', 
-            'created_at'
+            'created_at', 'work_list', 'reports'
         ]
         read_only_fields = [
             'id', 'iden', 'managers', 

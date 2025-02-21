@@ -31,15 +31,15 @@ class WorkTypeOptionSerializer(serializers.ModelSerializer):
             'metrics'
         ]
 
-# class WorkSummarySerializer(serializers.ModelSerializer):
-#     class Meta: 
-#         model = WorkSummary
-#         fields = [
-#             'type', 
-#             'active', 
-#             'no_assigned',
-#             'no_done', 
-#             'report',
-#             'details' 
-#         ]
+class WorkSummarySerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = WorkSummary
+        fields = [
+            'type', 
+            'active', 
+            'no_assigned',
+            'no_done', 
+            'report',
+            'details' 
+        ]
 

@@ -11,7 +11,8 @@ class ReportSerializer(serializers.ModelSerializer):
             'officers_meeting_attendance', 'extension_plans', 
             'problems', 'remarks', 'no_meetings_expected', 
             'no_meetings_held', 'avg_attendance', 'poor_attendance_reason', 
-            'membership_details', 'achievements' #, 'work_summary', 'financial_summary'
+            'membership_details', 'achievements', 'function_attendances'
+            #, 'work_summary', 'financial_summary'
         ]
 
 class FunctionAttendanceSerializer(serializers.ModelSerializer):

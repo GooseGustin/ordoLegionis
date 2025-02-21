@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from .serializers import (
     WorkSerializer, 
     WorkListSerializer, 
-    WorkTypeOptionSerializer
-    # , WorkSummarySerializer
+    WorkTypeOptionSerializer, 
+    WorkSummarySerializer
 )
-from .models import Work, WorkList, WorkTypeOption #, WorkSummary
+from .models import Work, WorkList, WorkTypeOption, WorkSummary
 from praesidium.models import Praesidium
 from meetings.models import Meeting 
 
@@ -27,6 +27,7 @@ class WorkViewSet(viewsets.ModelViewSet):
         work = Work.objects.all()
         serializer = self.get_serializer(work, many=True)
         return Response(serializer.data)
+        
 class WorkListViewSet(viewsets.ModelViewSet):
     queryset = WorkList.objects.all()
     serializer_class = WorkListSerializer 
@@ -48,6 +49,6 @@ class WorkTypeOptionViewSet(viewsets.ModelViewSet):
     serializer_class = WorkTypeOptionSerializer
 
 
-# class WorkSummaryViewSet(viewsets.ModelViewSet):
-#     queryset = WorkSummary.objects.all()
-#     serializer_class = WorkSummarySerializer
+class WorkSummaryViewSet(viewsets.ModelViewSet):
+    queryset = WorkSummary.objects.all()
+    serializer_class = WorkSummarySerializer

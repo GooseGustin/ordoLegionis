@@ -1,7 +1,7 @@
 from django.db import models
 from meetings.models import Meeting
 from praesidium.models import Praesidium
-# from reports.models import Report 
+from reports.models import Report 
 
 # Create your models here.
 class Work(models.Model):
@@ -28,14 +28,14 @@ class WorkTypeOption(models.Model):
         return self.name + "_work_type"
 
 
-# class WorkSummary(models.Model):
-#     type = models.CharField(max_length=50)
-#     active = models.BooleanField(default=False)
-#     no_assigned = models.IntegerField(default=0)
-#     no_done = models.IntegerField(default=0)
-#     details = models.JSONField(default=dict, null=True, blank=True)
-#     report = models.ForeignKey(Report, on_delete=models.CASCADE, 
-#             related_name="work_summaries")
+class WorkSummary(models.Model):
+    type = models.CharField(max_length=50)
+    active = models.BooleanField(default=False)
+    no_assigned = models.IntegerField(default=0)
+    no_done = models.IntegerField(default=0)
+    details = models.JSONField(default=dict, null=True, blank=True)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, 
+            related_name="work_summaries")
 
-#     class Meta: 
-#         verbose_name_plural = 'work summaries'
+    class Meta: 
+        verbose_name_plural = 'work summaries'

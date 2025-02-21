@@ -5,4 +5,4 @@ from .models import *
 admin.site.register(Work)
 admin.site.register(WorkList)
 admin.site.register(WorkTypeOption)
-# admin.site.register(WorkSummary)
+admin.site.register(WorkSummary)

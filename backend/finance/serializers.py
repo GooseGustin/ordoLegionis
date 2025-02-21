@@ -10,16 +10,6 @@ class ExpensesSerializer(serializers.ModelSerializer):
             'bouquet', 'others'
         ]
 
-    # def create(self, validated_data):
-    #     print("In expenses serializer", validated_data)
-    #     return Expenses.objects.create(**validated_data)
-
-    # def update(self, instance, validated_data):
-    #     for field, value in validated_data.items():
-    #         setattr(instance, field, value)
-    #     instance.save()
-    #     return instance
-
 class AcctStatementSerializer(serializers.ModelSerializer):
     expenses = ExpensesSerializer()
 

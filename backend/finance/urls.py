@@ -1,6 +1,7 @@
 from rest_framework import routers 
 from .views import (
-    FinancialRecordViewSet, FinancialSummaryViewSet, 
+    FinancialRecordViewSet, 
+    FinancialSummaryViewSet, 
     AcctAnnouncementViewSet, AcctStatementViewSet, 
     ExpensesViewSet
 )

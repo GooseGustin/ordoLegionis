@@ -1,6 +1,6 @@
 from django.db import models
 from meetings.models import Meeting
-# from reports.models import Report
+from reports.models import Report
 
 # Create your models here.
 class Expenses(models.Model):
@@ -31,7 +31,7 @@ class FinancialRecord(models.Model):
     acct_announcement = models.OneToOneField(AcctAnnouncement, on_delete=models.CASCADE)
     
 class FinancialSummary(models.Model):
-    # report = models.ForeignKey(Report, on_delete=models.CASCADE)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='financial_summary')
     abf = models.FloatField(default=0) # from beginning year
     sbc = models.JSONField(default=dict, null=True, blank=True)
     expenses = models.JSONField(default=dict, null=True, blank=True)
