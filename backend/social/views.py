@@ -1,79 +1,95 @@
 from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+# from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet # , GenericViewSet
 from rest_framework.response import Response
-from rest_framework import status, generics, mixins
+# from rest_framework import status, generics, mixins
 from rest_framework.decorators import action 
-from .models import Answer, Post, Question, PrayerRequest
+from .models import (
+    Answer, 
+    Comment,
+    Post, 
+    Question, 
+    PrayerRequest
+)
 from .serializers import (
-    AnswerSerializer, PostSerializer, QuestionSerializer, PrayerRequestSerializer
+    AnswerSerializer, 
+    CommentSerializer,
+    PostSerializer, 
+    QuestionSerializer, 
+    PrayerRequestSerializer
 )
 from accounts.models import Legionary
 
 class AnswerViewSet(ModelViewSet):
-    queryset = Answer.objects.all()
+    queryset = Answer.objects.all().order_by('-date')
     serializer_class = AnswerSerializer
     # permission_classes = [permissions.AllowAny]
+
+    def list(self, request): 
+        qid = request.GET.get('qid')
+        # print(request.data, request.GET)
+        print("in answers list view", qid)
+        if qid: 
+            question = Question.objects.get(id=qid)
+            answers = question.answers.order_by('-date') ##  self.queryset.filter(question=qid)
+            serializer = self.serializer_class(answers, many=True)
+            print('answers returned', answers)
+            return Response(serializer.data)
+        serializer = self.serializer_class(self.queryset, many=True)
+        return Response(serializer.data)
+
+class CommentViewSet(ModelViewSet):
+    queryset = Comment.objects.all().order_by('-date')
+    serializer_class = CommentSerializer
+    # permission_classes = [permissions.AllowAny]
+
+    def list(self, request): 
+        pid = request.GET.get('pid')
+        # print(request.data, request.GET)
+        print("in comments list view", pid)
+        if pid: 
+            post= Post.objects.get(id=pid)
+            comments = post.comments.order_by('-date') ##  self.queryset.filter(question=qid)
+            serializer = self.serializer_class(comments, many=True)
+            print('answers returned', comments)
+            return Response(serializer.data)
+        serializer = self.serializer_class(self.queryset, many=True)
+        return Response(serializer.data)
+
 
 class PostViewSet(ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+    def list(self, request, *args, **kwargs): 
+        print("In post list view")
+        legionary = Legionary.objects.get(user=request.user) 
+        posts = self.queryset.filter(legionary=legionary)
+        print("In post list view", posts)
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
+
 class QuestionViewSet(ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+
+    def list(self, request, *args, **kwargs): 
+        # print("In post list view")
+        legionary = Legionary.objects.get(user=request.user) 
+        questions = self.queryset.filter(legionary=legionary)
+        print("In postlist view", questions)
+        serializer = self.get_serializer(questions, many=True)
+        return Response(serializer.data)
 
 class PrayerRequestViewSet(ModelViewSet):
     queryset = PrayerRequest.objects.all()
     serializer_class = PrayerRequestSerializer
 
-# class QuestionViewSet2(GenericViewSet):
-#     serializer_class = QuestionSerializer
-#     permission_classes = [IsAuthenticated,] 
-
-#     def get_queryset(self):
-#         return Question.objects.all()
-
-#     @action(methods=['get'], detail=False)
-#     def list(self, request): 
-#         serializer = self.get_serializer_class()
-
-# class QuestionMixinView(
-#     mixins.RetrieveModelMixin, 
-#     mixins.ListModelMixin, 
-#     generics.GenericAPIView
-#     ):
-#     queryset = Question.objects.all()
-#     serializer_class = QuestionSerializer
-
-#     def get(self, request, *args, **kwargs):
-#         pk = kwargs.get('pk', None)
-#         if pk: 
-#             return self.retrieve(request, *args, **kwargs)
-#         return self.list(request, *args, **kwargs)
-    
-# question_mixin_view = QuestionMixinView.as_view()
-    
-
-# class QuestionCreateView(APIView):
-#     permission_classes = [AllowAny,]
-
-#     def post(self, request, *args, **kwargs):
-#         serializer = QuestionSerializer(data=request.data, context={'request': request})
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class QuestionListView(APIView):
-#     permission_classes = [IsAuthenticated,]
-#     # queryset = Question.objects.all()
-
-#     def get(self, request, format=None):
-#         # usernames = [user.username for user in User.objects.all()]
-#         user = request.user 
-#         legionary = Legionary.objects.get(user=user)
-#         questions = [question for question in legionary.question_set]
-
-#         return Response(questions)
+    def list(self, request, *args, **kwargs): 
+        # print("In post list view")
+        legionary = Legionary.objects.get(user=request.user) 
+        requests = self.queryset.filter(legionary=legionary)
+        print("In prayer request list view", requests)
+        serializer = self.get_serializer(requests, many=True)
+        return Response(serializer.data)

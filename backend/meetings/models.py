@@ -13,3 +13,7 @@ class Meeting(models.Model):
 
     def __str__(self):
         return "Meeting " + str(self.meeting_no) + " of " + self.praesidium.name
+
+class MeetingNotes(models.Model): 
+    meeting = models.OneToOneField(Meeting, on_delete=models.CASCADE, related_name='notes')
+    content = models.TextField()

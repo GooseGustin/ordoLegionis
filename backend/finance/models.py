@@ -31,10 +31,11 @@ class FinancialRecord(models.Model):
     acct_announcement = models.OneToOneField(AcctAnnouncement, on_delete=models.CASCADE)
     
 class FinancialSummary(models.Model):
-    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='financial_summary')
-    abf = models.FloatField(default=0) # from beginning year
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='financial_summaries')
+    acf = models.JSONField(default=dict, null=True, blank=True) # from beginning year
     sbc = models.JSONField(default=dict, null=True, blank=True)
     expenses = models.JSONField(default=dict, null=True, blank=True)
+    balance = models.JSONField(default=dict, null=True, blank=True)
     report_production = models.FloatField(default=0)
 
     class Meta: 

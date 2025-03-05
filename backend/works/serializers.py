@@ -35,11 +35,12 @@ class WorkSummarySerializer(serializers.ModelSerializer):
     class Meta: 
         model = WorkSummary
         fields = [
+            'id',
             'type', 
             'active', 
             'no_assigned',
             'no_done', 
-            'report',
+            # 'report',
             'details' 
         ]
 

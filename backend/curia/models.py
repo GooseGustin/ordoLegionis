@@ -46,6 +46,7 @@ class Announcement(models.Model):
     deadline = models.DateField(null=True, blank=True)  
     title = models.CharField(max_length=100)
     content = models.TextField()
+    creator_name = models.CharField(max_length=200, blank=False)
     image = models.ImageField(upload_to='images/curia/', blank=True, null=True)
     hidden_by = models.JSONField(default=list, blank=True) 
     acknowledged_by = models.JSONField(default=list, blank=True) 

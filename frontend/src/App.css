@@ -47,7 +47,7 @@
     top: 0; 
     left: 0; 
     height: 100%; 
-    width: 200px; 
+    width: 180px; 
     padding-top: 20px; 
     margin-top: 40px;
     background-color: rgb(25,25,25);
@@ -109,10 +109,31 @@
     border-right: 19px thick black;
 }
 
+span>i {
+    cursor: pointer;
+}
+
 .nav-logo {
     width: 40px; 
     height: 40px; 
     margin-right: 10px;
+}
+
+.work-type-obj {
+    color: rgb(54, 54, 236);
+}
+
+.finance table tr .text-center {
+    min-width: 115px;
+}
+
+.answer-box {
+    background-color: rgb(90, 79, 79);
+    color: rgba(255, 255, 255, 0.594);
+}
+
+.answer-box .answer-time-stamp {
+    color:rgb(22, 227, 230);
 }
 
 @media (max-width: 500px) {

@@ -23,7 +23,7 @@ const Navbar = () => {
                     <div class="sider offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
                         {/* Sidebar header */}
                         <div class="offcanvas-header text-white border-bottom ">
-                            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">OrdoLegionis</h5>
+                            <h5 class="offcanvas-title" id="offcanvasNavbarLabel"></h5>
                             <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                         </div>
 
@@ -53,7 +53,7 @@ const Navbar = () => {
                             </form> */}
                             {/* Login / Sign up */}
                             <div className="d-flex flex-column flex-lg-row justify-content-center align-items-center gap-3">
-                                <NavLink to='login' className='text-white text-decoration-none'>Login</NavLink>
+                                <NavLink to='account/login' className='text-white text-decoration-none'>Login</NavLink>
                                 <NavLink 
                                     to='signup' 
                                     className='text-white text-decoration-none px-3 py-1 ms-2 rounded-4'

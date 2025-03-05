@@ -8,13 +8,18 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = [
             'id', 'curia', 'date', 
-            'deadline', 'title', 
+            'deadline', 'title', 'creator_name', 
             'content', 'image', 
             'hidden_by', 'acknowledged_by'
         ]
         read_only_fields = ['date', 'hidden_by', 'acknowledged_by']
 
     def create(self, validated_data):
+
+        curiaObj = validated_data.pop('curia', None)
+        validated_data['curia'] = curiaObj
+        validated_data['creator_name'] = curiaObj.name 
+
         validated_data['hidden_by'] = []
         validated_data['acknowledged_by'] = []
         return super().create(validated_data)
@@ -41,7 +46,7 @@ class CuriaSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
-        print("In curia serializer create method", request.user)
+
         if request and hasattr(request, 'user'):
             user = request.user 
             legionary = Legionary.objects.get(user=user)
@@ -50,3 +55,4 @@ class CuriaSerializer(serializers.ModelSerializer):
             validated_data['managers'].extend([legionary])
             validated_data['iden'] = getIden(validated_data['name'])
         return super().create(validated_data)
+

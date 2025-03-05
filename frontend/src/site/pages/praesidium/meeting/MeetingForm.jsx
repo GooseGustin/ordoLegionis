@@ -1,31 +1,26 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { NavLink, Link, useLoaderData, useNavigate } from 'react-router-dom'
+import { findAll, removeRepeatedFromArray } from '../../../functionVault';
 
 const BASEURL = "http://127.0.0.1:8000/api/"; 
 
-
-
-
 const MeetingForm = (props) => {
     const loc = "In meeting form"; 
-    const [praesidium, workList, works] = useLoaderData();
-    // const [praesidia, setPraesidia] = useState([]);
-    const { obj, method } = props;
-    console.log(obj, method)
+    const [praesidium, workList, works, meetingObj, recordObj] = useLoaderData();
+    const { method } = props;
+    // console.log('method', method)
     const navigate = useNavigate();
 
     console.log(loc, 'worklist', workList)
 
-    // obj here is a meeting 
     const today = new Date();
-    const defaultDate = obj ? obj.date : today.toISOString().substring(0, 10);
-    // Get previous meeting's number and set as default 
-    const defaultMeeting = obj ? obj.meeting : 1; // meetings[0].id;
-    const defaultMeetingNo = obj ? obj.meeting_no : 1;
-    const defaultNoPresent = obj ? obj.no_present : 1;
-    const defaultOfficersAtMeeting = obj ? obj.officers_meeting_attendance : [];
-    const defaultOfficersAtCuria = obj ? obj.officers_curia_attendance : [];
+    const defaultDate = meetingObj ? meetingObj.date : today.toISOString().substring(0, 10);
+    const defaultMeeting = meetingObj ? meetingObj.id : 1; 
+    const defaultMeetingNo = meetingObj ? meetingObj.meeting_no : 1;
+    const defaultNoPresent = meetingObj ? meetingObj.no_present : 1;
+    const defaultOfficersAtMeeting = meetingObj ? meetingObj.officers_meeting_attendance : ["President", "Secretary"] // [];
+    const defaultOfficersAtCuria = meetingObj ? meetingObj.officers_curia_attendance : [];
     const [officersMeetingAttendance, setOfficersMeetingAttendance] = useState(defaultOfficersAtMeeting);
     const [officersCuriaAttendance, setOfficersCuriaAttendance] = useState(defaultOfficersAtCuria); 
 
@@ -40,31 +35,30 @@ const MeetingForm = (props) => {
     })
 
     ////////////////////////////////////////////////////////////////////////
-    // obj here is a financial record
-    const defaultAcctStatement = obj ? obj.acct_statement : {
-        acf: 0, sbc: 0, balance: 0
+    const defaultAcctStatement = recordObj ? recordObj.acct_statement : {
+        acf: 200, sbc: 200, balance: 200
     };
-    const defaultStatementAcf = obj ? obj.acct_statement.acf : 0;
-    const defaultStatementSbc = obj ? obj.acct_statement.sbc : 0;
-    const defaultStatementBalance = obj ? obj.acct_statement.balance : 0;
+    const defaultStatementAcf = recordObj ? recordObj.acct_statement.acf : 200;
+    const defaultStatementSbc = recordObj ? recordObj.acct_statement.sbc : 200;
+    const defaultStatementBalance = recordObj ? recordObj.acct_statement.balance : 200;
 
-    const defaultExpenses = obj ? obj.acct_statement.expenses : {
-        extension: 0, remittance: 0, stationery: 0, altar: 0,
+    const defaultExpenses = recordObj ? recordObj.acct_statement.expenses : {
+        extension: 100, remittance: 0, stationery: 100, altar: 0,
         bouquet: 0, others: {}
     };
-    const defaultExpenseExtension = obj ? obj.acct_statement.expenses.extension : 0;
-    const defaultExpenseRemittance = obj ? obj.acct_statement.expenses.remittance : 0;
-    const defaultExpenseStationery = obj ? obj.acct_statement.expenses.stationery : 0;
-    const defaultExpenseAltar = obj ? obj.acct_statement.expenses.altar : 0;
-    const defaultExpenseBouquet = obj ? obj.acct_statement.expenses.bouquet : 0;
-    const defaultExpenseOthers = obj ? obj.acct_statement.expenses.others : {};
+    const defaultExpenseExtension = recordObj ? recordObj.acct_statement.expenses.extension : 100;
+    const defaultExpenseRemittance = recordObj ? recordObj.acct_statement.expenses.remittance : 0;
+    const defaultExpenseStationery = recordObj ? recordObj.acct_statement.expenses.stationery : 100;
+    const defaultExpenseAltar = recordObj ? recordObj.acct_statement.expenses.altar : 0;
+    const defaultExpenseBouquet = recordObj ? recordObj.acct_statement.expenses.bouquet : 0;
+    const defaultExpenseOthers = recordObj ? recordObj.acct_statement.expenses.others : {};
 
-    const defaultAcctAnnouncement = obj ? obj.acct_announcement : {
+    const defaultAcctAnnouncement = recordObj ? recordObj.acct_announcement : {
         sbc: 0, collection_1: 0, collection_2: 0
     };
-    const defaultAnnouncementSbc = obj ? obj.acct_announcement.sbc : 0;
-    const defaultAnnouncementCol1 = obj ? obj.acct_announcement.collection_1 : 0;
-    const defaultAnnouncementCol2 = obj ? obj.acct_announcement.collection_2 : 0;
+    const defaultAnnouncementSbc = recordObj ? recordObj.acct_announcement.sbc : 0;
+    const defaultAnnouncementCol1 = recordObj ? recordObj.acct_announcement.collection_1 : 0;
+    const defaultAnnouncementCol2 = recordObj ? recordObj.acct_announcement.collection_2 : 0;
 
     const [financialRecord, setFinancialRecord] = useState({
         meeting: defaultMeeting,
@@ -76,16 +70,22 @@ const MeetingForm = (props) => {
         return item.active
     })
     const activeWorks = activeWorksList.map(item => item.name);
-    const [doneWorks, setDoneWorks] = useState([]); 
-    const [assignedWorks, setAssignedWorks] = useState([]); 
     let defaultWorkDetails = {}
+    let defaultAssignedWorks = []; 
+    let defaultDoneWorks = [];
+
     console.log(loc, 'works', works);
     if (works) {
         works.forEach((work) => {
             defaultWorkDetails[work.type] = work.details;
+            defaultAssignedWorks.push(work.type);
+            if (work.done) {defaultDoneWorks.push(work.type)}
         })
     }
-    console.log(loc, 'default work details', defaultWorkDetails); 
+    const [doneWorks, setDoneWorks] = useState(defaultDoneWorks); 
+    const [assignedWorks, setAssignedWorks] = useState(defaultAssignedWorks); 
+
+    // console.log(loc, 'default work details', defaultWorkDetails); 
     const [workDetails, setWorkDetails] = useState(defaultWorkDetails)
 
     const handleWorkChange = (e) => {
@@ -96,8 +96,8 @@ const MeetingForm = (props) => {
         const workType = targetName.substring(0, targetName.lastIndexOf("_")); 
 
         if (metric === 'done') {
-            console.log(loc, 'done?', e.target.checked); 
-            let closet = doneWorks; 
+            // console.log(loc, 'done?', e.target.checked); 
+            let closet = removeRepeatedFromArray(doneWorks); 
             if (e.target.checked) {
                 closet.push(workType); 
                 setDoneWorks(closet);
@@ -106,8 +106,8 @@ const MeetingForm = (props) => {
                 setDoneWorks(closet); 
             }
         } else if (metric === 'assigned') {
-            console.log(loc, 'assigned?', e.target.checked); 
-            let closet = assignedWorks; 
+            // console.log(loc, 'assigned?', e.target.checked); 
+            let closet = removeRepeatedFromArray(assignedWorks); 
             if (e.target.checked) {
                 closet.push(workType); 
                 setAssignedWorks(closet);
@@ -116,7 +116,7 @@ const MeetingForm = (props) => {
                 setAssignedWorks(closet); 
             }
         } else  {
-            console.log(loc, 'metric', metric, e.target.value)
+            // console.log(loc, 'metric', metric, e.target.value)
             let closet = workDetails; 
             closet[workType] = {
                 ...closet[workType], 
@@ -124,11 +124,10 @@ const MeetingForm = (props) => {
             };
             setWorkDetails(closet); 
         }
-        console.log('assigned works', assignedWorks); 
-        console.log('done works', doneWorks); 
-        console.log('work details', workDetails); 
+        // console.log('assigned works', assignedWorks); 
+        // console.log('done works', doneWorks); 
+        // console.log('work details', workDetails); 
     }
-
 
     const [acctStatement, setAcctStatement] = useState(defaultAcctStatement);
     const handleStatementChange = (e) => {
@@ -210,7 +209,7 @@ const MeetingForm = (props) => {
         const loc = "In submit meeting";
         e.preventDefault();
         try {
-            console.log('Trying to send', meetingFormData);
+            // console.log('Trying to send', meetingFormData);
             const token = localStorage.getItem('accessToken');
             if (token) {
                 const config = {
@@ -229,36 +228,35 @@ const MeetingForm = (props) => {
                     acct_statement: acctStatementCopy, 
                     acct_announcement: acctAnnouncement 
                 };
-                
-                // extend assignedWorks by doneWorks
-                console.group(loc, assignedWorks, doneWorks);
-                let allAssignedWorks = assignedWorks;
-                // allAssignedWorks.concat(doneWorks.filter(work => !(assignedWorks.includes(work))))
+
+                // extend assignedWorks by doneWorks to capture all assigned works
+                // console.log(loc, 'assigned and done works', assignedWorks, doneWorks);
+                let allAssignedWorks = removeRepeatedFromArray(assignedWorks);
                 doneWorks.forEach((item) => {
                     if (!assignedWorks.includes(item)) {
                         allAssignedWorks.push(item)
                     }
                 })
                 setAssignedWorks(allAssignedWorks);
-                console.log('\n\n', loc, 'assigned works copy', allAssignedWorks);
+                // console.log('\n\n', loc, 'assigned works copy', allAssignedWorks);
 
                 // loop through assigned works and get works list for submission
                 let meetId;  
 
                 if (method === 'create') {
                     // Create meeting
-                    console.log(loc, "meeting form data", meetingFormData); 
+                    // console.log(loc, "meeting form data", meetingFormData); 
                     const meetingResponse = await axios.post(BASEURL + "meetings/meetings/", meetingFormData, config);
-                    console.log("Success!", meetingResponse)
+                    // console.log("Success!", meetingResponse)
                     meetId = meetingResponse.data.id;
                     // Create financial record
                     financialRecordCopy = {
                         ...financialRecordCopy, 
                         meeting: meetId
                     };
-                    console.log(loc, "financial record form", financialRecordCopy)
+                    // console.log(loc, "financial record form", financialRecordCopy)
                     const recordResponse = await axios.post(BASEURL + "finance/records/", financialRecordCopy, config);
-                    console.log("FinancialRecord created!", recordResponse.data);
+                    // console.log("FinancialRecord created!", recordResponse.data);
 
                     // Create works
                     for (let i=0; i<allAssignedWorks.length; i++) {
@@ -272,21 +270,49 @@ const MeetingForm = (props) => {
                         }
                         // console.log(loc, 'creating', workObj);
                         const workResponse = await axios.post(BASEURL + "works/work/", workObj, config);
-                        console.log("Success!", workResponse.data)
+                        // console.log("Success!", workResponse.data)
                     }
 
 
                 } else if (method === 'edit') {
-                    console.log(loc, 'meeting form data', meetingFormData)
-                    const meetingResponse = await axios.put(BASEURL + "meetings/meetings/" + obj.id + "/", meetingFormData, config);
-                    console.log("Success!", meetingResponse)
+
+                    // Edit meeting
+                    // console.log(loc, "meeting form data", meetingFormData); 
+                    meetId = meetingObj.id;
+                    const meetingResponse = await axios.put(BASEURL + `meetings/meetings/${meetId}/`, meetingFormData, config);
+                    // console.log("Success!", meetingResponse)
+                    // Edit financial record
+                    financialRecordCopy = {
+                        ...financialRecordCopy, 
+                        meeting: meetId
+                    };
+                    // console.log(loc, "financial record form", financialRecordCopy)
+                    const recordResponse = await axios.put(BASEURL + `finance/records/${recordObj.id}/`, financialRecordCopy, config);
+                    // console.log("FinancialRecord edited!", recordResponse.data);
+
+                    // De;lete and create works
+                    for (let i=0; i<works.length; i++) {
+                        await axios.delete(BASEURL + `works/work/${works[i]['id']}/`, config); 
+                    }
+
+                    for (let i=0; i<allAssignedWorks.length; i++) {
+                        const workItem = allAssignedWorks[i];
+                        // console.log(loc, doneWorks, doneWorks.includes(workItem))
+                        const workObj = {
+                            type: workItem,
+                            active: activeWorks.includes(workItem),
+                            done: doneWorks.includes(workItem),
+                            meeting: meetId,
+                            details: workDetails[workItem]? workDetails[workItem]: {}
+                        }
+                        // console.log(loc, 'editing:', workObj);
+                        const workResponse = await axios.post(BASEURL + "works/work/", workObj, config);
+                        // console.log("Successfully Edited!", workResponse.data)
+                    }
                 }
                 console.log("Meeting Operation Successful!");
 
-
-                ///////////////////////////////
-                ///////////////////////////////////////////
-                navigate(`../${meetId}`) // : navigate('../')
+                navigate(`../${meetId}`) 
 
             } else {
                 console.log("Sign in to operate on meetings")
@@ -305,31 +331,44 @@ const MeetingForm = (props) => {
     const btnTitle = method == 'create' ? "Create" : "Edit";
 
     return (
-        <div className='meeting-form pt-5'>
+        <div className='meeting-form pt-3'>
             {/* sidebar */}
             <div className="sidebar">
                 <nav className="nav flex-column">
-                    <NavLink className="nav-link" to='post/create'>
+                    <NavLink className="nav-link" to='../../'>
                         <span className="icon">
                             <i className="bi bi-grid"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
-                        <span className="description"> <i className="fa-solid fa-right-from-bracket fa-lg"></i> New Praesidium</span>
+                        <span className="description">Praesidium</span>
                     </NavLink>
-                    <NavLink className="nav-link" to='/'>
+                    <NavLink className="nav-link" to='../create'>
                         <span className="icon">
-                            <i className="bi bi-clipboard"></i>
+                            <i className="bi bi-grid bi-clipboard"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
                         </span>
-                        <span className="description">New Curia</span>
+                        <span className="description">New meeting</span>
                     </NavLink>
-                    <NavLink className="nav-link" to='/'>
-                        <span className="icon"><i className="bi bi-bell"></i></span>
-                        <span className="description">New Prayer Request</span>
+                    <NavLink className="nav-link" to='../'>
+                        <span className="icon">
+                            <i className="bi bi-grid bi-clipboard"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        </span>
+                        <span className="description">Meetings</span>
+                    </NavLink>
+                    <NavLink className="nav-link" to='../../worklist'>
+                        <span className="icon">
+                            <i className="bi bi-bell"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        </span>
+                        <span className="description">Worklist</span>
                     </NavLink>
 
-                    {/* settings  */}
+                    {/* help  */}
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
                             <i className="bi bi-gear"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
@@ -338,6 +377,7 @@ const MeetingForm = (props) => {
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
                             <i className="bi bi-gear"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>
@@ -356,7 +396,7 @@ const MeetingForm = (props) => {
                         <label htmlFor="date">
                         Date: <input
                                 type="date" name='date'
-                                id='date' className='form-control'
+                                id='date' className='form-control border border-dark'
                                 onChange={handleMeetingChange}
                                 defaultValue={defaultDate}
                             />
@@ -374,11 +414,10 @@ const MeetingForm = (props) => {
                             <input
                                 type="number"
                                 name="meeting_no" id="meeting_no"
-                                className='form-control-sm rounded rounded-3'
+                                className='form-control-sm rounded rounded-3 border border-dark'
                                 onChange={handleMeetingChange}
                                 defaultValue={defaultMeetingNo} />
                         </label>
-
                     </div>
                     <div className="col">
                         <label htmlFor="no_present"> 
@@ -386,7 +425,7 @@ const MeetingForm = (props) => {
                             <input
                                 type="number"
                                 name="no_present" id="no_present"
-                                className='form-control-sm rounded rounded-3'
+                                className='form-control-sm rounded rounded-3 border border-dark'
                                 onChange={handleMeetingChange}
                                 defaultValue={defaultNoPresent} />
                         </label>
@@ -399,7 +438,7 @@ const MeetingForm = (props) => {
                 <p className='fs-4'>Officers at meeting:</p>
                 <div className="row">
                     <div className="col-md-3">
-                        <label htmlFor="pres_at_meeting"><span className="me-1">President</span>
+                        <label htmlFor="pres_at_meeting"><span className="me-4">President</span>
                         <input 
                             type="checkbox" 
                             className="form-check-input"
@@ -410,7 +449,7 @@ const MeetingForm = (props) => {
                     </label>
                     </div>
                     <div className="col-md-3">
-                        <label htmlFor="vp_at_meeting"><span className="me-1">Vice President</span>
+                        <label htmlFor="vp_at_meeting"><span className="me-4">Vice President</span>
                         <input 
                             type="checkbox" 
                             className="form-check-input"
@@ -421,7 +460,7 @@ const MeetingForm = (props) => {
                     </label>
                     </div>
                     <div className="col-md-3">
-                        <label htmlFor="sec_at_meeting"><span className="me-1">Secretary</span>
+                        <label htmlFor="sec_at_meeting"><span className="me-4">Secretary</span>
                         <input 
                             type="checkbox" 
                             className="form-check-input"
@@ -432,7 +471,7 @@ const MeetingForm = (props) => {
                     </label>
                     </div>
                     <div className="col-md-3">
-                        <label htmlFor="tres_at_meeting"><span className="me-1">Treasurer</span>
+                        <label htmlFor="tres_at_meeting"><span className="me-4">Treasurer</span>
                         <input 
                             type="checkbox" 
                             className="form-check-input"
@@ -449,46 +488,46 @@ const MeetingForm = (props) => {
                 <p className="fs-4">Officers at curia:</p>
                 <div className="row">
                     <div className="col-md-3">
-                        <label htmlFor="pres_at_curia"><span className="me-1">President</span>
+                        <label htmlFor="pres_at_curia"><span className="me-4">President</span>
                         <input 
                             type="checkbox" 
                             className="form-check-input"
                             onChange={handleAttendanceChange} 
                             name="pres_at_curia" id="pres_at_curia" 
-                            defaultChecked={defaultOfficersAtMeeting.includes("President")}
+                            defaultChecked={defaultOfficersAtCuria.includes("President")}
                         />
                     </label>
                     </div>
                     <div className="col-md-3">
-                        <label htmlFor="vp_at_curia"><span className="me-1">Vice President</span>
+                        <label htmlFor="vp_at_curia"><span className="me-4">Vice President</span>
                         <input 
                             type="checkbox" 
                             className="form-check-input"
                             onChange={handleAttendanceChange} 
                             name="vp_at_curia" id="vp_at_curia" 
-                            defaultChecked={defaultOfficersAtMeeting.includes("Vice President")}
+                            defaultChecked={defaultOfficersAtCuria.includes("Vice President")}
                         />
                     </label>
                     </div>
                     <div className="col-md-3">
-                        <label htmlFor="sec_at_curia"><span className="me-1">Secretary</span>
+                        <label htmlFor="sec_at_curia"><span className="me-4">Secretary</span>
                         <input 
                             type="checkbox" 
                             className="form-check-input"
                             onChange={handleAttendanceChange} 
                             name="sec_at_curia" id="sec_at_curia"                             
-                            defaultChecked={defaultOfficersAtMeeting.includes("Secretary")}
+                            defaultChecked={defaultOfficersAtCuria.includes("Secretary")}
                         />
                     </label>
                     </div>
                     <div className="col-md-3">
-                        <label htmlFor="tres_at_curia"><span className="me-1">Treasurer</span>
+                        <label htmlFor="tres_at_curia"><span className="me-4">Treasurer</span>
                         <input 
                             type="checkbox" 
                             className="form-check-input"
                             onChange={handleAttendanceChange} 
                             name="tres_at_curia" id="tres_at_curia"
-                            defaultChecked={defaultOfficersAtMeeting.includes("Treasurer")}
+                            defaultChecked={defaultOfficersAtCuria.includes("Treasurer")}
                         />
                     </label>
                     </div>
@@ -509,7 +548,7 @@ const MeetingForm = (props) => {
                             <label htmlFor="acf"><span className="me-1">ACF</span>
                                 <input 
                                     type="number" name="acf" id=""
-                                    className='form-control-sm rounded rounded-3'
+                                    className='form-control-sm rounded rounded-3 border border-dark'
                                     onChange={handleStatementChange}
                                     defaultValue={defaultStatementAcf} />
                             </label>
@@ -518,7 +557,7 @@ const MeetingForm = (props) => {
                             <label htmlFor="sbc"><span className="me-1">SBC</span>
                                 <input 
                                     type="number" name="sbc" id=""
-                                    className='form-control-sm rounded rounded-3'
+                                    className='form-control-sm rounded rounded-3 border border-dark'
                                     onChange={handleStatementChange}
                                     defaultValue={defaultStatementSbc} />
                             </label>
@@ -527,7 +566,7 @@ const MeetingForm = (props) => {
                             <label htmlFor="balance"><span className="me-1">Balance</span>
                                 <input 
                                     type="number" name="balance" id=""
-                                    className='form-control-sm rounded rounded-3'
+                                    className='form-control-sm rounded rounded-3 border border-dark'
                                     onChange={handleStatementChange}
                                     defaultValue={defaultStatementBalance} />
                             </label>
@@ -541,25 +580,25 @@ const MeetingForm = (props) => {
                 <fieldset>
                     <div className="expenses row row-cols-lg-3 row-cols-md-2 gy-2">
                         <div className="col">
-                        <label htmlFor="extension"><span className="me-1">Extension</span>
-                            <input type="number" name="extension" id=""
-                                className='form-control-sm rounded rounded-3'
-                                onChange={handleExpensesChange} 
-                                defaultValue={defaultExpenseExtension}/>
-                        </label>
-                        </div>
-                        <div className="col">
                         <label htmlFor="remittance"><span className="me-1">Remittance</span>
                             <input type="number" name="remittance" id=""
-                                className='form-control-sm rounded rounded-3'
+                                className='form-control-sm rounded rounded-3 border border-dark'
                                 onChange={handleExpensesChange} 
                                 defaultValue={defaultExpenseRemittance} />
                         </label>
                         </div>
                         <div className="col">
+                        <label htmlFor="extension"><span className="me-1">Extension</span>
+                            <input type="number" name="extension" id=""
+                                className='form-control-sm rounded rounded-3 border border-dark'
+                                onChange={handleExpensesChange} 
+                                defaultValue={defaultExpenseExtension}/>
+                        </label>
+                        </div>
+                        <div className="col">
                         <label htmlFor="stationery"><span className="me-1">Stationery</span>
                             <input type="number" name="stationery" id=""
-                                className='form-control-sm rounded rounded-3'
+                                className='form-control-sm rounded rounded-3 border border-dark'
                                 onChange={handleExpensesChange} 
                                 defaultValue={defaultExpenseStationery} />
                         </label>
@@ -568,16 +607,16 @@ const MeetingForm = (props) => {
                         <div className="col">
                         <label htmlFor="altar"><span className="me-1">Altar</span>
                             <input type="number" name="altar" id=""
-                                className='form-control-sm rounded rounded-3'
+                                className='form-control-sm rounded rounded-3 border border-dark'
                                 onChange={handleExpensesChange} 
                                 defaultValue={defaultExpenseAltar} />
                         </label>
 
                         </div>
                         <div className="col">
-                        <label htmlFor="bouquet"><span className="me-1">Bouquet</span>
+                        <label htmlFor="bouquet"><span className="me-1">Spiritual Bouquet</span>
                             <input type="number" name="bouquet" id=""
-                                className='form-control-sm rounded rounded-3'
+                                className='form-control-sm rounded rounded-3 border border-dark'
                                 onChange={handleExpensesChange} 
                                 defaultValue={defaultExpenseBouquet} />
                         </label>
@@ -586,7 +625,7 @@ const MeetingForm = (props) => {
                         
                     </div>
                     <div className="row row-cols-lg-3 row-cols-md-2 mt-3 gy-2 border mx-2 p-2">
-                        <div className="col col-md-2 col-lg-2">
+                        <div className="col col-md-2 col-lg-1">
                             <label htmlFor="">
                                 <span className="me-1">Others</span>
                             </label>
@@ -602,7 +641,7 @@ const MeetingForm = (props) => {
                             <input 
                                 type="number" 
                                 name="" 
-                                className='form-control-sm rounded rounded-3'
+                                className='form-control-sm rounded rounded-3 border border-dark'
                                 placeholder='0'
                             />
                             <span className="icon ">
@@ -621,7 +660,7 @@ const MeetingForm = (props) => {
                             <label htmlFor="sbc"><span className="me-1">SBC</span>
                                 <input 
                                     type="number" name="sbc" id=""
-                                    className='form-control-sm rounded rounded-3'
+                                    className='form-control-sm rounded rounded-3 border border-dark'
                                     onChange={handleAnnouncementChange}
                                     defaultValue={defaultAnnouncementSbc} />
                             </label>
@@ -630,7 +669,7 @@ const MeetingForm = (props) => {
                             <label htmlFor="collection_1"><span className="me-1">Collection 1</span>
                                 <input 
                                     type="number" name="collection_1" id=""
-                                    className='form-control-sm rounded rounded-3'
+                                    className='form-control-sm rounded rounded-3 border border-dark'
                                     onChange={handleAnnouncementChange}
                                     defaultValue={defaultAnnouncementCol1} />
                             </label>
@@ -639,7 +678,7 @@ const MeetingForm = (props) => {
                             <label htmlFor="collection_2"><span className="me-1">Collection 2</span>
                                 <input 
                                     type="number" name="collection_2" id=""
-                                    className='form-control-sm rounded rounded-3'
+                                    className='form-control-sm rounded rounded-3 border border-dark'
                                     onChange={handleAnnouncementChange}
                                     defaultValue={defaultAnnouncementCol2} />
                             </label>
@@ -654,17 +693,17 @@ const MeetingForm = (props) => {
                 <p className="fs-2">Works</p>
                 <hr />
                 <fieldset className="px-3">
-                <div className="row row-cols-md-2">
+                <div className="row row-cols-sm-2 row-cols-lg-2 row-cols-md-2">
                     {workList.details.map(typeObj => {
-                        const validMetrics = []; 
+                        let validMetrics = []; 
                         for (let key in typeObj.metrics) {
                             if (typeObj.metrics[key]) {
                                 validMetrics.push(key)
                             }
                         }
                         return (
-                            <div className="col p-1" key={typeObj.id}>
-                                <div className="row text-secondary">{typeObj.name}
+                            <div className="col mx-4 p-1" key={typeObj.id}>
+                                <div className="row work-type-obj">{typeObj.name}
                                 </div>
                                 <div className="row">
                                     <label htmlFor="">Assigned
@@ -672,6 +711,7 @@ const MeetingForm = (props) => {
                                         type="checkbox" 
                                         name={typeObj.name+"_assigned"} id="" 
                                         className='ms-2 form-check-input'
+                                        defaultChecked={assignedWorks.includes(typeObj.name)}
                                         onChange={handleWorkChange}
                                         />
                                     </label>
@@ -680,6 +720,7 @@ const MeetingForm = (props) => {
                                         type="checkbox" 
                                         name={typeObj.name+"_done"} id="" 
                                         className='ms-2 form-check-input'
+                                        defaultChecked={doneWorks.includes(typeObj.name)}
                                         onChange={handleWorkChange}
                                     /></label>
                                 </div>
@@ -689,7 +730,18 @@ const MeetingForm = (props) => {
                                             <input 
                                                 type="number" 
                                                 name={typeObj.name + "_" + metric} 
-                                                className="form-control-sm rounded rounded-3" 
+                                                className="form-control-sm rounded rounded-3 border border-dark" 
+                                                defaultValue={works? 
+                                                    // Don't try to understand it; just feel it :)
+                                                    works.filter(work => {
+                                                        // console.log('In work form', work);
+                                                        return work.type === typeObj.name;
+                                                    })[0]? 
+                                                    works.filter(work => {
+                                                        // console.log('In work form', work);
+                                                        return work.type === typeObj.name;
+                                                    })[0]['details'][metric]: 0: 0
+                                                }
                                                 onChange={handleWorkChange}
                                             /> <span className="ms-1">{metric}</span>
                                         </label>
@@ -702,16 +754,15 @@ const MeetingForm = (props) => {
                 </fieldset>
                 </div>
 
-                <div className="row mb-4">
-                    <div className="col-4"></div>
-                    <div className="col">
-                        <button className='btn btn-success' type="submit">{btnTitle}</button>
+                <div className="row">
+                    <div className="col-6">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
                     </div>
                     <div className="col">
-                        <Link to='../../' className='btn btn-info'>Cancel</Link>
+                        <a href="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</a>
                     </div>
-                    <div className="col-4"></div>
                 </div>
+
 
             </form>
             </div>
@@ -727,9 +778,9 @@ export const meetingFormLoader = async ({params}) => {
     // Get praesidium for meeting creation
     const loc = "In meeting form loader"; 
     const { pid, mid } = params; 
-    console.log(loc, pid, params);
-    console.log(loc, 'mid', mid);
-    let praesidium, workList, works; 
+    // console.log(loc, pid, params);
+    // console.log(loc, 'mid', mid);
+    let praesidium, workList, works, meeting, record; 
 
     try {
         const token = localStorage.getItem('accessToken');
@@ -740,18 +791,30 @@ export const meetingFormLoader = async ({params}) => {
                 }
             };
             const praesidiumResponse = await axios.get(BASEURL + "praesidium/praesidium/" + pid, config);
-            const workListResponse = await axios.get(BASEURL + `works/work_list/?pid=${pid}`, config); 
             praesidium = praesidiumResponse.data; 
+            const workListResponse = await axios.get(BASEURL + `works/work_list/?pid=${praesidium.id}`, config); 
             workList = workListResponse.data;
-            // praesidia = praesidiaResponse.data.map(praesidium => {
-            //     return {...praesidium, type: 'praesidium'};
-            // }); 
 
             if (mid) {
+                // get meeting 
+                const meetingResponse = await axios.get(BASEURL + "meetings/meetings/" + mid, config);
+                meeting = meetingResponse.data; 
+                console.log(loc, 'meeting obj', meeting)
+                // get financial record
+                const recordResponse = await axios.get(BASEURL + "finance/records/?mid=" + mid, config);
+                record = recordResponse.data; 
+                console.log(loc, 'record obj', record)
+                // get works 
                 const worksResponse = await axios.get(BASEURL + `works/work/?mid=${mid}`, config);
                 works = worksResponse.data; 
+                console.log(loc, 'works array', works); 
             }
 
+            // filter out untracked works from worklist 
+            const details = workList.details; 
+            workList.details = details.filter(obj => obj.tracking===true);
+
+            // Add an id property to each workist worktype
             let count = 1;
             let workListWithIds = []; 
             workList.details.forEach(function (item) {
@@ -773,7 +836,8 @@ export const meetingFormLoader = async ({params}) => {
             console.error("Error fetching praesidia:", err);
         }
     } finally {
-        return [praesidium, workList, works]; 
+        return [praesidium, workList, works, meeting, record]; 
     }
 
 }
+

@@ -17,16 +17,18 @@ class Work(models.Model):
         return "Work_" + self.type + "_" + str(self.meeting)
 
 class WorkList(models.Model):
-    praesidium = models.OneToOneField(Praesidium, on_delete=models.CASCADE, related_name='work_list')
-    details = models.JSONField(default=list) 
+    praesidium = models.ForeignKey(Praesidium, on_delete=models.CASCADE, related_name='work_list')
+    details = models.JSONField(default=list, blank=True) 
+
+    def __str__(self): 
+        return "WorkList for " + self.praesidium.name
 
 class WorkTypeOption(models.Model):
     name = models.CharField(max_length=50)
-    metrics = models.JSONField(default=list)
+    metrics = models.JSONField(default=list, blank=True)
 
     def __str__(self): 
         return self.name + "_work_type"
-
 
 class WorkSummary(models.Model):
     type = models.CharField(max_length=50)
@@ -36,6 +38,10 @@ class WorkSummary(models.Model):
     details = models.JSONField(default=dict, null=True, blank=True)
     report = models.ForeignKey(Report, on_delete=models.CASCADE, 
             related_name="work_summaries")
+
+    def __str__(self): 
+        title = f"{self.type} Summary for Report {self.report.report_number} of {self.report.praesidium.name}"
+        return title 
 
     class Meta: 
         verbose_name_plural = 'work summaries'

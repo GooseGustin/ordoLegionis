@@ -52,9 +52,10 @@ class Reminder(models.Model):
     praesidium = models.ForeignKey(
         Praesidium, on_delete=models.CASCADE, related_name="reminders"
     )
+    creator_name = models.CharField(max_length=200, blank=False)
     content = models.TextField()
-    deadline = models.DateField()
+    deadline = models.DateField(null=True)
     hidden_by = models.JSONField(default=list, blank=True) 
     acknowledged_by = models.JSONField(default=list, blank=True) 
 
-# Reminders willl be deleted 1 month after their deadlines 
+# Reminders will be deleted 1 month after their deadlines 

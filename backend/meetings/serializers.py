@@ -12,7 +12,8 @@ class MeetingSerializer(serializers.ModelSerializer):
             'meeting_no',
             'no_present', 
             'officers_meeting_attendance',
-            'officers_curia_attendance'
+            'officers_curia_attendance', 
+            'notes'
         ]
 
 

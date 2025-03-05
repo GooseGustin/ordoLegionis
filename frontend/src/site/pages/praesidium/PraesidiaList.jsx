@@ -15,7 +15,7 @@ const shuffle = function (list) {
 };
 
 const PraesidiaList = () => {
-    const loc = "In praesidiaList page";
+    const loc = "In praesidia list";
 
     const [praesidia, curiae] = useLoaderData();
     
@@ -23,32 +23,43 @@ const PraesidiaList = () => {
     // elements = shuffle(elements); 
     console.log(loc, 'Elements', elements);
 
+    // if (!elements[0]) {
+    //     return (
+    //         <div className="mt-5">
+    //             <span className="mt-5">
+    //             <Link to="../account/login" className="display-2 mt-5">Sign in</Link> to view praesidia
+    //             </span>
+    //         </div>
+    //     )
+    // }
+
     return (
         <div className="">
             {/* sidebar */}
             <div className="sidebar">
                 <nav className="nav flex-column">
-                    <NavLink className="nav-link" to='post/create'>
+                    <NavLink className="nav-link" to='create'>
                         <span className="icon">
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                             <i className="bi bi-grid"></i>
                         </span>
-                        <span className="description"> <i className="fa-solid fa-right-from-bracket fa-lg"></i> New Praesidium</span>
+                        <span className="description"> 
+                            New Praesidium
+                        </span>
                     </NavLink>
-                    <NavLink className="nav-link" to='/'>
+                    <NavLink className="nav-link" to='../curia/create'>
                         <span className="icon">
                             <i className="bi bi-clipboard"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
                         <span className="description">New Curia</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='/'>
-                        <span className="icon"><i className="bi bi-bell"></i></span>
-                        <span className="description">New Prayer Request</span>
                     </NavLink>
 
                     {/* settings  */}
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
                             <i className="bi bi-gear"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
@@ -57,6 +68,7 @@ const PraesidiaList = () => {
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
                             <i className="bi bi-gear"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>
@@ -64,7 +76,10 @@ const PraesidiaList = () => {
             </div>
 
             {/* main  */}
-            <main className="main-content">
+            {
+            elements[0]
+            ? 
+                <main className="main-content">
                 {/* <h2>Responsive Sidebar</h2> */}
                 <div className="">
                 {elements.map(element => (
@@ -85,10 +100,10 @@ const PraesidiaList = () => {
                                 (
                                     <div className="row meeting-and-report">
                                         <div className="col">
-                                            <Link to={`${element.id}/meeting/create`}>New Meeting</Link>
+                                            <Link to={`${element.id}/meeting/create`} className="btn btn-outline-info col-12 rounded rounded-5">New Meeting</Link>
                                         </div>
                                         <div className="col">
-                                            <Link>View Report</Link>
+                                            <Link to={`${element.id}/report`} className=" btn btn-outline-info col-12 rounded rounded-5">View Report</Link>
                                         </div>
                                     </div>
                                 ) : (<></>)
@@ -96,8 +111,23 @@ const PraesidiaList = () => {
                         </div>
                     </div>
                 ))}
+                
+                </div> 
+                </main>
+
+            :   
+            <main className="main-content">
+                <div className="container my-5">
+                    <div className="row display-">
+                        <div className="col">
+                            <span><Link to="../account/login">Sign in</Link> to view praesidia</span>
+
+                        </div>
+                    
+                    </div>
                 </div>
             </main>
+            }
         </div>
     )
 }

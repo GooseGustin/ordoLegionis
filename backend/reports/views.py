@@ -7,14 +7,29 @@ from .models import (
 )
 from praesidium.models import Praesidium
 from meetings.models import Meeting
-from datetime import datetime, timezone 
+from works.models import Work, WorkList
+from finance.models import FinancialRecord
+from datetime import date, datetime 
 from math import ceil
+from pprint import pprint
 
 # Create your views here.
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all() # filter by manager
     serializer_class = ReportSerializer
 
+    def list(self, request): 
+        print("In list method of WorkListViewSet\n\n")
+        praes_id = request.GET.get('pid') 
+        if praes_id: # filter by praesidium 
+            # Ensure user has access to this praesidium
+            work_list = self.queryset.filter(praesidium=praes_id)
+            serializer = self.get_serializer(work_list, many=True)
+            return Response(serializer.data)
+        # work_list = WorkList.objects.all()
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response(serializer.data) 
+        
 class FunctionAttendanceViewSet(viewsets.ModelViewSet):
     queryset = FunctionAttendance.objects.all()
     serializer_class = FunctionAttendanceSerializer
@@ -47,79 +62,200 @@ class MembershipDetailsViewSet(viewsets.ModelViewSet):
 
 class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
-    serializer_class = AchievementSerializers
+    serializer_class = AchievementSerializer
 
-# /* Create an endpoint (prepareReport) that 
-#     takes in the time period
-#         - from (last submission date?) 
-#         - to (submission date)
-#     can provide 
-#         - the last submission date, 
-#         - the last report number
-#             - at server-side, the 
-#         - officers curia attendance (over the period)
-#         - officers meeting attendance (over the period)
-#         - number of meetings held (over the period)
-#         - average attendance (over the period)
-#         - legion functions attendance ?? 
-
-#     */
+def removeDuplicates(arr): 
+    for i in arr.copy(): 
+        if arr.count(i) > 1:
+            arr.remove(i)
+    return arr
 
 class ReportPrepGetView(APIView):
-    def get(self, request, *args, **kwargs):
-        pid = request.GET.get('praesidiumId', 1)
-        meeting_start = request.GET.get('startDate', '2022-1-1')
-        meeting_end = request.GET.get('endDate', '2023-1-1')
-        
+    def post(self, request, *args, **kwargs):
+        # print(request.data, dir(request))
+        pid = request.data.get('pid')
         praesidium = Praesidium.objects.get(id=pid) 
+        print("In report prep get view", pid, praesidium.id, praesidium.name)
+        praesidium_meetings = Meeting.objects.filter(praesidium=pid).order_by('date')
+        
+        # Get meeting range
+        # useLoaderData will provide meetings from last submission or inaug date to today
+        # useEffect will return meetings within logical date range
+        meeting_start = request.data.get('startDate', praesidium.inaug_date.isoformat())
+        if not meeting_start: meeting_start = praesidium.inaug_date.isoformat()
+        today = datetime.today().date()
+        meeting_end = request.data.get('endDate', str(today))
+        if not meeting_end: meeting_end = str(today)
+
         meeting_start = [int(i) for i in meeting_start.split('-')]
         meeting_end = [int(i) for i in meeting_end.split('-')]
-        start_date = datetime(*meeting_start).replace(tzinfo=timezone.utc)
-        end_date = datetime(*meeting_end).replace(tzinfo=timezone.utc)
-        praesidium_meetings = Meeting.objects.filter(praesidium=praesidium)
+        
+        start_date = date(*meeting_start) # .replace(tzinfo=timezone.utc)
+        end_date = date(*meeting_end) # .replace(tzinfo=timezone.utc)
+        print("Start and end dates", start_date, end_date)
         meetings_within_range = praesidium_meetings.filter(date__range=(start_date, end_date))
 
-        no_of_meetings_expected = (end_date - start_date).days // 7 + 1
+        no_of_meetings_expected = (end_date - start_date).days // 7 #  + 1
         no_of_meetings_held = len(meetings_within_range)
         average_attendance = 0
+
+        # Get officers meeting and curia attendance 
+        officers_curia_attendance = {
+            'President': 0, 'Vice President':0, 'Secretary':0, 'Treasurer':0
+        }
         officers_meeting_attendance = {
             'President': 0, 'Vice President':0, 'Secretary':0, 'Treasurer':0
         }
-        officers_curia_attendance = officers_meeting_attendance.copy() 
-        if meetings_within_range: 
-            for meeting in meetings_within_range: 
-                for officer in ['President', 'Vice President', 'Secretary', 'Treasurer']: 
-                    if officer in meeting.officers_meeting_attendance: 
-                        officers_meeting_attendance[officer] += 1
-                    if officer in meeting.officers_curia_attendance:
-                        officers_curia_attendance[officer] += 1
-                average_attendance += meeting.no_present
-        average_attendance = ceil(average_attendance / no_of_meetings_held)
+        for meeting in meetings_within_range: 
+            # Get officers meeting and curia attendance 
+            for officer in ['President', 'Vice President', 'Secretary', 'Treasurer']: 
+                if officer in meeting.officers_meeting_attendance: 
+                    officers_meeting_attendance[officer] += 1
+                if officer in meeting.officers_curia_attendance:
+                    officers_curia_attendance[officer] += 1
+                
+            # Get average attendance
+            average_attendance += meeting.no_present
+        average_attendance = ceil(average_attendance / (no_of_meetings_held or 1))
 
+
+        # Get submission and last submission date
         last_report = Report.objects.filter(praesidium=praesidium).last()
         # Perhaps the last report is the current report, the submission date
         # will be in the future not the past, so we take the last submision
         # date instead 
-        last_submission_date = today = datetime.today().date()
-        last_report_number = 1
+        last_submission_date = str(today)
+        report_number = 1
         if last_report: 
             if last_report.submission_date < today:
                 last_submission_date = last_report.submission_date 
             else: 
                 last_submission_date = last_report.last_submission_date
-            last_report_number = last_report.report_number
+            report_number = last_report.report_number
+
+
+        # Get work summaries
+        worklist = WorkList.objects.get(praesidium=pid)
+        active_work_names = [obj['name'] for obj in worklist.details if (obj['active'] and obj['tracking'])]
+        # inactive_work_names = [obj['name'] for obj in worklist.details if (not obj['active'] and obj['tracking'])] 
+        work_names = [obj['name'] for obj in worklist.details if obj['tracking']] 
+        names_to_metrics = {item['name']:item['metrics'] for item in worklist.details if item['tracking']}
+        # Initialise work summaries
+        work_summaries = [
+            {
+                "type": work_name, 
+                "active": work_name in active_work_names, 
+                "no_done": 0, 
+                "no_assigned": 0,
+                "details": {}
+            } for work_name in work_names
+        ]
+        
+        for meeting in meetings_within_range: 
+            works_for_meeting = Work.objects.filter(meeting=meeting.id) 
+            # print("\nWorks for meeting", works_for_meeting)
+
+            for workObj in works_for_meeting: 
+                # Find location of summary in summaries corresponding to this workObj type 
+                # in order to update it when looping through metrics
+                work_summary = list(
+                    filter(
+                        lambda obj: obj['type'] == workObj.type, 
+                        work_summaries
+                        )
+                    )
+                if work_summary:
+                    work_summary_ind = work_summaries.index(work_summary[0])
+                    work_summaries[work_summary_ind]['no_assigned'] += 1
+                    if workObj.done:
+                        work_summaries[work_summary_ind]['no_done'] += 1
+                    
+                    # print('\nWork summary index', work_summary_ind, work_summary)
+                    specific_work_metrics = names_to_metrics[workObj.type]
+
+                    for metric in specific_work_metrics.keys(): 
+                        if specific_work_metrics[metric]: # Check that metric is being tracked
+                            # Initiaise metrics values
+                            if not work_summaries[work_summary_ind]['details'].get(metric): 
+                                work_summaries[work_summary_ind]['details'][metric] = 0
+                            # Loop through list of same work, start incrementing count of each metric
+                            count = workObj.details.get(metric)
+                            # print('Looping through metrics', workObj.details, metric, count)
+                            if count: 
+                                work_summaries[work_summary_ind]['details'][metric] += int(count)
+                else: 
+                    print("Looks like we have a work that's not in the worklist")
+
+
+        # Get financial summary
+        months = [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ]
+        getMonth = lambda ymd: [int(i) for i in str(ymd).split('-')]
+        month_year_combo = []
+        for meeting in meetings_within_range: 
+            [year, month, day] = getMonth(meeting.date)
+            # print('Date', months[month-1], year)
+            month_year_combo.append(
+                {"month": months[month-1], "year": year}
+            )
+
+        # Remove duplicates
+        fin_summaries = removeDuplicates(month_year_combo)
+        # Initialise
+        for item in fin_summaries: 
+            ind = fin_summaries.index(item)
+            fin_summaries[ind]['bf'] = 0
+            fin_summaries[ind]['sbc'] = 0
+            fin_summaries[ind]['balance'] = 0
+            fin_summaries[ind]['remittance'] = 0
+            fin_summaries[ind]['expenses'] = {
+                "bouquet": 0, 
+                "stationery": 0, 
+                "altar": 0, 
+                "extension": 0,
+                "others": []
+            }
+
+        # Update financial summary
+        for meeting in meetings_within_range: 
+            [year, month, _] = getMonth(meeting.date)
+            # print("year and month", year, month)
+            item_array = [i for i in fin_summaries if (i['month']==months[month-1] and i['year']==year)]
+            item = item_array[0]
+            ind = fin_summaries.index(item)
+
+            fin_record = FinancialRecord.objects.get(meeting=meeting.id)
+            acf = fin_record.acct_statement.acf
+            sbc = fin_record.acct_announcement.sbc
+            bal = fin_record.acct_statement.balance
+            exp = fin_record.acct_statement.expenses
+
+            fin_summaries[ind]['bf'] += acf 
+            fin_summaries[ind]['sbc'] += sbc 
+            fin_summaries[ind]['balance'] += bal 
+            fin_summaries[ind]['remittance'] += exp.remittance
+            fin_summaries[ind]['expenses']["bouquet"] += exp.bouquet
+            fin_summaries[ind]['expenses']["extension"] += exp.extension
+            fin_summaries[ind]['expenses']["stationery"] += exp.stationery
+            fin_summaries[ind]['expenses']["altar"] += exp.altar
+            fin_summaries[ind]['expenses']["others"] += exp.others
 
         processed_data = {
             'last_submission_date': last_submission_date, 
-            'last_report_number': last_report_number, 
+            'report_number': report_number, 
             'officers_curia_attendance': officers_curia_attendance, 
             'officers_meeting_attendance': officers_meeting_attendance, 
             'no_meetings_expected': no_of_meetings_expected, 
             'no_meetings_held': no_of_meetings_held, 
-            'average_attendance': average_attendance, 
-            # 'legion_functions_attendance': attendances_within_range
-
+            'avg_attendance': average_attendance, 
+            'work_summaries': work_summaries, 
+            'financial_summary': fin_summaries 
         }
+
+        # print("\nProcessed data")
+        # pprint(processed_data)
 
         serializer = ReportPrepGetSerializer(processed_data)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -8,8 +8,6 @@ from .serializers import (
     WorkSummarySerializer
 )
 from .models import Work, WorkList, WorkTypeOption, WorkSummary
-from praesidium.models import Praesidium
-from meetings.models import Meeting 
 
 # Create your views here.
 class WorkViewSet(viewsets.ModelViewSet):
@@ -20,8 +18,7 @@ class WorkViewSet(viewsets.ModelViewSet):
         print("In list method of WorkViewSet\n\n")
         meet_id = request.GET.get('mid') 
         if meet_id: # filter by meeting 
-            meeting = Meeting.objects.get(id=meet_id)
-            works = meeting.works
+            works = self.queryset.filter(meeting=meet_id)
             serializer = self.get_serializer(works, many=True)
             return Response(serializer.data)
         work = Work.objects.all()
@@ -36,12 +33,12 @@ class WorkListViewSet(viewsets.ModelViewSet):
         print("In list method of WorkListViewSet\n\n")
         praes_id = request.GET.get('pid') 
         if praes_id: # filter by praesidium 
-            praesidium = Praesidium.objects.get(id=praes_id)
-            work_list = praesidium.work_list
+            # Ensure user has access to this praesidium
+            work_list = self.queryset.get(praesidium=praes_id)
             serializer = self.get_serializer(work_list, many=False)
             return Response(serializer.data)
-        work_list = WorkList.objects.all()
-        serializer = self.get_serializer(work_list, many=True)
+        # work_list = WorkList.objects.all()
+        serializer = self.get_serializer(self.queryset, many=True)
         return Response(serializer.data) 
 
 class WorkTypeOptionViewSet(viewsets.ModelViewSet):
@@ -52,3 +49,15 @@ class WorkTypeOptionViewSet(viewsets.ModelViewSet):
 class WorkSummaryViewSet(viewsets.ModelViewSet):
     queryset = WorkSummary.objects.all()
     serializer_class = WorkSummarySerializer
+
+    def list(self, request): 
+        print("In list method of WorkSummaryViewSet\n\n")
+        rid = request.GET.get('rid') 
+        if rid: # filter by report 
+            # Ensure the user has access to this report
+            work_summary = self.queryset.get(report=rid)
+            serializer = self.get_serializer(work_summary, many=False)
+            return Response(serializer.data)
+        serializer = self.get_serializer(self.queryset, many=True)
+        print(serializer.data)
+        return Response(serializer.data) 

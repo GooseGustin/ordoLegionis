@@ -14,7 +14,7 @@ class PraesidiumSerializer(serializers.ModelSerializer):
             'vp_app_date', 'secretary', 'sec_app_date', 
             'treasurer', 'tres_app_date', 'managers', 'members',
             'membership_requests', 'next_report_deadline', 
-            'created_at', 'work_list', 'reports'
+            'created_at', 'reports' # 'work_list', 
         ]
         read_only_fields = [
             'id', 'iden', 'managers', 
@@ -39,10 +39,18 @@ class ReminderSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Reminder 
         fields = [
-            'id', 'praesidium', 
+            'id', 'praesidium', 'creator_name',
             'content', 'deadline',
             'hidden_by', 'acknowledged_by'
         ]
         read_only_fields = ['hidden_by', 'acknowledged_by']
 
-    
+    def create(self, validated_data):
+
+        praesidiumObj = validated_data.pop('praesidium', None)
+        validated_data['praesidium'] = praesidiumObj 
+        validated_data['creator_name'] = praesidiumObj.name 
+
+        validated_data['hidden_by'] = []
+        validated_data['acknowledged_by'] = []
+        return super().create(validated_data)

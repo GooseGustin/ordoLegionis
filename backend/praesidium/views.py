@@ -1,7 +1,8 @@
-# from django.shortcuts import render
 from rest_framework import viewsets 
+from rest_framework.response import Response 
 from .models import Praesidium, Reminder
 from .serializers import PraesidiumSerializer, ReminderSerializer
+
 
 # Create your views here.
 class PraesidiumViewSet(viewsets.ModelViewSet):
@@ -9,6 +10,29 @@ class PraesidiumViewSet(viewsets.ModelViewSet):
     serializer_class = PraesidiumSerializer
     # permission_classes = [permissions.IsAuthenticated]
 
+    def list(self, request): 
+        print("In list method of PraesidiumViewSet\n\n", request.GET)
+        cid = request.GET.get('cid') 
+        if cid: # filter by praesidium 
+            # Ensure user has access to this praesidium
+            praesidia = self.queryset.filter(curia=cid)
+            serializer = self.get_serializer(praesidia, many=True)
+            return Response(serializer.data)
+        # work_list = WorkList.objects.all()
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response(serializer.data) 
+
 class ReminderViewSet(viewsets.ModelViewSet):
     queryset = Reminder.objects.all()
     serializer_class = ReminderSerializer
+    
+    def list(self, request): 
+        print("In list method of ReminderViewSet\n\n", request.GET)
+        pid = request.GET.get('pid') 
+        if pid: # filter by praesidium 
+            # Ensure user has access to this praesidium
+            reminders = self.queryset.filter(praesidium=pid)
+            serializer = self.get_serializer(reminders, many=True)
+            return Response(serializer.data)
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response(serializer.data) 

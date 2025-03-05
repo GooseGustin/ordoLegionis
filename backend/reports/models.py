@@ -17,6 +17,9 @@ class Achievement(models.Model):
     no_baptized = models.IntegerField(default=0)
     no_confirmed = models.IntegerField(default=0)
     no_first_communicants = models.IntegerField(default=0)
+    no_married = models.IntegerField(default=0)
+    no_vocations = models.IntegerField(default=0)
+    no_converted = models.IntegerField(default=0)
     others = models.JSONField(default=dict, null=True, blank=True)
 
 class Report(models.Model):
@@ -27,7 +30,7 @@ class Report(models.Model):
     report_number = models.IntegerField(default=0)
     report_period = models.IntegerField(default=0) # days
     last_curia_visit_date = models.DateField(null=True, blank=True)
-    last_curia_visitors = models.JSONField(default=list)
+    last_curia_visitors = models.TextField(null=True, blank=True)
     officers_curia_attendance = models.JSONField(default=dict)
     officers_meeting_attendance = models.JSONField(default=dict)
     extension_plans = models.TextField(null=True, blank=True)

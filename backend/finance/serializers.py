@@ -43,34 +43,6 @@ class AcctStatementSerializer(serializers.ModelSerializer):
         return instance
 
 
-class AcctStatementSerializer2(serializers.ModelSerializer):
-    expenses = ExpensesSerializer()
-
-    class Meta: 
-        model = AcctStatement
-        fields = [
-            'id', 'sbc', 'balance', 'expenses', 'acf'
-        ]
-
-    def create(self, validated_data): 
-        print("In statement serializer", validated_data, "\n")
-        expensesData = validated_data.pop('expenses')
-        expenses = Expenses.objects.create(**expensesData) 
-        acctStatement = AcctStatement.objects.create(expenses=expenses, **validated_data)
-        return acctStatement
-
-    def update(self, instance, validated_data):
-        expenses_data = validated_data.pop('expenses', None)
-        if expenses_data:
-            expenses_serializer = ExpensesSerializer(instance.expenses, data=expenses_data)
-            if expenses_serializer.is_valid():
-                expenses_serializer.save()
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
-        instance.save()
-        return instance
-        
-
 class AcctAnnouncementSerializer(serializers.ModelSerializer):
     class Meta: 
         model = AcctAnnouncement
@@ -137,37 +109,13 @@ class FinancialRecordSerializer(serializers.ModelSerializer):
         return instance
 
 
-class FinancialRecordSerializer2(serializers.ModelSerializer):
-    acct_statement = AcctStatementSerializer()
-    acct_announcement = AcctAnnouncementSerializer()
-    class Meta: 
-        model = FinancialRecord
-        fields = [
-            'id', 'meeting', 'acct_statement', 'acct_announcement'
-        ]
-
-    def create(self, validated_data):
-        print('In FinancialRecord serializer', validated_data)
-        
-        acctStatementData = validated_data.pop('acct_statement')
-        acctAnnouncementData = validated_data.pop('acct_announcement')
-        
-        acctStatement = AcctStatementSerializer().create(**acctStatementData)
-        acctAnnouncement = AcctAnnouncementSerializer().create(**acctAnnouncementData)
-
-        financialRecord = FinancialRecord.objects.create(
-            acct_statement=acctStatement, 
-            acct_announcement=acctAnnouncement
-            **validated_data)
-        return financialRecord
-
-
 
 class FinancialSummarySerializer(serializers.ModelSerializer):
     class Meta: 
         model = FinancialSummary
         fields = [
-            'id', 'report', 
+            'id', 
+            # 'report', 
             'abf', 'sbc', 'expenses', 
             'report_production'
         ]

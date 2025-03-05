@@ -28,27 +28,31 @@ const HomePage = () => {
             {/* sidebar */}
             <div className="sidebar">
                 <nav className="nav flex-column">
-                    <NavLink className="nav-link" to='post/create'>
+                    <NavLink className="nav-link" to='social/post/create'>
                         <span className="icon">
-                            <i className="bi bi-grid"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
-                        <span className="description"> <i className="fa-solid fa-right-from-bracket fa-lg"></i> New Post</span>
+                        <span className="description">
+                            New Post
+                        </span>
                     </NavLink>
-                    <NavLink className="nav-link" to='/'>
+                    <NavLink className="nav-link" to='social/question/create'>
                         <span className="icon">
-                            <i className="bi bi-clipboard"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
                         <span className="description">New Question</span>
                     </NavLink>
-                    <NavLink className="nav-link" to='/'>
-                        <span className="icon"><i className="bi bi-bell"></i></span>
+                    <NavLink className="nav-link" to='social/request/create'>
+                        <span className="icon">
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        </span>
                         <span className="description">New Prayer Request</span>
                     </NavLink>
 
                     {/* settings  */}
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
@@ -56,7 +60,7 @@ const HomePage = () => {
                     {/* contact  */}
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>
@@ -70,30 +74,38 @@ const HomePage = () => {
                 {elements.map(element => { 
 
                     const typeToPath = {
-                        'post': 'social/posts/', 
-                        'question': 'social/questions/', 
-                        'prayer request': 'social/requests/', 
-                        'announcement': 'curia/announcements', 
-                        'reminder': 'praesidium/reminders/'
+                        'post': 'social/post/', 
+                        'question': 'social/question/', 
+                        'prayer request': 'social/request/', 
+                        'announcement': `curia/${element.curia}/announcement/`, 
+                        'reminder': `praesidium/${element.praesidium}/reminder/`
                     }; 
                     const path = typeToPath[element.type] + element.id;
-                    console.log('Path', path); 
+                    // console.log('element', element); 
                     return (
                     
-                    <div className="card my-2 border-0" key={element.id + element.type}>
-                        <NavLink className='text-dark text-decoration-none' to={path}>
-                            <div className="card-header">
+                    <div className="card my-4 border border-2 border-primary" key={element.id + element.type}>
+                        
+                        <div className="card-header">
+                            <NavLink className='text-dark text-decoration-none' to={path}>
                                 {element.title 
-                                ? (<span>{element.title} | </span>) 
+                                ? (<span className="fs-5">{element.title} <span className="fs-2">|</span> </span>) 
                                 : <></>}
-                                <span className="text-info">{element.type} </span>      
+                                <span className="text-info fs-6">{element.type} </span>
+                                <span className="fs-2">|</span>
+                                <span className="fs-6 text-muted text-end"> {element.creator_name}</span>      
+                            </NavLink>
+                        </div>
+                        
+                        <NavLink className='text-dark text-decoration-none' to={path}>
+                            <div className="card-body post rounded border border-3 border-dark">
+                                {element.content.slice(0, 120)} 
+                                { element.content.length > 120? <>...</>: <></>}
                             </div>
                         </NavLink>
-                        <NavLink className='text-dark text-decoration-none' to={path}>
-                            <div className="card-body post rounded border border-3 border-dark">{element.content}</div>
-                        </NavLink>
-                        
-                        
+
+
+
                     </div>
                 );
                 }
@@ -105,6 +117,7 @@ const HomePage = () => {
 }
 
 export default HomePage
+
 
 export const homeLoader = async () => {
     // Get posts, questions, prayer_requests, announcements, reminders
@@ -133,19 +146,29 @@ export const homeLoader = async () => {
             const praesidiaResponse = await axios.get(BASEURL+ "praesidium/praesidium/", config);
             
             posts = postResponse.data.map(post => {
-                return {...post, type: 'post'};
+                return {
+                    ...post, type: 'post'
+                };
             }); 
             questions = questionResponse.data.map(question => {
-                return {...question, type: 'question'};
+                return {
+                    ...question, type: 'question'
+                }; 
             }); 
             requests = requestResponse.data.map(request => {
-                return {...request, type: 'prayer request'};
+                return {
+                    ...request, type: 'request'
+                }
             }); 
             announcements = announcementResponse.data.map(announcement => {
-                return {...announcement, type: 'announcement'};
+                return {
+                    ...announcement, type: 'announcement'
+                };
             }); 
             reminders = reminderResponse.data.map(reminder => {
-                return {...reminder, type: 'reminder'};
+                return {
+                    ...reminder, type: 'reminder'
+                };
             }); 
             praesidia = praesidiaResponse.data; 
 
@@ -166,34 +189,3 @@ export const homeLoader = async () => {
         return [posts, questions, requests, announcements, reminders]; 
     }
 }
-
-
-                    // {/* menu with dropdown */}
-                    // <NavLink className="nav-link" data-bs-toggle="collapse" data-bs-target="#submenu" aria-expanded='false' aria-controls='submenu'>
-                    //     <span className="icon"><i className="bi bi-box-seam"></i></span>
-                    //     <span className="description">Projects <i className="bi bi-caret-down-fill"></i></span>
-                    // </NavLink>
-
-                    // {/* submenu for projects  */}
-                    // <div className="sub-menu collapse" id="submenu">
-                    //     <NavLink className="nav-link" to='project1'>
-                    //         <span className="icon">
-                    //             <i className="bi bi-file-earmark-check"></i>
-                    //         </span>
-                    //         <span className="description">Project 1</span>
-                    //     </NavLink>
-                    //     <NavLink className="nav-link" to=''>
-                    //         <span className="icon">
-                    //             <i className="bi bi-file-earmark-check"></i>
-                    //         </span>
-                    //         <span className="description">Project 2</span>
-                    //     </NavLink>
-                    //     <NavLink className="nav-link" to=''>
-                    //         <span className="icon">
-                    //             <i className="bi bi-file-earmark-check"></i>
-                    //         </span>
-                    //         <span className="description">Project 3</span>
-                    //     </NavLink>
-                    // </div>
-
-
