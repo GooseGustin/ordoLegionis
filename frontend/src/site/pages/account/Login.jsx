@@ -6,7 +6,7 @@ const BASEURL = "http://localhost:8000/api/";
 
 export default function Login() {
     const [formData, setFormData] = useState({
-        email: 'testuser1@gmail.com', // goosegustin@
+        email: 'goosegustin@gmail.com', // @
         password: '#fightC1ub#',
     });
 
@@ -49,6 +49,7 @@ export default function Login() {
                     }
                 })
             }
+            setTimeout(function() { setError(""); }, 2000);
         } finally {
             setIsLoading(false);
         }

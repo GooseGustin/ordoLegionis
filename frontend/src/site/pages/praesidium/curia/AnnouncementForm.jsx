@@ -9,8 +9,8 @@ const AnnouncementForm = (props) => {
     const { method } = props; 
     const [announcementObj, curia] = useLoaderData(); 
 
-    const qualifiedToDelete = true;
     const creating = method=='create';
+    const qualifiedToDelete = !creating;
 
     // const [title, setTitle] = useState(); 
 
@@ -119,6 +119,7 @@ const AnnouncementForm = (props) => {
         } catch (err) {
             if (err.status === 401) {
                 console.log("The session is expired. Please sign in again to operate on announcements")
+                navigate('/account/login');
             } else {
                 console.log("Error during operation", err)              
             }

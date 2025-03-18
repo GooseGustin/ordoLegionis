@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import axios from 'axios' 
 
 export default function Register() {
@@ -10,12 +10,14 @@ export default function Register() {
         password2:'' 
     });
 
+    const navigate = useNavigate();
+
     const handleChange = (e) => {
         setFormData({
             ...formData, 
             [e.target.name]:e.target.value
         }); 
-        // console.log(formData);
+        console.log(formData);
     }
     
 
@@ -36,6 +38,7 @@ export default function Register() {
             console.log("Success!", response.data) 
             setSuccessMessage("Registration Successful!"); 
             setTimeout(function() { setSuccessMessage(""); }, 2000);
+            navigate("../../");
         } catch (err) {
             console.log("Error during registration", err.response.data)
             
@@ -58,17 +61,17 @@ export default function Register() {
     }
 
   return (
-    <div className="container p-5 mt-5 row">
+    <div className="container p-5 mt-5 row justify-content-center align-items-center">
         <div className="col-3"></div>
         <div className="col container mt-5 text-center border border-info rounded shadow p-5">
         {error && <p style={{color:'red'}}>{error}</p>}
         {successMessage && <p style={{color:'green'}}>{successMessage}</p>}
 
-        <h2 lassName="mb-5">Register</h2>
+        <h2 className="mb-5">Register</h2>
         <form>
             <div className="row">
-                <div className="col">
-                    <label>Username: 
+                <div className="col-12">
+                    <label>Username
                         <input 
                             type="text" name="username" 
                             className="form-control border border-dark"
@@ -76,18 +79,18 @@ export default function Register() {
                             onChange={handleChange} />
                     </label>
                 </div>
-                <div className="col">
-                    <label>
+                <div className="col-12">
+                    <label>Email
                         <input 
-                            type="text" name="" id=""
+                            type="text" name="email" id=""
                             value={formData.email}
                             onChange={handleChange}
                             className="form-control border border-dark"
                         />
                     </label>
                 </div>
-                <div className="col">
-                    <label>Enter password: 
+                <div className="col-12">
+                    <label>Enter password
                         <input 
                             type="password" name="password1" 
                             value={formData.password1}
@@ -96,8 +99,8 @@ export default function Register() {
                         />
                     </label>
                 </div>
-                <div className="col">
-                    <label>Confirm password: 
+                <div className="col-12">
+                    <label>Confirm password
                         <input 
                             type="password" name="password2" 
                             value={formData.password2} 
@@ -120,7 +123,7 @@ export default function Register() {
         </form>
 
         </div>
-        <div className="col-3"></div>
+        {/* <div className="col-3 col-lg-12"></div> */}
         
         <hr />
     </div>

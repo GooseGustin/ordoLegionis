@@ -68,6 +68,7 @@ const QuestionForm = (props) => {
         } catch (err) {
             if (err.status === 401) {
                 console.log("The session is expired. Please sign in again to operate on questions")
+                navigate('/account/login');
             } else {
                 console.log("Error during operation", err)              
             }

@@ -133,6 +133,21 @@ class FinancialSummarySerializer(serializers.ModelSerializer):
             'id', 
             'report', 'month_year',
             'acf', 'sbc', 'balance', 'expenses', 
-            'report_production'
+            'report_production', 'balance_at_hand'
         ]
 
+    def update(self, instance, validated_data): 
+        print('In financial summary serializer')
+        print('validated_data', validated_data)
+
+        # Update instance fields
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        instance.save()
+
+        return instance
+
+    # def update(self, validated_data): 
+    #     print('In financial summary serializer')
+    #     print('validated_data', validated_data)
+    #     return super().update(validated_data)

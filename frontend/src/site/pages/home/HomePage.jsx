@@ -1,6 +1,6 @@
 import axios from "axios";
-import { NavLink, useLoaderData } from "react-router-dom"
-import Navbar from "../../components/Navbar"
+import { Link, NavLink, useLoaderData } from "react-router-dom"
+// import Navbar from "../../components/Navbar"
 
 const BASEURL = "http://localhost:8000/api/"; 
 
@@ -68,6 +68,8 @@ const HomePage = () => {
             </div>
 
             {/* main  */}
+            {
+            elements[0] ? 
             <main className="main-content">
                 {/* <h2>Responsive Sidebar</h2> */}
                 <div className="">
@@ -103,15 +105,23 @@ const HomePage = () => {
                                 { element.content.length > 120? <>...</>: <></>}
                             </div>
                         </NavLink>
-
-
-
                     </div>
                 );
                 }
                 )}
                 </div>
             </main>
+            : 
+            <main className="main-content">
+                <div className="container my-5">
+                    <div className="row">
+                        <div className="col">
+                            <span>You are logged out. Please login <Link to="../account/login">here</Link></span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            }
         </div>
     )
 }

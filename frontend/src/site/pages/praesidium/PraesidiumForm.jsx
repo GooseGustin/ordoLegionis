@@ -8,12 +8,18 @@ const PraesidiumForm = (props) => {
     const loc = "In praesidium form";
 
     const { method } = props; 
-
     // curiae options should be filtered based on state and country 
-    const [obj, curiae] = useLoaderData();
+    const [obj, curiae, user] = useLoaderData();
     const navigate = useNavigate();
     
-    console.log(loc, 'praesidium', obj)
+    console.log(loc, 'praesidium', obj, method)
+
+    const creating = method==='create';
+    // const qualifiedToDelete = !creating;
+
+    const qualifiedToDelete = obj? obj.managers.includes(user.id): false;
+    console.log("user is qualified to delete this praesidium", qualifiedToDelete); 
+
 
     // define defaults
     const states = [
@@ -27,19 +33,21 @@ const PraesidiumForm = (props) => {
     const defaultState = obj? obj.state: 'Plateau'
     const defaultCountry = obj? obj.country: 'Nigeria'
     const defaultParish = obj? obj.parish: "St. Paul's Catholic Church, Lamingo"
-    const defaultCuria = obj? obj.curia: 3 // null
+    const defaultCuria = obj? obj.curia: 1 // null
     const defaultAddress = obj? obj.address: 'Inside the church'
     const defaultMeetingTime = obj? obj.meeting_time: 'Every Saturday at 7:30 AM'
-    const defaultInaugDate = obj? obj.inaug_date: '2024-02-11' // null 
+    const defaultInaugDate = obj? obj.inaug_date: '2025-01-05' // null 
+    const defaultSD = obj? obj.spiritual_director: 'Fr. Michael Moses'
+    const defaultSDAppDate = obj? obj.spiritual_director_app_date: '2025-01-05'
     const defaultPresident = obj? obj.president: 'Jules'
-    const defaultPresAppDate = obj? obj.pres_app_date: '2024-02-11' // null
+    const defaultPresAppDate = obj? obj.pres_app_date: '2025-01-11' // null
     const defaultVicePresident = obj? obj.vice_president: 'Verne'
-    const defaultVPAppDate = obj? obj.vp_app_date: '2024-02-11' // null
+    const defaultVPAppDate = obj? obj.vp_app_date: '2025-01-05' // null
     const defaultSecretary = obj? obj.secretary: 'Odysius'
-    const defaultSecAppDate = obj? obj.sec_app_date: '2024-02-18' // null
+    const defaultSecAppDate = obj? obj.sec_app_date: '2025-01-12' // null
     const defaultTreasurer = obj? obj.treasurer: 'Thor'
-    const defaultTresAppDate = obj? obj.tres_app_date:'2024-02-18' // null
-    const defaultNextDeadline = obj? obj.next_report_deadline: '2025-02-09' // null
+    const defaultTresAppDate = obj? obj.tres_app_date:'2025-01-05' // null
+    const defaultNextDeadline = obj? obj.next_report_deadline: '2025-03-09' // null
 
 
     const [praesidiumForm, setPraesidiumForm] = useState({
@@ -51,6 +59,8 @@ const PraesidiumForm = (props) => {
         address: defaultAddress, 
         meeting_time: defaultMeetingTime, 
         inaug_date: defaultInaugDate,
+        spiritual_director: defaultSD, 
+        spiritual_director_app_date: defaultSDAppDate, 
         president: defaultPresident, 
         pres_app_date: defaultPresAppDate, 
         vice_president: defaultVicePresident, 
@@ -72,6 +82,32 @@ const PraesidiumForm = (props) => {
         })
     }
 
+    const handleDelete = async () => {
+        try {
+            const token = localStorage.getItem('accessToken'); 
+            if (token) {
+                console.log('Delete the praesidium');
+                const config = {
+                    headers: {
+                        "Authorization": `Bearer ${token}` 
+                    }
+                }; 
+                const res = await axios.delete(BASEURL+"praesidium/praesidium/"+obj.id+"/", config); 
+                console.log("Successfully deleted"); 
+                navigate(creating? "../": '../../')
+            }  else {
+                console.log("Sign in to delete the announcement")
+            }
+        } catch (err) {
+            if (err.status === 401) {
+                console.log("The session is expired. Please sign in again to delete this announcement")
+                navigate('/account/login');
+            } else {
+                console.error("Error deleting the announcement:", err);
+            }
+        }
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault(); 
         const loc = "In submit form"; 
@@ -85,14 +121,14 @@ const PraesidiumForm = (props) => {
                     }
                 };
                 let praesidiumResponse;
-                if (method === 'create') {
+                if (creating) {
                     praesidiumResponse = await axios.post(`${BASEURL}praesidium/praesidium/`, praesidiumForm, config);
                     // Create initial worklist
                     const initialWorkList = {
                         "praesidium": praesidiumResponse.data.id,
                         "details": []
                     }
-                    workListResponse = await axios.post(`${BASEURL}works/work_list/`, initialWorkList, config);
+                    const workListResponse = await axios.post(`${BASEURL}works/work_list/`, initialWorkList, config);
                     console.log("Initialising worklist", workListResponse.data); 
                 
                 } else {
@@ -100,7 +136,7 @@ const PraesidiumForm = (props) => {
                 }
                 
                 const praesidiumFeedback = praesidiumResponse.data; 
-                console.log('In submit praesidium form, code', praesidiumFeedback.status_code);
+                console.log('In submit praesidium form, code', praesidiumFeedback, praesidiumFeedback.status_code);
                 navigate('../');
             } else {
                 console.log("Sign in to get praesidia paradisei")
@@ -116,9 +152,7 @@ const PraesidiumForm = (props) => {
         }
     }
 
-
-
-    const pageTitle = method == 'create' ? "Create a praesidium" : "Edit your praesidium";
+    const pageTitle = creating ? "Create a praesidium" : "Edit your praesidium";
     return (
         <div>
         {/* sidebar */}
@@ -131,7 +165,7 @@ const PraesidiumForm = (props) => {
                         <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                     </span>
                     {
-                    method==='edit'? 
+                    !creating? 
                     <span>Praesidium</span>: 
                     <span>Praesidium list</span>
                     }
@@ -257,7 +291,8 @@ const PraesidiumForm = (props) => {
                             <select name="curia" id="" 
                                 className="form-control border border-dark"
                                 onChange={handleChange}>
-                            {curiae.map(curia =>
+                            {curiae[0]
+                            ? curiae.map(curia =>
                                 obj
                                     ? (
                                         <option
@@ -273,7 +308,8 @@ const PraesidiumForm = (props) => {
                                         >{curia.name}</option>
                                     )
                                 )
-                            } || <option value="">Sign in to select curia</option>
+                            : <option value="">Sign in to select curia</option>
+                            } 
                             </select>
                         </label>
                     </div>
@@ -316,6 +352,29 @@ const PraesidiumForm = (props) => {
                 <div className="row row-cols-lg-2 row-cols-md-2">
                     <div className="col col-lg-6 col-md-6 col-sm-10">
                         <label htmlFor="">
+                            <span className="me-1">Spiritual Director</span>
+                            <input 
+                                type="text" name="spiritual_director" id="" 
+                                className="form-control border border-dark"
+                                defaultValue={defaultSD}
+                                onChange={handleChange}
+                            />
+                        </label>
+                    </div>
+                    <div className="col col-lg-6 col-md-6 col-sm-10 mt-4">
+                        <label htmlFor="">
+                            <span className="me-1 mb-3">Appointment date</span>
+                            <input 
+                                type="date" name="spiritual_director_app_date" id="" 
+                                defaultValue={defaultSDAppDate}
+                                onChange={handleChange}
+                                className="form-control-sm border border-dark"
+                            />
+                        </label>
+                    </div>
+
+                    <div className="col col-lg-6 col-md-6 col-sm-10 ">
+                        <label htmlFor="">
                             <span className="me-1">President</span>
                             <input 
                                 type="text" name="president" id="" 
@@ -349,7 +408,7 @@ const PraesidiumForm = (props) => {
                             />
                         </label>
                     </div>
-                    <div className="col-10 col-lg-6 col-md-6 col-sm-10 mt-4">
+                    <div className="col col-lg-6 col-md-6 col-sm-10 mt-4">
                         <label htmlFor="">
                             <span className="me-1">Appointment date</span>
                             <input 
@@ -413,12 +472,23 @@ const PraesidiumForm = (props) => {
             </div>
 
             <div className="row">
-                <div className="col-6">
+                <div className="col">
                     <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
                 </div>
                 <div className="col">
                     <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
                 </div>
+                {
+                    (qualifiedToDelete && !creating)
+                    ? <div className="col">
+                        <Link 
+                            to='' 
+                            className='btn btn-outline-danger col-12 rounded rounded-5'
+                            onClick={handleDelete}
+                        >Delete</Link>
+                    </div>
+                    : <></>
+                }
             </div> 
 
                 
@@ -433,7 +503,7 @@ export default PraesidiumForm
 
 export const praesidiumFormLoader = async ({params}) => {
     let curiaList = []; 
-    let obj;
+    let obj, user;
 
     // Get curia id 
     const {pid} = params;
@@ -455,6 +525,10 @@ export const praesidiumFormLoader = async ({params}) => {
             }
             const curiaResponse = await axios.get(BASEURL + 'curia/curia/', config);
             curiaList = curiaResponse.data; 
+            
+            const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            user = userResponse.data;
+
         } else {
             console.log("Sign in to get praesidia paradisei")
         }
@@ -466,6 +540,6 @@ export const praesidiumFormLoader = async ({params}) => {
             console.error("Error fetching curia:", err);
         }
     } finally {
-        return [obj, curiaList]; 
+        return [obj, curiaList, user]; 
     }
 }

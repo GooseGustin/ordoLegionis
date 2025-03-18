@@ -61,7 +61,10 @@ Problems:
     - Calendar, current month having 2 days selected at the same time 
     - WorkList, can't edit worklist -- handled 
     - WorkList, can create multiple works of the same name
+    - WorkList, fix handleCheckBox where works are added to worklist details
     - ReportForm, selecting submision and last submision dates is buggy, leading to misleading prepdata
     - ReportPrepGetView, last_submission_date is being updated incorrectly
     - Users can create empty social objects and reminders and announcements 
     - Images in posts and announcements need a proper bootstrap component to resize appropriately
+    - Test update methods in serializers of all methods where only create methods were implemented
+    - WorkList, cancel button leads to 404 page

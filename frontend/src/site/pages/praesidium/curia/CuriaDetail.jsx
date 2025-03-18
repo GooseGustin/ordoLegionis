@@ -4,7 +4,7 @@ import axios from "axios";
 const BASEURL = "http://localhost:8000/api/"
 
 const CuriaDetail = () => {
-    const [curia, praesidia] = useLoaderData();
+    const [curia, praesidia, user] = useLoaderData();
     const loc= "In curia details"; 
     console.log(loc, 'curia', curia); 
 
@@ -13,19 +13,27 @@ const CuriaDetail = () => {
         {/* sidebar */}
         <div className="sidebar">
             <nav className="nav flex-column">
-                <NavLink className="nav-link" to='edit'>
-                    <span className="icon">
-                        <i className="bi bi-grid"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                    </span>
-                    <span className="description">Edit</span>
-                </NavLink>
-                <NavLink className="nav-link" to='announcement/create'>
-                    <span className="icon">
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                    </span>
-                    <span className="description">New announcement</span>
-                </NavLink>
+                {
+                    curia.managers.includes(user.id)
+                    ? 
+                    <>
+                    <NavLink className="nav-link" to='edit'>
+                        <span className="icon">
+                            <i className="bi bi-grid"></i>
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        </span>
+                        <span className="description">Edit</span>
+                    </NavLink>
+                    <NavLink className="nav-link" to='announcement/create'>
+                        <span className="icon">
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        </span>
+                        <span className="description">New announcement</span>
+                    </NavLink>
+                    </>
+                    : <></>
+                }
+                
                 <NavLink className="nav-link" to='announcement/'>
                     <span className="icon">
                         <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
@@ -70,7 +78,7 @@ const CuriaDetail = () => {
                 <p className="fs-4 p-2 bg-secondary text-light">Location</p>
 
                 <div className="row row-cols-lg-3 row-cols-md-2 row-cols-sm-2">
-                    <div className="col-5 col-md-5 col-lg-6 col-sm-10">
+                    <div className="col-10 col-lg-6 col-md-5 col-sm-10">
                         <label htmlFor="">
                             <span className="me-1 fw-bold">State:</span>
                             <span>{curia.state}</span>
@@ -85,35 +93,28 @@ const CuriaDetail = () => {
                     </div>
                     <div className="row col-10 col-lg-10 col-md-10 col-sm-10">
                         <label htmlFor="curia">
+                            <span className="me-1 fw-bold">Archdiocese:</span>
+                            <span>Archdiocese of {curia.archdiocese}</span>
+                        </label>
+                    </div>
+                    
+                    <div className="row col-12">
+                        <label htmlFor="">
                             <span className="me-1 fw-bold">Parish:</span>
                             <span>{curia.parish}</span>
+                        </label>
+                    </div>
+
+                    <div className="row col-12">
+                        <label htmlFor="">
+                            <span className="me-1 fw-bold">Email:</span>
+                            <span>{curia.email}</span>
                         </label>
                     </div>
                     
                 </div> 
             </div> {/* Location */}
 
-            {/* Officer */}
-            <div className="location border border-dark rounded rounded-3 p-3 my-2">
-                
-                <p className="fs-4 p-2 bg-secondary text-light">Spiritual Director</p>
-
-                <div className="row row-cols-lg-3 row-cols-md-2 row-cols-sm-2">
-                    <div className="col-5 col-md-5 col-lg-6 col-sm-10">
-                        <label htmlFor="">
-                            <span className="me-1 fw-bold">Spiritual director:</span>
-                            <span>{curia.spiritual_director}</span>
-                        </label>
-                    </div>
-                    <div className="col-10 col-lg-6 col-md-5 col-sm-10">
-                        <label htmlFor="">
-                            <span className="me-1 fw-bold">Appointment date:</span>
-                            <span>{curia.spiritual_director_app_date}</span>
-                        </label>
-
-                    </div>
-                </div> 
-            </div> {/* Officer */}
 
             <div className="praesidia border border-dark rounded rounded-3 p-3 my-2">
                 <p className="fs-4 p-2 bg-secondary text-light">Praesidia</p>
@@ -121,7 +122,7 @@ const CuriaDetail = () => {
                     {
                         praesidia.map(item => {
                             return (
-                                <div className="col">
+                                <div className="col-12" key={item.id}>
                                     {item.name}
                                 </div>
                             )
@@ -141,7 +142,7 @@ export const curiaDetailLoader = async ({ params }) => {
     const {cid} = params;
     // return the curiaObj, list of meeting numbers and dates
     const loc = "In the curia loader fxn";
-    let curia, praesidia; 
+    let curia, praesidia, user; 
 
     console.log(loc); 
     try {
@@ -163,6 +164,10 @@ export const curiaDetailLoader = async ({ params }) => {
             // Extract the curia ID from the curia data
             const curiaId = curia.id;
             console.log(loc, 'curia id', curiaId); 
+            
+            // Get user 
+            const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            user = userResponse.data;
 
         } else {
             console.log("Sign in to get workLists")
@@ -179,7 +184,7 @@ export const curiaDetailLoader = async ({ params }) => {
 
         }
     } finally {
-        return [curia, praesidia]; 
+        return [curia, praesidia, user]; 
     }
 
 }

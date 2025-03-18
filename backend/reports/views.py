@@ -211,10 +211,11 @@ class ReportPrepGetView(APIView):
 
         # Remove duplicates
         fin_summaries = removeDuplicates(month_year_combo)
+
         # Initialise
         for item in fin_summaries: 
             ind = fin_summaries.index(item)
-            fin_summaries[ind]['bf'] = 0
+            fin_summaries[ind]['bf'] = None
             fin_summaries[ind]['sbc'] = 0
             fin_summaries[ind]['balance'] = 0
             fin_summaries[ind]['remittance'] = 0
@@ -227,6 +228,9 @@ class ReportPrepGetView(APIView):
             }
 
         # Update financial summary
+        
+        acf_set = set() # Track first occurrence of ACF for each month
+        
         for meeting in meetings_within_range: 
             [year, month, _] = getMonth(meeting.date)
             # print("year and month", year, month)
@@ -240,9 +244,15 @@ class ReportPrepGetView(APIView):
             bal = fin_record.acct_statement.balance
             exp = fin_record.acct_statement.expenses
 
-            fin_summaries[ind]['bf'] += acf 
+            month_key = (month, year) 
+            if month_key not in acf_set: 
+                # Only keep the first for the month
+                fin_summaries[ind]['bf'] = acf 
+                acf_set.add(month_key)  # Mark this month as recorded
+                print('Set acf for', month_key, acf)
+
             fin_summaries[ind]['sbc'] += sbc 
-            fin_summaries[ind]['balance'] += bal 
+            fin_summaries[ind]['balance'] = bal # so that the last balance for the month (ind) is kept
             fin_summaries[ind]['remittance'] += exp.remittance
             fin_summaries[ind]['expenses']["bouquet"] += exp.bouquet
             fin_summaries[ind]['expenses']["extension"] += exp.extension
@@ -254,6 +264,9 @@ class ReportPrepGetView(APIView):
                         {exp.others.get('purpose'): exp.others.get('value', 0)} # type:ignore
                     ) 
 
+        # Get first acf
+        # first_meeting = meetings_within_range[0]
+        # first_acf = first_meeting.
         processed_data = {
             'last_submission_date': last_submission_date, 
             'report_number': report_number, 

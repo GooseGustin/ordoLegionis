@@ -1,13 +1,13 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { NavLink, Link, useLoaderData, useNavigate } from 'react-router-dom'
-import { findAll, removeRepeatedFromArray } from '../../../functionVault';
+import { findAll, parseObjectKeys, removeRepeatedFromArray } from '../../../functionVault';
 
 const BASEURL = "http://127.0.0.1:8000/api/"; 
 
 const MeetingForm = (props) => {
     const loc = "In meeting form"; 
-    const [praesidium, workList, works, meetingObj, recordObj] = useLoaderData();
+    const [praesidium, workList, works, meetingObj, recordObj, objNotes] = useLoaderData();
     const { method } = props;
     // console.log('method', method)
     const navigate = useNavigate();
@@ -21,9 +21,16 @@ const MeetingForm = (props) => {
     const defaultNoPresent = meetingObj ? meetingObj.no_present : 1;
     const defaultOfficersAtMeeting = meetingObj ? meetingObj.officers_meeting_attendance : ["President", "Secretary"] // [];
     const defaultOfficersAtCuria = meetingObj ? meetingObj.officers_curia_attendance : [];
+    const defaultNotes = objNotes
+            ? objNotes
+            : {
+                meeting: null, 
+                content: ''
+            };
     const [officersMeetingAttendance, setOfficersMeetingAttendance] = useState(defaultOfficersAtMeeting);
     const [officersCuriaAttendance, setOfficersCuriaAttendance] = useState(defaultOfficersAtCuria); 
-
+    const [notes, setNotes] = useState(defaultNotes);
+    console.log("\n\nInitial notes", notes)
 
     const [meetingFormData, setMeetingFormData] = useState({
         praesidium: praesidium.id,
@@ -31,7 +38,7 @@ const MeetingForm = (props) => {
         meeting_no: defaultMeetingNo,
         no_present: defaultNoPresent,
         officers_meeting_attendance: defaultOfficersAtMeeting,
-        officers_curia_attendance: defaultOfficersAtCuria
+        officers_curia_attendance: defaultOfficersAtCuria, 
     })
 
     ////////////////////////////////////////////////////////////////////////
@@ -51,7 +58,7 @@ const MeetingForm = (props) => {
     const defaultExpenseStationery = recordObj ? recordObj.acct_statement.expenses.stationery : 100;
     const defaultExpenseAltar = recordObj ? recordObj.acct_statement.expenses.altar : 0;
     const defaultExpenseBouquet = recordObj ? recordObj.acct_statement.expenses.bouquet : 0;
-    const defaultExpenseOthers = recordObj ? recordObj.acct_statement.expenses.others : {};
+    const defaultExpenseOthers = recordObj ? recordObj.acct_statement.expenses.others : {purpose: '', value: 0};
 
     const defaultAcctAnnouncement = recordObj ? recordObj.acct_announcement : {
         sbc: 0, collection_1: 0, collection_2: 0
@@ -88,6 +95,14 @@ const MeetingForm = (props) => {
     // console.log(loc, 'default work details', defaultWorkDetails); 
     const [workDetails, setWorkDetails] = useState(defaultWorkDetails)
 
+    ///////////////////////////////////////
+    const handleNotesChange = (e) => {
+        setNotes({
+            ...notes, 
+            content: e.target.value
+        });
+        console.log('notes', notes, e.target.value); 
+    }
     const handleWorkChange = (e) => {
         const loc = "In handle work change"; 
         console.log(loc, e.target.name);
@@ -148,14 +163,45 @@ const MeetingForm = (props) => {
     }
 
     const [expenses, setExpenses] = useState(defaultExpenses);
+
+    const pageTitle = method === 'create' ? "Create a meeting" : "Edit your meeting";
+    const [btnTitle, setBtnTitle] = useState(method == 'create' ? "Create" : "Edit");
+
+    // if (method === 'create') {
+    //     setBtnTitle('Create')
+    // } else {
+    //     setBtnTitle('Edit')
+    // }
+
     const handleExpensesChange = (e) => {
-        setExpenses({
-            ...expenses,
-            [e.target.name]: e.target.value * 1
-        });
+        const [name, type] = e.target.name.split('_'); 
+        if (name=='others') {
+            if (type=='value') {
+                setExpenses({
+                    ...expenses,
+                    others: {
+                        ...expenses.others, 
+                        value: e.target.value*1
+                    }
+                });
+            } else {
+                setExpenses({
+                    ...expenses,
+                    others: {
+                        ...expenses.others, 
+                        purpose: e.target.value
+                    }
+                });
+            }
+        } else {
+            setExpenses({
+                ...expenses,
+                [e.target.name]: e.target.value * 1
+            });
+        }
+        
         console.log("handled expenses", expenses, e)
     }
-    ////////////////////////////////////////////////
 
     const handleMeetingChange = (e) => {
         console.log(e.target.name); 
@@ -208,6 +254,7 @@ const MeetingForm = (props) => {
     const submitMeeting = async (e) => {
         const loc = "In submit meeting";
         e.preventDefault();
+        setBtnTitle(method == 'create' ? "Creating" : "Editing");
         try {
             // console.log('Trying to send', meetingFormData);
             const token = localStorage.getItem('accessToken');
@@ -249,6 +296,16 @@ const MeetingForm = (props) => {
                     const meetingResponse = await axios.post(BASEURL + "meetings/meetings/", meetingFormData, config);
                     // console.log("Success!", meetingResponse)
                     meetId = meetingResponse.data.id;
+
+                    // create notes
+                    // doesn't exist, create new 
+                    const notesCopy = {
+                        ...notes, 
+                        meeting: meetId, 
+                    }
+                    console.log("creating meeting notes", notesCopy)
+                    const notesResponse = await axios.post(BASEURL + "meetings/notes/", notesCopy, config); 
+
                     // Create financial record
                     financialRecordCopy = {
                         ...financialRecordCopy, 
@@ -281,6 +338,29 @@ const MeetingForm = (props) => {
                     meetId = meetingObj.id;
                     const meetingResponse = await axios.put(BASEURL + `meetings/meetings/${meetId}/`, meetingFormData, config);
                     // console.log("Success!", meetingResponse)
+                    
+
+                    // edit notes
+                    // notes is either null or it exists
+                    const notesCopy = {
+                        ...notes, 
+                        meeting: meetId, 
+                    }
+                    setNotes(notesCopy); 
+                    console.log("meeting notes for editing", notesCopy)
+                    let notesResponse;
+                    if (objNotes) { 
+                        // Update if already exists
+                        notesResponse = await axios.put(BASEURL + `meetings/notes/${notes.id}/`, notesCopy, config); 
+                        console.log("notes edited", notesResponse.data)
+                    } else {
+                        // Create if none
+                        notesResponse = await axios.post(BASEURL + "meetings/notes/", notesCopy, config); 
+                        console.log("notes created for existing meeting", notesResponse.data)
+                    }
+                    // notesResponse = await axios.put(BASEURL + `meetings/notes/${notes.id}/`, notesCopy, config); 
+                    
+                    
                     // Edit financial record
                     financialRecordCopy = {
                         ...financialRecordCopy, 
@@ -320,15 +400,15 @@ const MeetingForm = (props) => {
         } catch (err) {
             if (err.status === 401) {
                 console.log("The session is expired. Please sign in again to operate on meetings")
+                navigate('/account/login');
             } else {
                 console.log("Error during operation", err)
             }
 
         }
+        setBtnTitle('Edit');
     }
 
-    const pageTitle = method == 'create' ? "Create a meeting" : "Edit your meeting";
-    const btnTitle = method == 'create' ? "Create" : "Edit";
 
     return (
         <div className='meeting-form pt-3'>
@@ -361,7 +441,7 @@ const MeetingForm = (props) => {
                             <i className="bi bi-bell"></i>
                             <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
-                        <span className="description">Worklist</span>
+                        <span className="description">Work List</span>
                     </NavLink>
 
                     {/* help  */}
@@ -632,21 +712,25 @@ const MeetingForm = (props) => {
                         </div>
                         <div className="col-md-10 col-sm-10">
                             <input 
-                                type="text" 
+                                type="text" name='others_purpose'
                                 className="form-control border border-dark" 
                                 placeholder='Purpose'
+                                defaultValue={defaultExpenseOthers.purpose}
+                                onChange={handleExpensesChange}
                                 />
                         </div>
                         <div className="col-md-10 col-sm-10">
                             <input 
                                 type="number" 
-                                name="" 
+                                name="others_value" 
                                 className='form-control-sm rounded rounded-3 border border-dark'
-                                placeholder='0'
+                                // placeholder='0'
+                                defaultValue={defaultExpenseOthers.value}
+                                onChange={handleExpensesChange} 
                             />
-                            <span className="icon ">
+                            {/* <span className="icon ">
                                 <i className="bi bi-grid">+</i>
-                            </span>
+                            </span> */}
                         </div>
                     </div>
                 </fieldset>
@@ -692,66 +776,80 @@ const MeetingForm = (props) => {
                 {/* Works */}
                 <p className="fs-2">Works</p>
                 <hr />
+                {workList.details[0]
+                ?
                 <fieldset className="px-3">
-                <div className="row row-cols-sm-2 row-cols-lg-2 row-cols-md-2">
-                    {workList.details.map(typeObj => {
-                        let validMetrics = []; 
-                        for (let key in typeObj.metrics) {
-                            if (typeObj.metrics[key]) {
-                                validMetrics.push(key)
+                    <div className="row row-cols-sm-2 row-cols-lg-2 row-cols-md-2">
+                        {workList.details.map(typeObj => {
+                            let validMetrics = []; 
+                            for (let key in typeObj.metrics) {
+                                if (typeObj.metrics[key]) {
+                                    validMetrics.push(key)
+                                }
                             }
-                        }
-                        return (
-                            <div className="col mx-4 p-1" key={typeObj.id}>
-                                <div className="row work-type-obj">{typeObj.name}
-                                </div>
-                                <div className="row">
-                                    <label htmlFor="">Assigned
-                                    <input 
-                                        type="checkbox" 
-                                        name={typeObj.name+"_assigned"} id="" 
-                                        className='ms-2 form-check-input'
-                                        defaultChecked={assignedWorks.includes(typeObj.name)}
-                                        onChange={handleWorkChange}
-                                        />
-                                    </label>
-                                    <label htmlFor="">Done
-                                    <input 
-                                        type="checkbox" 
-                                        name={typeObj.name+"_done"} id="" 
-                                        className='ms-2 form-check-input'
-                                        defaultChecked={doneWorks.includes(typeObj.name)}
-                                        onChange={handleWorkChange}
-                                    /></label>
-                                </div>
-                                <div className="row">
-                                    {validMetrics.map(metric => (
-                                        <label htmlFor={metric} key={metric}>
-                                            <input 
-                                                type="number" 
-                                                name={typeObj.name + "_" + metric} 
-                                                className="form-control-sm rounded rounded-3 border border-dark" 
-                                                defaultValue={works? 
-                                                    // Don't try to understand it; just feel it :)
-                                                    works.filter(work => {
-                                                        // console.log('In work form', work);
-                                                        return work.type === typeObj.name;
-                                                    })[0]? 
-                                                    works.filter(work => {
-                                                        // console.log('In work form', work);
-                                                        return work.type === typeObj.name;
-                                                    })[0]['details'][metric]: 0: 0
-                                                }
-                                                onChange={handleWorkChange}
-                                            /> <span className="ms-1">{metric}</span>
+                            return (
+                                <div className="col mx-4 p-1" key={typeObj.id}>
+                                    <div className="row work-type-obj">{typeObj.name}
+                                    </div>
+                                    <div className="row">
+                                        <label htmlFor={typeObj.name+"_assigned"}>Assigned
+                                        <input 
+                                            type="checkbox" 
+                                            name={typeObj.name+"_assigned"} id={typeObj.name+"_assigned"}
+                                            className='ms-2 form-check-input'
+                                            defaultChecked={assignedWorks.includes(typeObj.name)}
+                                            onChange={handleWorkChange}
+                                            />
                                         </label>
-                                    ))}
+                                        <label htmlFor={typeObj.name+"_done"}>Done
+                                        <input 
+                                            type="checkbox" 
+                                            name={typeObj.name+"_done"} id={typeObj.name+"_done"} 
+                                            className='ms-2 form-check-input'
+                                            defaultChecked={doneWorks.includes(typeObj.name)}
+                                            onChange={handleWorkChange}
+                                        /></label>
+                                    </div>
+                                    <div className="row">
+                                        {validMetrics.map(metric => (
+                                            <label htmlFor={metric} key={metric}>
+                                                <input 
+                                                    type="number" 
+                                                    name={typeObj.name + "_" + metric} 
+                                                    className="form-control-sm rounded rounded-3 border border-dark" 
+                                                    defaultValue={works? 
+                                                        // Don't try to understand it; just feel it :)
+                                                        works.filter(work => {
+                                                            // console.log('In work form', work);
+                                                            return work.type === typeObj.name;
+                                                        })[0]? 
+                                                        works.filter(work => {
+                                                            // console.log('In work form', work);
+                                                            return work.type === typeObj.name;
+                                                        })[0]['details'][metric]: 0: 0
+                                                    }
+                                                    onChange={handleWorkChange}
+                                                /> <span className="ms-1">{metric}</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )
-                    })}
-                </div>
+                            )
+                        })}
+                    </div>
                 </fieldset>
+                : <p>Go to Work List to select works</p>
+                }
+                </div>
+
+                <div className="notes border border-dark rounded rounded-3 mb-4">
+                    <textarea 
+                        name="notes" id="" 
+                        rows="4"
+                        className='form-control'
+                        placeholder='Notes'
+                        defaultValue={defaultNotes.content}
+                        onChange={handleNotesChange}></textarea>
                 </div>
 
                 <div className="row">
@@ -759,7 +857,7 @@ const MeetingForm = (props) => {
                         <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
                     </div>
                     <div className="col">
-                        <a href="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</a>
+                        <Link to="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
                     </div>
                 </div>
 
@@ -780,7 +878,7 @@ export const meetingFormLoader = async ({params}) => {
     const { pid, mid } = params; 
     // console.log(loc, pid, params);
     // console.log(loc, 'mid', mid);
-    let praesidium, workList, works, meeting, record; 
+    let praesidium, workList, works, meeting, record, notes; 
 
     try {
         const token = localStorage.getItem('accessToken');
@@ -800,6 +898,12 @@ export const meetingFormLoader = async ({params}) => {
                 const meetingResponse = await axios.get(BASEURL + "meetings/meetings/" + mid, config);
                 meeting = meetingResponse.data; 
                 console.log(loc, 'meeting obj', meeting)
+                // get notes
+                const nid = meeting.notes; 
+                if (nid) {
+                    const notesResponse = await axios.get(`${BASEURL}meetings/notes/${nid}/`, config); 
+                    notes = notesResponse.data; 
+                }
                 // get financial record
                 const recordResponse = await axios.get(BASEURL + "finance/records/?mid=" + mid, config);
                 record = recordResponse.data; 
@@ -836,7 +940,7 @@ export const meetingFormLoader = async ({params}) => {
             console.error("Error fetching praesidia:", err);
         }
     } finally {
-        return [praesidium, workList, works, meeting, record]; 
+        return [praesidium, workList, works, meeting, record, notes]; 
     }
 
 }

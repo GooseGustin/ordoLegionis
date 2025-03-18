@@ -55,7 +55,6 @@ const WorkCreate = () => {
     const handleSubmitForm = async (e) => {
         e.preventDefault(); 
 
-
         console.log(workForm); 
         workListObj['details'].push(workForm);
         const workListObjUpdate = {
@@ -78,7 +77,6 @@ const WorkCreate = () => {
                 console.log("WorkList Operation Successful!");
                 // navigate(`../worklist`) : navigate('worklist')
                 navigate('../')
-                
 
             } else {
                 console.log("Sign in to operate on worklists")
@@ -119,7 +117,7 @@ const WorkCreate = () => {
                         <i className="bi bi-grid"></i>
                         <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                     </span>
-                    <span className="description">Worklist</span>
+                    <span className="description">Work List</span>
                 </NavLink>
 
 
@@ -187,24 +185,6 @@ const WorkCreate = () => {
                         />
                     </label>
                 </div>
-
-                {/* <div className="col-10 col-lg-6 col-md-5 col-sm-10">
-                    <label htmlFor="">
-                        <span>No. of </span>
-                        <input 
-                            type="text" 
-                            name="metric2" id="" 
-                            placeholder="Eg, Patients"
-                            className="form-control border border-dark"
-                        />
-                    </label>
-                </div> */}
-
-                {/* <div className="col">
-                    <Link onClick={addMetricForm}>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                    </Link>
-                </div> */}
 
             </div>
             </div>

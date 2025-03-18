@@ -11,9 +11,6 @@ const ReportList = () => {
     // const achievementKeys = parseObjectKeys(report)
 
 
-    const deleteReport = (rid) => {
-        console.log("Deleting report", rid)
-    }
 
     return (
         <div className="">
@@ -65,9 +62,7 @@ const ReportList = () => {
                         <div className="col-8">
                             <Link className="fs-4 text-decoration-none text-dark" to={`${report.id}`}>Report {report.report_number}</Link>
                         </div>
-                        <div className="col-4">
-                            <Link className="text-decoration-none text-end" onClick={() => {deleteReport(report.id)}}>Delete</Link>
-                        </div>
+                        
                     </div>
                 ))}
                 
@@ -104,7 +99,7 @@ export const reportListLoader = async ({ params }) => {
 
             for (let i in praesidium.reports) {
                 const rid = praesidium.reports[i]; 
-                const reportResponse = await axios.get(BASEURL + `reports/report/${rid}`); 
+                const reportResponse = await axios.get(BASEURL + `reports/report/${rid}`, config); 
                 let report = reportResponse.data; 
                 // const membershipResponse = await axios.get(BASEURL + `reports/membership/${report.membership_details}`)
                 // report.membership = membershipResponse.data; 

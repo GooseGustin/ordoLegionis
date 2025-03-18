@@ -10,7 +10,8 @@ const PostForm = (props) => {
     const [postObj, legionary, user] = useLoaderData(); 
 
     // const [title, setTitle] = useState(); 
-    const qualifiedToDelete = true; 
+    const qualifiedToDelete = legionary? legionary.user.username === user.username: false; 
+    console.log('Is authenticated', user.is_authenticated)
 
     console.log("in post form", postObj); 
     const defaultLegionary = legionary? legionary.user.username: ''; 
@@ -116,6 +117,7 @@ const PostForm = (props) => {
         } catch (err) {
             if (err.status === 401) {
                 console.log("The session is expired. Please sign in again to operate on posts")
+                navigate('/account/login');
             } else {
                 console.log("Error during operation", err)              
             }

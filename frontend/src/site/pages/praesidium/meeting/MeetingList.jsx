@@ -7,15 +7,6 @@ import Calendar from '../../../components/Calendar'
 
 const BASEURL = "http://localhost:8000/api/";
 
-const RenderMeetingDetail = ({ meeting }) => {
-    return (
-        <div className="border border-dark rounded rounded-3 p-3 my-2">
-            <p className="fs-4">
-                <Link className="text-decoration-none text-dark" to={`${meeting.id}`}>Meeting {meeting.meeting_no}</Link>
-            </p>
-        </div>
-    )
-}
 
 const MeetingList = () => {
     const [praesidium, meetingsList] = useLoaderData();
@@ -152,20 +143,7 @@ export const meetingListLoader = async ({ params }) => {
             };
             console.log(loc, pid);
             const praesidiumResponse = await axios.get(BASEURL + `praesidium/praesidium/${pid}`, config);
-            // const meetingsResponse = await axios.get(BASEURL + `meetings/meetings/?pid=${pid}`, config); 
-
-            // meetings = meetingsResponse.data; 
             praesidium = praesidiumResponse.data;
-            // console.log(loc, 'praesidium meetings', praesidium.meetings);
-
-            // for (let i in praesidium.meetings) {
-            //     const mid = praesidium.meetings[i];
-            //     const meetingResponse = await axios.get(BASEURL + `meetings/meeting/${mid}`, config);
-            //     let meeting = meetingResponse.data;
-            //     console.log("Getting meetings", meeting)
-            //     meetings.push(meeting);
-            // }
-            // const meetingsResponse = await axios.get(BASEURL + `meetings/meetings/?pid=${pid}`, config);
 
             const packet = {
                 pid: praesidium.id,
@@ -173,12 +151,10 @@ export const meetingListLoader = async ({ params }) => {
             };
             console.log(loc, 'packet', packet);
             const meetingsResponse = await axios.post(BASEURL + 'meetings/filter_meetings', packet, config);
-            
             meetings = meetingsResponse.data; 
 
             // // Add the curia details to the praesidium data
             // praesidium.curiaDetails = curiaResponse.data;
-
 
         } else {
             console.log("Sign in to get workLists")
@@ -188,10 +164,10 @@ export const meetingListLoader = async ({ params }) => {
         if (err.status === 401) {
             console.log("The session is expired. Please sign in again to view workLists")
             // setErrStatus(401); 
-            errorStatus = 401;
+            // errorStatus = 401;
         } else {
             console.error("Error fetching workLists or praesidium:", err);
-            errorStatus = err.status;
+            // errorStatus = err.status;
 
         }
     } finally {

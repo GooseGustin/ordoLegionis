@@ -94,7 +94,7 @@ const PraesidiumDetail = () => {
                             <i className="bi bi-grid"></i>
                             <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
-                        <span className="description">Report</span>
+                        <span className="description">Reports</span>
                     </NavLink>
                     <NavLink className="nav-link" to='report/create'>
                         <span className="icon">
@@ -108,7 +108,7 @@ const PraesidiumDetail = () => {
                             <i className="bi bi-grid"></i>
                             <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                         </span>
-                        <span className="description">Worklist</span>
+                        <span className="description">Work List</span>
                     </NavLink>
                     <NavLink className="nav-link" to='worklist'>
                         <span className="icon">

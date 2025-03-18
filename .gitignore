@@ -13,6 +13,19 @@ backend/curia/migrations/*
 backend/curia/__pycache__/*
 backend/social/migrations/*
 backend/social/__pycache__/*
+
+backend/works/migrations/*
+backend/works/__pycache__/*
+
+backend/meetings/migrations/*
+backend/meetings/__pycache__/*
+
+backend/reports/migrations/*
+backend/reports/__pycache__/*
+
+backend/finance/migrations/*
+backend/finance/__pycache__/*
+
 backend/accounts/__pycache__/admin.cpython-312.pyc
 
 backend/accounts/migrations/*

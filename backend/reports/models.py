@@ -50,6 +50,7 @@ class Report(models.Model):
     poor_attendance_reason = models.TextField(null=True, blank=True)
     membership_details = models.OneToOneField(MembershipDetail, on_delete=models.CASCADE)
     achievements = models.OneToOneField(Achievement, on_delete=models.CASCADE)
+    work_total_and_average = models.JSONField(default=dict)
 
     include_intermediate = models.BooleanField(default=True)
     patricians_start = models.CharField(max_length=8, default='Jan 2024') 

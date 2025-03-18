@@ -38,6 +38,7 @@ class FinancialSummary(models.Model):
     expenses = models.JSONField(default=dict, null=True, blank=True)
     balance = models.JSONField(default=list, null=True, blank=True)
     report_production = models.FloatField(default=0)
+    balance_at_hand = models.FloatField(default=0)
 
     class Meta: 
         verbose_name_plural = 'financial summaries'

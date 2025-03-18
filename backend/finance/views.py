@@ -13,7 +13,7 @@ class FinancialRecordViewSet(viewsets.ModelViewSet):
         meet_id = request.GET.get('mid') 
         if meet_id: # filter by meeting 
             meeting = Meeting.objects.get(id=meet_id)
-            records = meeting.records
+            records = meeting.records # type:ignore 
             serializer = self.get_serializer(records, many=False)
             return Response(serializer.data)
         record = FinancialRecord.objects.all()

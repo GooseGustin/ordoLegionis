@@ -5,30 +5,34 @@ import { Link, NavLink, useLoaderData, useNavigate } from "react-router-dom"
 const BASEURL = "http://localhost:8000/api/";
 
 const CuriaForm = (props) => {
-    const curiaObj = useLoaderData(); 
+    const [curiaObj, user] = useLoaderData(); 
     const loc = 'In curia form'; 
 
     const { method } = props;
+    const creating = method === 'create';
+
     console.log(loc, 'curia', curiaObj); 
     const navigate = useNavigate();
 
+    const qualifiedToDelete = curiaObj? curiaObj.creator === user.id: false;
+
     const defaultName = curiaObj? curiaObj.name: ''
+    const defaultEmail = curiaObj? curiaObj.email: ''
     const defaultInaugDate = curiaObj? curiaObj.inaug_date: null
     // consol
-    const defaultState = curiaObj? curiaObj.state: 'Abia'
+    const defaultState = curiaObj? curiaObj.state: 'Plateau'
     const defaultCountry = curiaObj? curiaObj.country: 'Nigeria'
+    const defaultArchdiocese = curiaObj? curiaObj.archdiocese: ''
     const defaultParish = curiaObj? curiaObj.parish: ''
-    const defaultSD = curiaObj? curiaObj.spiritual_director: ''
-    const defaultSDAppDate = curiaObj? curiaObj.spiritual_director_app_date: null
 
     const [curiaForm, setCuriaForm] = useState({
         name: defaultName, 
+        email: defaultEmail, 
         inaug_date: defaultInaugDate,
         state: defaultState, 
         country: defaultCountry, 
-        parish: defaultParish, 
-        spiritual_director: defaultSD, 
-        spiritual_director_app_date: defaultSDAppDate
+        archdiocese: defaultArchdiocese, 
+        parish: defaultParish
     }); 
 
     const handleFormChange = (e) => {
@@ -48,7 +52,34 @@ const CuriaForm = (props) => {
     const countries = [
         'Nigeria', 'Ghana', 'South Africa', 'Italy', 'Dublin'
     ]
-    const obj = undefined;
+    // const obj = undefined;
+
+
+    const handleDelete = async () => {
+        try {
+            const token = localStorage.getItem('accessToken'); 
+            if (token) {
+                console.log('Delete the curia');
+                const config = {
+                    headers: {
+                        "Authorization": `Bearer ${token}` 
+                    }
+                }; 
+                const res = await axios.delete(BASEURL+"curia/curia/"+curiaObj.id+"/", config); 
+                console.log("Successfully deleted"); 
+                navigate("../../../praesidium")
+            }  else {
+                console.log("Sign in to delete the announcement")
+            }
+        } catch (err) {
+            if (err.status === 401) {
+                console.log("The session is expired. Please sign in again to delete this curia")
+                navigate('/account/login');
+            } else {
+                console.error("Error deleting the announcement:", err);
+            }
+        }
+    }
 
     const submitForm = async (e) => {
         e.preventDefault(); 
@@ -68,15 +99,16 @@ const CuriaForm = (props) => {
                 }
                 const curiaFeedback = curiaResponse.data; 
                 console.log('In submit curia form, code', curiaFeedback.status);
-                method === 'create'? navigate('../../'): navigate('../');
+                
+                navigate(creating? '../../praesidium': '../');
             } else {
-                console.log("Sign in to get praesidia paradisei")
+                console.log("Sign in to get praesidia")
                 // navigate('../')
             }
         } catch (err) {
             if (err.status === 401) {
                 console.log("The session is expired. Please sign in again to view praesidia")
-                // setErrStatus(401); 
+                navigate('/account/login');
             } else {
                 console.error("Error fetching curia:", err);
             }
@@ -129,7 +161,7 @@ const CuriaForm = (props) => {
             <h2 className="mt-4">{pageTitle}</h2>
             <form onSubmit={submitForm}>
                 <div className="row col-10">
-                    <label htmlFor="">
+                    <label htmlFor="name">
                         <span>Name</span>
                         <input 
                             type="text" 
@@ -137,6 +169,19 @@ const CuriaForm = (props) => {
                             placeholder="Our Lady..."
                             className="form-control border border-dark"
                             defaultValue={defaultName}
+                            onChange={handleFormChange}
+                        />
+                    </label>
+                </div>
+                <div className="row col-10">
+                    <label htmlFor="email">
+                        <span>Email</span>
+                        <input 
+                            type="email" 
+                            name="email" id="" 
+                            // placeholder=""
+                            className="form-control border border-dark"
+                            defaultValue={defaultEmail}
                             onChange={handleFormChange}
                         />
                     </label>
@@ -167,7 +212,7 @@ const CuriaForm = (props) => {
                         <label htmlFor="">
                             <span>State</span>
                             <select name="state" id="" 
-                                // defaultValue={defaultState}
+                                defaultValue={defaultState}
                                 onChange={handleFormChange}
                                 className="form-control border border-dark">
                                 {states.map(state => (
@@ -184,7 +229,7 @@ const CuriaForm = (props) => {
                             <span>Country</span>
                             <select name="country" id="" 
                                 onChange={handleFormChange} 
-                                // defaultValue={defaultCountry}
+                                defaultValue={defaultCountry}
                                 className="form-control border border-dark">
                                 {countries.map(country => (
                                     <option 
@@ -194,14 +239,25 @@ const CuriaForm = (props) => {
                                 ))}
                             </select>
                         </label>
-
                     </div>
                     <div className="row col-10 col-lg-10 col-md-10 col-sm-10">
                         <label htmlFor="curia">
+                            <span className="">Archdiocese of</span>
+                            <input 
+                                type="text" 
+                                name='archdiocese' id=''
+                                className='form-control border border-dark'
+                                defaultValue={defaultArchdiocese}
+                                onChange={handleFormChange}
+                            />
+                        </label>
+                    </div>
+                    <div className="row col-10 col-lg-10 col-md-10 col-sm-10">
+                        <label htmlFor="paris">
                             <span className="">Parish</span>
                             <input 
                                 type="text" 
-                                name='parish' id=''
+                                name='parish' id='parish'
                                 className='form-control border border-dark'
                                 defaultValue={defaultParish}
                                 onChange={handleFormChange}
@@ -212,45 +268,25 @@ const CuriaForm = (props) => {
                 </div> 
             </div> {/* Location */}
                         
-                
-            <div className="officers rounded rounded-3 border border-dark p-3 my-3">
-                
-            <p className="fs-4">Officers</p>
-                <div className="row row-cols-lg-2 row-cols-md-2">
-                    <div className="col col-lg-6 col-md-6 col-12">
-                        <label htmlFor="">
-                            <span className="me-1">Spiritual Director</span>
-                            <input 
-                                type="text" name="spiritual_director" id="" 
-                                className="form-control border border-dark"
-                                defaultValue={defaultSD}
-                                onChange={handleFormChange}
-                            />
-                        </label>
-                    </div>
-                    <div className="col mt-lg-4 mt-md-0">
-                    <label htmlFor="">
-                            <span className="me-1 mb-3">Appointment date</span>
-                            <input 
-                                type="date" name="spiritual_director_app_date" id="" 
-                                defaultValue={defaultSDAppDate}
-                                onChange={handleFormChange}
-                                className="form-control-sm border border-dark"
-                            />
-                        </label>
-                    </div>
-                    
-                </div>
-
-            </div>
 
             <div className="row">
-                <div className="col-6">
+                <div className="col">
                     <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
                 </div>
                 <div className="col">
                     <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
                 </div>
+                {
+                    (qualifiedToDelete && method=='edit')
+                    ? <div className="col">
+                        <Link 
+                            to='' 
+                            className='btn btn-outline-danger col-12 rounded rounded-5'
+                            onClick={handleDelete}
+                        >Delete</Link>
+                    </div>
+                    : <></>
+                }
             </div>
 
                 
@@ -265,7 +301,7 @@ export default CuriaForm
 
 
 export const curiaFormLoader = async ({params}) => {
-    let curiaObj; 
+    let curiaObj, user; 
 
     // Get curia id 
     const {cid} = params;
@@ -280,9 +316,14 @@ export const curiaFormLoader = async ({params}) => {
                     "Authorization": `Bearer ${token}`
                 }
             };
-            const curiaResponse = await axios.get(BASEURL + `curia/curia/${cid}`, config);
-            curiaObj = curiaResponse.data; 
-            console.log('In curia form loader, curia', curiaObj);
+            if (cid) {
+                const curiaResponse = await axios.get(BASEURL + `curia/curia/${cid}`, config);
+                curiaObj = curiaResponse.data; 
+                console.log('In curia form loader, curia', curiaObj);
+            }
+            
+            const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            user = userResponse.data;
 
         } else {
             console.log("Sign in to get praesidia paradisei")
@@ -295,6 +336,6 @@ export const curiaFormLoader = async ({params}) => {
             console.error("Error fetching curia:", err);
         }
     } finally {
-        return curiaObj; 
+        return [curiaObj, user]; 
     }
 }

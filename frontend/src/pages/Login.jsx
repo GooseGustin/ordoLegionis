@@ -8,6 +8,8 @@ export default function Login() {
         password:'', 
     });
 
+    const [btnTitle, setBtnTitle] = useState('Login')
+
     const handleChange = (e) => {
         setFormData({
             ...formData, 
@@ -28,6 +30,7 @@ export default function Login() {
         }
 
         setIsLoading(true); 
+        setBtnTitle('Logging in'); 
 
         try {
             const response = await axios.post("http://localhost:8000/api/accounts/login/", formData);
@@ -49,6 +52,7 @@ export default function Login() {
         } finally {
             setIsLoading(false);
         }
+        setBtnTitle('Login')
     }
 
   return (
@@ -66,7 +70,7 @@ export default function Login() {
             <label>Password: <input type="password" name="password" value={formData.password}
                  onChange={handleChange} /></label>
             <hr />
-            <button type="submit" onClick={handleSubmit} disabled={isLoading}>Login</button>
+            <button type="submit" onClick={handleSubmit} disabled={isLoading}>{btnTitle}</button>
         </form>
     </div>
   )

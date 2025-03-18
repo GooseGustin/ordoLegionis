@@ -109,7 +109,8 @@ const ReminderForm = (props) => {
             if (err.status === 401) {
                 console.log("The session is expired. Please sign in again to operate on reminders")
             } else {
-                console.log("Error during operation", err)              
+                console.log("Error during operation", err)    
+                navigate('/account/login');          
             }
             
         } // finally {

@@ -31,7 +31,7 @@ const Calendar = ({ handleDateChange }) => {
     };
 
     const handleDayClick = (day) => {
-        console.log("Selected day", day+1, month, year)
+        console.log("In Calendar, Selected day", day, month, year)
         setSelectedDay(day+1);
         handleDateChange(new Date(year, month, day+1))
     };

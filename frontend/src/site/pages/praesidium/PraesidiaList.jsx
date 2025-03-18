@@ -118,14 +118,12 @@ const PraesidiaList = () => {
             :   
             <main className="main-content">
                 <div className="container my-5">
-                    <div className="row display-">
-                        <div className="col">
-                            <span><Link to="../account/login">Sign in</Link> to view praesidia</span>
-
+                    <div className="row ">
+                            <div className="col">
+                                <span>You are logged out. Please login <Link to="../account/login">here</Link> to view your praesidia</span>
+                            </div>
                         </div>
-                    
                     </div>
-                </div>
             </main>
             }
         </div>
@@ -138,6 +136,7 @@ export const praesidiaListLoader = async () => {
     // Get praesidia and curia and link to the last reports for each praesidium
     let praesidia = [];
     let curiae = []; 
+    let user; 
 
     const loc = "In the praesidiaList loader fxn";
     console.log(loc); 
@@ -149,8 +148,11 @@ export const praesidiaListLoader = async () => {
                     "Authorization": `Bearer ${token}` 
                 }
             };
-            const curiaResponse = await axios.get(BASEURL + "curia/curia/", config); 
-            const praesidiaResponse = await axios.get(BASEURL+ "praesidium/praesidium/", config);
+            // filter by user id
+            const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            user = userResponse.data;
+            const curiaResponse = await axios.get(`${BASEURL}curia/curia/?uid=${user.id}`, config); 
+            const praesidiaResponse = await axios.get(`${BASEURL}praesidium/praesidium/?uid=${user.id}`, config);
             
             curiae = curiaResponse.data.map(curia => {
                 return {...curia, type: 'curia'};

@@ -48,20 +48,21 @@ export function parseObjectKeys(someObj) {
 
 
 const parseDate = (dateString) => {
-    const dateStr = dateString || '';
-    const year = dateStr.substring(0, 4); 
-    const month = dateStr.substring(5,7)
-    const day = dateStr.substring(8); 
+    // const dateStr = dateString || '';
+    // const year = dateStr.substring(0, 4); 
+    // const month = dateStr.substring(5,7)
+    // const day = dateStr.substring(8);
+    const [year, month, day] = dateString.split('-'); 
     console.log("datenums", year, month, day); 
-    return [year, month, day]; 
+    return [year, month, 1]; 
 }
 
 export function getFormattedDate(praesidiumDate) {
-    // console.log("In get formatted date", praesidiumDate)
+    console.log("In get formatted date", praesidiumDate)
     if (!praesidiumDate) {
         return null;
     }
-    let dateOutput = new Date(parseDate(praesidiumDate));
+    let dateOutput = new Date(praesidiumDate.split('-'));
     dateOutput = dateOutput.toUTCString();
     dateOutput = dateOutput.substring(0, 16);
     console.log('Formatted date', dateOutput);

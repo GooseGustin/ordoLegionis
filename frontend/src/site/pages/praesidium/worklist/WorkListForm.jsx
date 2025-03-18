@@ -5,36 +5,11 @@ import { findAll, isAnEmptyObject, isAnEmptyArray, parseObjectKeys } from '../..
 
 const BASEURL = "http://127.0.0.1:8000/api/";
 
-
-
-function getDefaultDetails(allWorkTypeOptions) {
-    const loc = 'In get default details'; 
-    let defaultDetails = [];
-    for (let key in allWorkTypeOptions) {
-        const obj = allWorkTypeOptions[key];
-        let detail = {
-            name: obj.name 
-        }; 
-        // console.log(loc, 'check 1', detail)
-        let objMetrics = {}; 
-        for (let metricKey in obj.metrics) {
-            objMetrics[obj.metrics[metricKey]] = false;  
-            // console.log(loc, 'check 2', objMetrics);  
-        }
-        detail.metrics = objMetrics; 
-        defaultDetails.push(detail); 
-    }
-    console.log(loc, 'check 3', defaultDetails); 
-    return defaultDetails;
-}
-
-
-
 const RenderDetailsForm = ({ workTypeName, workTypeMetrics, handleFunction, workListDetails }) => {
     /* Work types are what are displayed 
         Work list is which are selected */
     const loc = 'In work list form render details'
-    console.log(loc, 'worklistdetails', workListDetails);
+    // console.log(loc, 'worklistdetails', workListDetails);
     // console.log(loc, 'worktype metrics', workTypeMetrics)
 
     // Remove any duplicate metrics 
@@ -64,7 +39,7 @@ const RenderDetailsForm = ({ workTypeName, workTypeMetrics, handleFunction, work
         return item.name == workTypeName;
     });
 
-    console.log("Specific worklist detail", specificWorkListDetail);
+    // console.log("Specific worklist detail", specificWorkListDetail);
     // const allMetrics = specificWorkListDetail[0]
     //     ? parseObjectKeys(specificWorkListDetail[0]['metrics'])
     //     : [] 
@@ -83,7 +58,7 @@ const RenderDetailsForm = ({ workTypeName, workTypeMetrics, handleFunction, work
                 {
                 workTypeMetrics[0]? 
                 workTypeMetrics.map(metric => ( 
-                    <div className='col ' key={metric}>
+                    <div className='col' key={metric}>
                         
                         <label htmlFor="">
                             <span className="me-4">{metric}</span>
@@ -126,7 +101,6 @@ const RenderDetailsForm = ({ workTypeName, workTypeMetrics, handleFunction, work
     )
 }
 
-
 const WorkListForm = (props) => {
     let [allWorkTypeOptions, workListObj, praesidium] = useLoaderData(); 
     const loc = "In worklist form"; 
@@ -136,40 +110,68 @@ const WorkListForm = (props) => {
     console.log(loc, 'Object and method', workListObj, method)
     console.log("Initial work type array", allWorkTypeOptions); 
 
-    const defaultDetails = workListObj.details 
+    const [btnTitle, setBtnTitle] = useState(method == 'create' ? "Create" : "Edit");
+    const defaultDetails = workListObj.details; // initialised as empty on praesidium creation
     console.log(loc, 'check 1', defaultDetails);
     const [details, setDetails] = useState(defaultDetails);
     const [formData, setFormData] = useState({
         praesidium: praesidium.id,
         details: defaultDetails
     })
-    
-    let otherWorkTypeOptions; 
 
-    const handleEmptyWorkTracking = (workObj) => {
+    // extend work type options to be displayed to include those created by user 
+    // Get all works, both in and outside details 
+    const inbuiltWorkNames = []; 
+    allWorkTypeOptions.forEach(item => {
+        inbuiltWorkNames.push(item.name); 
+    })
+    const extraWorkNames = []; 
+    defaultDetails.forEach(item => {
+        extraWorkNames.push(item.name); 
+    })
+    // extend allWorkTypeOptions 
+    for (let i in extraWorkNames) {
+        const extraWorkName = extraWorkNames[i];
+        if (!inbuiltWorkNames.includes(extraWorkName)) {
+            const extraWorkItem = defaultDetails.filter(item => item.name === extraWorkName)[0];
+            const extraWorkMetrics = parseObjectKeys(extraWorkItem['metrics'])
+            const workType = {
+                name: extraWorkName, metrics: extraWorkMetrics
+            }
+            allWorkTypeOptions.push(workType); 
+        }
+    }
+    // give new identifiers for each worktype
+    for (let i=0; i<allWorkTypeOptions.length; i++) {
+        allWorkTypeOptions[i]['key'] = i; 
+    }
+    console.log("Extended and reindexed allWorkTypeOptions", allWorkTypeOptions); 
+
+    // let otherWorkTypeOptions; 
+
+    const handleWorkTracking = (workObj) => {
         const name = workObj.name; 
         const metrics = workObj.metrics; 
+        if (parseObjectKeys(metrics).length > 0) {
+            workObj.active = true; 
+        }
         const metricNames = parseObjectKeys(metrics); 
-        let someAreTrue = false; 
+        let atLeastOneMetricIsTrue = false; 
         for (let i in metricNames) {
-            someAreTrue += metrics[metricNames[i]]; 
-            someAreTrue = Boolean(someAreTrue); 
+            atLeastOneMetricIsTrue += metrics[metricNames[i]];  
         }
-        if (workObj.tracking)  {
-            // console.log("In handleEmptyWorkTracking, metrics", metrics, someAreTrue)
-            if (workObj.active && !someAreTrue) {
-                workObj.tracking = false; 
-                console.log("Untracking", name)
-            }
-        } else {
-            if (workObj.active && someAreTrue) {
-                workObj.tracking = true; 
-                console.log("Retracking", name)
-            }
+        atLeastOneMetricIsTrue = Boolean(atLeastOneMetricIsTrue);
+        console.log("In handleWorkTracking, check 8", name, metrics, atLeastOneMetricIsTrue)
+        
+        if (workObj.active) { // easily track or untrack for active works with metrics
+            workObj.tracking = atLeastOneMetricIsTrue; 
+        } else { // if no metrics or inactive, 
+            console.log('What to do with inactive works??')
         }
+        
+        console.log("In handleWorkTracking, check 9", workObj)
         return workObj; 
     }
-
 
     const handleCheckboxChange = (e) => {
         const loc = 'In handleCheckboxChange';
@@ -178,7 +180,6 @@ const WorkListForm = (props) => {
         console.log(loc, workName, workMetric, e.target.checked); 
         let detailsCopy = details; 
         console.log('check 7', detailsCopy); 
-
 
         // If the work details exist
         for (let key in detailsCopy) {
@@ -235,12 +236,14 @@ const WorkListForm = (props) => {
         // detailsForForm = detailsCopy; 
     }
 
-
     const submitWorkList = async (e) => {
+        setBtnTitle(method == 'create' ? "Creating" : "Editing");
+
         // untrack any works with no checked metrics 
         let detailsCopy = []; 
         for (let i=0; i<details.length; i++) {
-            let obj = handleEmptyWorkTracking(details[i]);
+            // track or untrack each work object in details
+            let obj = handleWorkTracking(details[i]);
             detailsCopy.push(obj); 
         }
 
@@ -269,7 +272,7 @@ const WorkListForm = (props) => {
                     console.log("Success!", response)
                 }
                 console.log("WorkList Operation Successful!");
-                alert("Worklist Edited")
+                // alert("Worklist Edited")
                 workListObj ? navigate(`../worklist`) : navigate('worklist')
 
             } else {
@@ -278,18 +281,21 @@ const WorkListForm = (props) => {
         } catch (err) {
             if (err.status === 401) {
                 console.log("The session is expired. Please sign in again to operate on worklists")
+                navigate('/account/login');
             } else if (err.status === 400) {
                 console.log("Probably tried to create worklist for praesidium with one already", err)
                 workListObj ? navigate(`/worklists/${workListObj.id}`) : navigate('/worklists')
             } else {
                 console.log("Error during operation", err)
             }
+        } finally {
+            setBtnTitle('Edit');
         }
     }
 
     // console.log('WorkTypes', allWorkTypeOptions)
-    const pageTitle = method == 'create' ? "Create a worklist" : "Edit your worklist";
-    const btnTitle = method == 'create' ? "Create" : "Edit";
+    // const pageTitle = "Edit your worklist";
+    // const btnTitle = "Edit";
 
     if (!allWorkTypeOptions) {
         return (
@@ -357,7 +363,7 @@ const WorkListForm = (props) => {
 
             {/* main content */}
             <div className='worklist-form main-content'>
-                <h2>{pageTitle}</h2>
+                <h2>Edit your work list</h2>
                 <hr />
                 <form onSubmit={submitWorkList}>
                     
@@ -365,7 +371,7 @@ const WorkListForm = (props) => {
                     {
                         allWorkTypeOptions.map(workTypeObj => (
                             <RenderDetailsForm 
-                                key={workTypeObj.id}
+                                key={workTypeObj.key}
                                 workTypeName={workTypeObj.name}
                                 workTypeMetrics={workTypeObj.metrics}
                                 handleFunction={handleCheckboxChange}
@@ -374,13 +380,13 @@ const WorkListForm = (props) => {
                         ))
                     }
                     <hr />
-                    
+
                     <div className="row">
                         <div className="col-6">
                             <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
                         </div>
                         <div className="col">
-                            <Link to={`../${workListObj.praesidium}`} className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                            <Link to={`../`} className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
                         </div>
                     </div>
                 </form>
@@ -401,7 +407,7 @@ export const workListFormLoader = async ({ params }) => {
     try {
         const token = localStorage.getItem('accessToken'); 
         if (token) {
-            console.log(loc, 'Get the workList');
+            // console.log(loc, 'Get the workList');
             const config = {
                 headers: {
                     "Authorization": `Bearer ${token}` 
@@ -431,3 +437,26 @@ export const workListFormLoader = async ({ params }) => {
     }
 }
 
+
+
+
+// function getDefaultDetails(allWorkTypeOptions) {
+//     const loc = 'In get default details'; 
+//     let defaultDetails = [];
+//     for (let key in allWorkTypeOptions) {
+//         const obj = allWorkTypeOptions[key];
+//         let detail = {
+//             name: obj.name 
+//         }; 
+//         // console.log(loc, 'check 1', detail)
+//         let objMetrics = {}; 
+//         for (let metricKey in obj.metrics) {
+//             objMetrics[obj.metrics[metricKey]] = false;  
+//             // console.log(loc, 'check 2', objMetrics);  
+//         }
+//         detail.metrics = objMetrics; 
+//         defaultDetails.push(detail); 
+//     }
+//     console.log(loc, 'check 3', defaultDetails); 
+//     return defaultDetails;
+// }

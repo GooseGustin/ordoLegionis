@@ -28,7 +28,7 @@ class ReportSerializer(serializers.ModelSerializer):
             'problems', 'remarks', 'no_meetings_expected', 
             'no_meetings_held', 'avg_attendance', 'poor_attendance_reason', 
             'membership_details', 'include_intermediate',
-            'achievements', 'function_attendances',
+            'achievements', 'function_attendances', 'work_total_and_average', 
             'patricians_start', 'patricians_end', 
             'work_summaries', 'financial_summary', 'audited',  
             'previous_curia_attendance', 'previous_meeting_attendance', 

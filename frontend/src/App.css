@@ -94,6 +94,69 @@
     padding: 20px; 
 }
 
+.page {
+    /* width: 900px; */
+    width: 8.5in;
+    height: 11in;
+    font-size: smaller;
+    margin-right: 200px;
+}
+
+/* .page tr {
+    height: .5em
+} */
+
+.page p {
+    margin-bottom: 5px;
+}
+
+
+/* table.fxn-attendance .table-index {
+    width: 20px;
+} */
+
+table.finance, table.attendance {
+    table-layout: fixed;
+}
+
+table.finance .table-index {
+    width: 50px;
+    text-align: center; /* Optional: Center align text */
+    white-space: nowrap; /* Optional: Prevent text wrapping */
+    overflow: hidden; /* Optional: Hide overflow content */
+}
+
+table.attendance .table-index {
+    width: 50px;
+    text-align: center; /* Optional: Center align text */
+    white-space: nowrap; /* Optional: Prevent text wrapping */
+    overflow: hidden; /* Optional: Hide overflow content */
+}
+
+table.attendance .function-name {
+    width: 200px;
+    text-align: center; /* Optional: Center align text */
+    white-space: nowrap; /* Optional: Prevent text wrapping */
+    overflow: hidden; /* Optional: Hide overflow content */
+}
+
+table.finance .description {
+    width: 300px;
+    text-align: center; /* Optional: Center align text */
+    white-space: nowrap; /* Optional: Prevent text wrapping */
+    overflow: hidden; /* Optional: Hide overflow content */
+}
+
+.table-date {
+    width: 20px;
+}
+
+img.vexillium {
+    /* margin-left: 0px; */
+    width: 100px; 
+    height: 190px;
+}
+
 .sider a.active {
     color: rgb(22, 227, 230);
     text-decoration: none;

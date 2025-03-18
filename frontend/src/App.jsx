@@ -7,15 +7,14 @@ import {
     createRoutesFromElements, 
     RouterProvider
 } from 'react-router-dom'
-import Layout from './pages/Layout'
-import Home from './pages/Home'
-// import Login from './pages/Login'
-import Register from './pages/Register'
-import NotFound from './pages/NotFound'
-import './App.css'
 
+import './App.css'
+import Login from './site/pages/account/Login'
+import Register from './site/pages/account/Register'
 import HomePage, { homeLoader } from './site/pages/home/HomePage'
+import NotFound from './site/pages/NotFound'
 import SiteLayout from './site/components/SiteLayout'
+
 import PraesidiaList, { praesidiaListLoader } from './site/pages/praesidium/PraesidiaList'
 import PraesidiumDetail, { praesidiumLoader } from './site/pages/praesidium/PraesidiumDetail'
 import MeetingForm, { meetingFormLoader } from './site/pages/praesidium/meeting/MeetingForm'
@@ -27,7 +26,7 @@ import CuriaForm, { curiaFormLoader } from './site/pages/praesidium/curia/CuriaF
 import CuriaDetail, { curiaDetailLoader } from './site/pages/praesidium/curia/CuriaDetail'
 import ReportList, { reportListLoader } from './site/pages/praesidium/report/ReportList'
 import ReportForm, { reportFormLoader } from './site/pages/praesidium/report/ReportForm'
-import Login from './site/pages/account/Login'
+
 import PostForm, { postFormLoader } from './site/pages/social/post/PostForm'
 import PostDetail, { postDetailLoader } from './site/pages/social/post/PostDetail'
 import QuestionForm, { questionFormLoader } from './site/pages/social/question/QuestionForm'
@@ -41,6 +40,7 @@ import QuestionList, { questionListLoader } from './site/pages/social/question/Q
 import ReminderForm, { reminderFormLoader } from './site/pages/praesidium/reminder/ReminderForm'
 import ReminderList, { reminderListLoader } from './site/pages/praesidium/reminder/ReminderList'
 import ReminderDetail from './site/pages/praesidium/reminder/ReminderDetail'
+import Preview, { reportPreviewLoader } from './site/pages/praesidium/report/Preview'
 
 function App() {
     const router = createBrowserRouter(
@@ -56,6 +56,10 @@ function App() {
                     <Route 
                         path='login'
                         element={<Login />}
+                    />
+                    <Route  
+                        path='register'
+                        element={<Register />}
                     />
                 </Route>
                 
@@ -220,8 +224,8 @@ function App() {
                                 />
                                 <Route 
                                     path="preview"
-                                    // element={}
-                                    loader={reportFormLoader}
+                                    element={<Preview />}
+                                    loader={reportPreviewLoader}
                                 />
                             </Route>
                         </Route>
@@ -244,6 +248,7 @@ function App() {
                     <Route  // create curia
                         path="create"
                         element={<CuriaForm method='create' />}
+                        loader={curiaFormLoader}
                     />
                     <Route path=":cid" > // curia detail and edit
                         <Route 

@@ -8288,7 +8288,8 @@ tbody td:after {
         transition: none; } }
 
 tbody td:hover, .selected {
-  color: blue;
+    /* background-color: #002752; */
+  color: goldenrod;
   border: none; 
 }
 tbody td:hover:after, .selected:after {
