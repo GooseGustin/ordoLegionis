@@ -1,5 +1,7 @@
 from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 # from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet # , GenericViewSet
 from rest_framework.response import Response
@@ -32,7 +34,7 @@ class AnswerViewSet(ModelViewSet):
         print("in answers list view", qid)
         if qid: 
             question = Question.objects.get(id=qid)
-            answers = question.answers.order_by('-date') ##  self.queryset.filter(question=qid)
+            answers = question.answers.order_by('-date')
             serializer = self.serializer_class(answers, many=True)
             print('answers returned', answers)
             return Response(serializer.data)
@@ -50,7 +52,7 @@ class CommentViewSet(ModelViewSet):
         print("in comments list view", pid)
         if pid: 
             post= Post.objects.get(id=pid)
-            comments = post.comments.order_by('-date') ##  self.queryset.filter(question=qid)
+            comments = post.comments.order_by('-date') 
             serializer = self.serializer_class(comments, many=True)
             print('answers returned', comments)
             return Response(serializer.data)
@@ -59,15 +61,18 @@ class CommentViewSet(ModelViewSet):
 
 
 class PostViewSet(ModelViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
     def list(self, request, *args, **kwargs): 
         print("In post list view")
-        legionary = Legionary.objects.get(user=request.user) 
-        posts = self.queryset.filter(legionary=legionary)
-        print("In post list view", posts)
-        serializer = self.get_serializer(posts, many=True)
+        # legionary = Legionary.objects.get(user=request.user) 
+        # posts = self.queryset.filter(legionary=legionary)
+        # print("In post list view", posts)
+        serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
 class QuestionViewSet(ModelViewSet):
@@ -75,11 +80,11 @@ class QuestionViewSet(ModelViewSet):
     serializer_class = QuestionSerializer
 
     def list(self, request, *args, **kwargs): 
-        # print("In post list view")
-        legionary = Legionary.objects.get(user=request.user) 
-        questions = self.queryset.filter(legionary=legionary)
-        print("In postlist view", questions)
-        serializer = self.get_serializer(questions, many=True)
+        print("In question list view")
+        # legionary = Legionary.objects.get(user=request.user) 
+        # questions = self.queryset.filter(legionary=legionary)
+        # print("In postlist view", questions)
+        serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
 class PrayerRequestViewSet(ModelViewSet):
@@ -87,9 +92,9 @@ class PrayerRequestViewSet(ModelViewSet):
     serializer_class = PrayerRequestSerializer
 
     def list(self, request, *args, **kwargs): 
-        # print("In post list view")
-        legionary = Legionary.objects.get(user=request.user) 
-        requests = self.queryset.filter(legionary=legionary)
-        print("In prayer request list view", requests)
-        serializer = self.get_serializer(requests, many=True)
+        print("In prayer request list view")
+        # legionary = Legionary.objects.get(user=request.user) 
+        # requests = self.queryset.filter(legionary=legionary)
+        # print("In prayer request list view", requests)
+        serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)

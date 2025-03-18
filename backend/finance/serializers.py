@@ -9,6 +9,22 @@ class ExpensesSerializer(serializers.ModelSerializer):
             'stationery', 'altar', 
             'bouquet', 'others'
         ]
+    
+    def update(self, instance, validated_data): 
+        print('In expenses serializer')
+        print('validated_data', validated_data)
+
+        # Update instance fields
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        instance.save()
+
+        return instance
+
+    # def update(self, validated_data): 
+    #     print('In expenses serializer')
+    #     print('validated_data', validated_data)
+    #     return super().update(self, validated_data)
 
 class AcctStatementSerializer(serializers.ModelSerializer):
     expenses = ExpensesSerializer()
@@ -115,8 +131,8 @@ class FinancialSummarySerializer(serializers.ModelSerializer):
         model = FinancialSummary
         fields = [
             'id', 
-            # 'report', 
-            'abf', 'sbc', 'expenses', 
+            'report', 'month_year',
+            'acf', 'sbc', 'balance', 'expenses', 
             'report_production'
         ]
 

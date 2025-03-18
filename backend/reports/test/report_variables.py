@@ -109,7 +109,7 @@ ACTIVE_WORKS = {
         'Total people visited': 143, 
         'Active catholics': 88, 
         'Inactive catholics': 7, 
-        'Unknowns denominations': 23
+        'Unknown denominations': 23
     }, 
     'Care for Children at Mass': {
         'No. assigned': 60, 

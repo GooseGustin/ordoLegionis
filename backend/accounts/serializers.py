@@ -6,7 +6,7 @@ from rest_framework import serializers
 class CustomUserSerializer(serializers.ModelSerializer): 
     class Meta: 
         model = CustomUser
-        fields = ['id', 'username', 'email'] 
+        fields = ['id', 'username', 'email', 'is_authenticated'] 
     
 class UserRegistrationSerializer(serializers.ModelSerializer): 
     password1 = serializers.CharField(write_only=True) 

@@ -16,4 +16,4 @@ class Meeting(models.Model):
 
 class MeetingNotes(models.Model): 
     meeting = models.OneToOneField(Meeting, on_delete=models.CASCADE, related_name='notes')
-    content = models.TextField()
+    content = models.TextField(default='', null=True, blank=True)

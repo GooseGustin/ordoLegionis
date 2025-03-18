@@ -123,7 +123,7 @@ attendance_to_praesidium = [
         f"{PRAESIDIUM_ATTENDANCE['VICE_PRESIDENT']['previous']} out of {PRAESIDIUM_ATTENDANCE['VICE_PRESIDENT']['previous_total']}" if PRAESIDIUM_ATTENDANCE['VICE_PRESIDENT']['previous'] else NON
     ), 
     (
-        'Secrtary',
+        'Secretary',
         PRAESIDIUM_ATTENDANCE['SECRETARY']['current'], 
         PRAESIDIUM_ATTENDANCE['SECRETARY']['current_total'], 
         f"{PRAESIDIUM_ATTENDANCE['SECRETARY']['current']} out of {PRAESIDIUM_ATTENDANCE['SECRETARY']['current_total']}", 

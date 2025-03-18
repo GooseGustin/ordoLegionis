@@ -13,6 +13,8 @@ class Praesidium(models.Model):
     address = models.CharField(max_length=100, default='')
     meeting_time = models.CharField(max_length=100)
     inaug_date = models.DateField(null=True, blank=True)
+    spiritual_director = models.CharField(max_length=100)
+    spiritual_director_app_date = models.DateField(null=True, blank=True)
     president = models.CharField(max_length=100)
     pres_app_date = models.DateField(null=True, blank=True)
     vice_president = models.CharField(max_length=100)

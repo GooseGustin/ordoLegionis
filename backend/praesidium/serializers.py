@@ -10,6 +10,7 @@ class PraesidiumSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'state', 'country', 'parish', 'curia', 
             'iden', 'address', 'meeting_time', 'inaug_date', 
+            'spiritual_director', 'spiritual_director_app_date',
             'president', 'pres_app_date', 'vice_president', 
             'vp_app_date', 'secretary', 'sec_app_date', 
             'treasurer', 'tres_app_date', 'managers', 'members',
@@ -17,7 +18,7 @@ class PraesidiumSerializer(serializers.ModelSerializer):
             'created_at', 'reports' # 'work_list', 
         ]
         read_only_fields = [
-            'id', 'iden', 'managers', 
+            'id', 'iden', 'managers', 'management_requests',
             'members', 'membership_requests', 'created_at'
             ]
 
@@ -27,9 +28,9 @@ class PraesidiumSerializer(serializers.ModelSerializer):
             user = request.user 
             legionary = Legionary.objects.get(user=user)
             validated_data['managers'] = []
-            validated_data['managers'].extend([legionary])
+            validated_data['managers'].extend([legionary.id])
             validated_data['members'] = []
-            validated_data['members'].extend([legionary])
+            validated_data['members'].extend([legionary.id])
             validated_data['iden'] = getIden(validated_data['name']) # iden remains the same even though the praesidium or curia name is changd
         return super().create(validated_data)
 

@@ -21,7 +21,7 @@ class UserRegistrationAPIView(GenericAPIView):
         data = serializer.data 
         data['tokens'] = {
             "refresh": str(token), 
-            "access": str(token.access_token)
+            "access": str(token.access_token) # type:ignore
         }
         return Response(data, status=status.HTTP_201_CREATED)
 
@@ -38,7 +38,7 @@ class UserLoginAPIView(GenericAPIView):
         data = serializer.data
         data['tokens'] = {
             "refresh": str(token), 
-            "access": str(token.access_token)
+            "access": str(token.access_token) # type:ignore
         }
         return Response(data, status=status.HTTP_200_OK) 
 
@@ -48,7 +48,7 @@ class UserLogoutAPIView(GenericAPIView):
     def post(self, request, *args, **kwargs): 
         try: 
             refresh_token = request.data['refresh'] 
-            token = RefreshToken[refresh_token] 
+            token = RefreshToken(refresh_token)
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e: 
@@ -59,6 +59,7 @@ class UserInfoAPIView(RetrieveAPIView):
     serializer_class = CustomUserSerializer
 
     def get_object(self):
+        # print(dir(self.request.user))
         return self.request.user 
 
 class LegionaryViewSet(ModelViewSet):

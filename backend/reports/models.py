@@ -4,22 +4,22 @@ from praesidium.models import Praesidium
 # Create your models here.
 
 class MembershipDetail(models.Model):
-    senior_praesidia = models.IntegerField(default=0)
-    junior_praesidia = models.IntegerField(default=0)
-    active_members = models.IntegerField(default=0)
-    probationary_members = models.IntegerField(default=0)
-    auxiliary_members = models.IntegerField(default=0)
-    adjutorian_members = models.IntegerField(default=0)
-    praetorian_members = models.IntegerField(default=0)
+    affiliated_praesidia = models.JSONField(default=list) # senior, intermediate, junior
+    active_members = models.JSONField(default=list)
+    probationary_members = models.JSONField(default=list)
+    auxiliary_members = models.JSONField(default=list)
+    adjutorian_members = models.JSONField(default=list)
+    praetorian_members = models.JSONField(default=list)
+
 
 class Achievement(models.Model):
-    no_recruited = models.IntegerField(default=0)
-    no_baptized = models.IntegerField(default=0)
-    no_confirmed = models.IntegerField(default=0)
-    no_first_communicants = models.IntegerField(default=0)
-    no_married = models.IntegerField(default=0)
-    no_vocations = models.IntegerField(default=0)
-    no_converted = models.IntegerField(default=0)
+    no_recruited = models.JSONField(default=list)
+    no_baptized = models.JSONField(default=list)
+    no_confirmed = models.JSONField(default=list)
+    no_first_communicants = models.JSONField(default=list)
+    no_married = models.JSONField(default=list)
+    no_vocations = models.JSONField(default=list)
+    no_converted = models.JSONField(default=list)
     others = models.JSONField(default=dict, null=True, blank=True)
 
 class Report(models.Model):
@@ -33,15 +33,31 @@ class Report(models.Model):
     last_curia_visitors = models.TextField(null=True, blank=True)
     officers_curia_attendance = models.JSONField(default=dict)
     officers_meeting_attendance = models.JSONField(default=dict)
+
+    previous_curia_attendance = models.JSONField(default=dict)
+    previous_meeting_attendance = models.JSONField(default=dict)
+
     extension_plans = models.TextField(null=True, blank=True)
     problems = models.TextField(null=True, blank=True)
     remarks = models.TextField(null=True, blank=True)
+
+    no_curia_meetings_held = models.JSONField(default=dict)
+    no_praesidium_meetings_held = models.JSONField(default=dict)
+
     no_meetings_expected = models.IntegerField(default=0)
     no_meetings_held = models.IntegerField(default=0)
     avg_attendance = models.IntegerField(default=0)
     poor_attendance_reason = models.TextField(null=True, blank=True)
     membership_details = models.OneToOneField(MembershipDetail, on_delete=models.CASCADE)
     achievements = models.OneToOneField(Achievement, on_delete=models.CASCADE)
+
+    include_intermediate = models.BooleanField(default=True)
+    patricians_start = models.CharField(max_length=8, default='Jan 2024') 
+    patricians_end = models.CharField(max_length=8, default='Dec 2024')
+    audited = models.BooleanField(default=False)
+    read_and_accepted = models.BooleanField(default=True)
+    conclusion = models.TextField(default='This report was carefully extracted from the records of the praesidium, which include the worksheet, roll call book, minutes book, and treasurer\'s book.')
+
 
     def __str__(self):
         return "Report " + str(self.report_number) + " of " + self.praesidium.name

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Meeting
+from .models import Meeting, MeetingNotes
 
 
 class MeetingSerializer(serializers.ModelSerializer):
@@ -15,22 +15,14 @@ class MeetingSerializer(serializers.ModelSerializer):
             'officers_curia_attendance', 
             'notes'
         ]
+        read_only_fields = ['notes']
 
 
-
-# class MeetingFilterSerializer(serializers.Serializer):
-#     meeting = MeetingSerializer()
-
-    # startDate = serializers.DateField()
-    # endDate = serializers.DateField()
-
-    # last_report_number = serializers.IntegerField()
-    # officers_curia_attendance = serializers.DictField(
-    #     child=serializers.FloatField()
-    # )
-    # officers_meeting_attendance = serializers.DictField(
-    #     child=serializers.FloatField()
-    # )
-    # no_meetings_expected = serializers.IntegerField()
-    # no_meetings_held = serializers.IntegerField()
-    # average_attendance = serializers.IntegerField()
+class MeetingNotesSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = MeetingNotes
+        fields = [
+            'id', 
+            'meeting', 
+            'content'
+        ]

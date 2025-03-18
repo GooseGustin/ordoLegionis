@@ -36,9 +36,8 @@ class CuriaSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Curia
         fields = [
-            'id', 'name', 'iden', 'inaug_date',
-            'state', 'country', 
-            'parish', 'spiritual_director', 'spiritual_director_app_date',
+            'id', 'name', 'iden', 'inaug_date', 'email',
+            'state', 'country', 'archdiocese', 'parish',
             'creator', 'created_at',
             'managers', 'management_requests'
         ]

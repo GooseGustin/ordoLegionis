@@ -40,7 +40,11 @@ class WorkSummarySerializer(serializers.ModelSerializer):
             'active', 
             'no_assigned',
             'no_done', 
-            # 'report',
+            'report',
             'details' 
         ]
 
+
+        # work_summaries_serializer = WorkSummarySerializer(data=work_summaries_data)
+        # work_summaries_serializer.is_valid(raise_exception=True)
+        # work_summaries = work_summaries_serializer.save()

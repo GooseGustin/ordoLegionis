@@ -1,11 +1,17 @@
-from .serializers import MeetingSerializer
+from .serializers import MeetingSerializer, MeetingNotesSerializer
 from rest_framework import viewsets 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Meeting 
+from .models import Meeting, MeetingNotes
 from praesidium.models import Praesidium
 from reports.models import Report
 from datetime import date, datetime, timezone 
+
+class MeetingNotesViewSet(viewsets.ModelViewSet): 
+    queryset = MeetingNotes.objects.all()
+    serializer_class = MeetingNotesSerializer
+
+    # def 
 
 class MeetingViewSet(viewsets.ModelViewSet):
     queryset = Meeting.objects.all().order_by('-date')
@@ -31,7 +37,7 @@ class MeetingFilterView(APIView):
         pid = request.data.get('pid')
         # print("In meeting filter, pid", pid)
         praesidium = Praesidium.objects.get(id=pid) 
-        meeting_start = request.data.get('startDate', praesidium.inaug_date.isoformat())
+        meeting_start = request.data.get('startDate', praesidium.inaug_date.isoformat()) # type:ignore
         print("In meeting filter, startDate", meeting_start)
         # today = datetime.today().date()
         # default_end_date = str(today) 
@@ -49,6 +55,7 @@ class MeetingFilterView(APIView):
             end_date = date(*meeting_end) # .replace(tzinfo=timezone.utc)
             praesidium_meetings = Meeting.objects.filter(praesidium=praesidium).order_by('-date')
             meetings_within_range = praesidium_meetings.filter(date__range=(start_date, end_date))
+            # print(loc, "Meetings within range", meetings_within_range)
             serializer = serializer_class(meetings_within_range, many=True)
             return Response(serializer.data)
 
@@ -59,10 +66,10 @@ class MeetingFilterView(APIView):
             start_date_nums = [int(i) for i in meeting_start.split('-')]
             start_date = date(*start_date_nums) # .replace(tzinfo=timezone.utc)
             praesidium_meetings = Meeting.objects.filter(praesidium=praesidium).order_by('-date')
-            print(loc, 'praesidium meetings', praesidium_meetings)
-            print('\n', [meeting.date for meeting in praesidium_meetings], start_date)
+            # print(loc, 'praesidium meetings', praesidium_meetings)
+            # print('\n', [meeting.date for meeting in praesidium_meetings], start_date)
             meeting_for_date = praesidium_meetings.filter(date=start_date)
-            print(loc, 'filtered meeting', meeting_for_date)
+            # print(loc, 'Filtered meeting for this date', meeting_for_date)
             serializer = serializer_class(meeting_for_date, many=True)
             return Response(serializer.data)
         

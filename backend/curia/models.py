@@ -6,11 +6,11 @@ from accounts.models import Legionary
 class Curia(models.Model):
     name = models.CharField(max_length=100)
     inaug_date = models.DateField(blank=True, null=True)
+    email = models.EmailField(blank=True)
     state = models.CharField(max_length=100)
     country = models.CharField(max_length=50, default="Nigeria")
+    archdiocese = models.CharField(max_length=100)
     parish = models.CharField(max_length=100)
-    spiritual_director = models.CharField(max_length=100)
-    spiritual_director_app_date = models.DateField(null=True, blank=True)
     iden = models.CharField(max_length=20)
     creator = models.ForeignKey(
                 Legionary, 

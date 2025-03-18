@@ -9,6 +9,7 @@ from praesidium.models import Praesidium
 from meetings.models import Meeting
 from works.models import Work, WorkList
 from finance.models import FinancialRecord
+from api.function_vault import removeDuplicates
 from datetime import date, datetime 
 from math import ceil
 from pprint import pprint
@@ -23,8 +24,8 @@ class ReportViewSet(viewsets.ModelViewSet):
         praes_id = request.GET.get('pid') 
         if praes_id: # filter by praesidium 
             # Ensure user has access to this praesidium
-            work_list = self.queryset.filter(praesidium=praes_id)
-            serializer = self.get_serializer(work_list, many=True)
+            reports = self.queryset.filter(praesidium=praes_id)
+            serializer = self.get_serializer(reports, many=True)
             return Response(serializer.data)
         # work_list = WorkList.objects.all()
         serializer = self.get_serializer(self.queryset, many=True)
@@ -41,20 +42,10 @@ class FunctionAttendanceViewSet(viewsets.ModelViewSet):
         report_id = request.GET.get('id')
         if praes_id and report_id: # filter by both praesidium and report
             praesidium = Praesidium.objects.get(id=praes_id)
-            report = praesidium.reports.get(id=report_id)
+            report = praesidium.reports.get(id=report_id) # type:ignore
             serializer = self.get_serializer(report.function_attendances, many=True)
             return Response(serializer.data)
-        # if praes_id: # filter by praesidium only
-        #     prae = Report.objects.get(praesidium=praes_id)
-        #     serializer = self.get_serializer(reports, many=True)
-        #     return Response(serializer.data)
-        # if report_id: # filter by report only
-        #     reports = Report.objects.get(id=report_id)
-        #     serializer = self.get_serializer(reports, many=True)
-        #     return Response(serializer.data)
         return super().list(self, request)
-
-
 
 class MembershipDetailsViewSet(viewsets.ModelViewSet):
     queryset = MembershipDetail.objects.all()
@@ -64,25 +55,20 @@ class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
     serializer_class = AchievementSerializer
 
-def removeDuplicates(arr): 
-    for i in arr.copy(): 
-        if arr.count(i) > 1:
-            arr.remove(i)
-    return arr
 
 class ReportPrepGetView(APIView):
     def post(self, request, *args, **kwargs):
         # print(request.data, dir(request))
         pid = request.data.get('pid')
         praesidium = Praesidium.objects.get(id=pid) 
-        print("In report prep get view", pid, praesidium.id, praesidium.name)
+        print("In report prep get view", pid, praesidium.id, praesidium.name) # type:ignore
         praesidium_meetings = Meeting.objects.filter(praesidium=pid).order_by('date')
         
         # Get meeting range
         # useLoaderData will provide meetings from last submission or inaug date to today
-        # useEffect will return meetings within logical date range
-        meeting_start = request.data.get('startDate', praesidium.inaug_date.isoformat())
-        if not meeting_start: meeting_start = praesidium.inaug_date.isoformat()
+        # autofill will return meetings within logical date range
+        meeting_start = request.data.get('startDate', praesidium.inaug_date.isoformat()) # type:ignore
+        if not meeting_start: meeting_start = praesidium.inaug_date.isoformat() # type:ignore
         today = datetime.today().date()
         meeting_end = request.data.get('endDate', str(today))
         if not meeting_end: meeting_end = str(today)
@@ -95,7 +81,29 @@ class ReportPrepGetView(APIView):
         print("Start and end dates", start_date, end_date)
         meetings_within_range = praesidium_meetings.filter(date__range=(start_date, end_date))
 
-        no_of_meetings_expected = (end_date - start_date).days // 7 #  + 1
+        # Get curia attendance
+        simple_curia_meetings_held = (end_date - start_date).days // 28
+        no_curia_meetings_held = {
+            "President": (end_date - praesidium.pres_app_date).days // 28 if (praesidium.pres_app_date > start_date) else simple_curia_meetings_held, # type:ignore
+            "Vice President": (end_date - praesidium.vp_app_date).days // 28 if (praesidium.vp_app_date > start_date) else simple_curia_meetings_held, # type:ignore
+            "Secretary": (end_date - praesidium.sec_app_date).days // 28 if (praesidium.sec_app_date > start_date) else simple_curia_meetings_held, # type:ignore
+            "Treasurer": (end_date - praesidium.tres_app_date).days // 28 if (praesidium.tres_app_date > start_date) else simple_curia_meetings_held # type:ignore
+        }
+
+        # Get praesidium attendance 
+        meetings_held_pres = praesidium_meetings.filter(date__range=(praesidium.pres_app_date, end_date)) if (praesidium.pres_app_date > start_date) else meetings_within_range  # type:ignore
+        meetings_held_vp = praesidium_meetings.filter(date__range=(praesidium.vp_app_date, end_date)) if (praesidium.vp_app_date > start_date) else meetings_within_range # type:ignore
+        meetings_held_sec = praesidium_meetings.filter(date__range=(praesidium.sec_app_date, end_date)) if (praesidium.sec_app_date > start_date) else meetings_within_range # type:ignore
+        meetings_held_tres = praesidium_meetings.filter(date__range=(praesidium.tres_app_date, end_date)) if praesidium.tres_app_date > start_date else meetings_within_range # type:ignore
+
+        no_praesidium_meetings_held = {
+            "President": len(meetings_held_pres), 
+            "Vice President": len(meetings_held_vp), 
+            "Secretary": len(meetings_held_sec), 
+            "Treasurer": len(meetings_held_tres)
+        }
+
+        no_of_meetings_expected = (end_date - start_date).days // 7 
         no_of_meetings_held = len(meetings_within_range)
         average_attendance = 0
 
@@ -127,7 +135,7 @@ class ReportPrepGetView(APIView):
         last_submission_date = str(today)
         report_number = 1
         if last_report: 
-            if last_report.submission_date < today:
+            if last_report.submission_date and last_report.submission_date < today:
                 last_submission_date = last_report.submission_date 
             else: 
                 last_submission_date = last_report.last_submission_date
@@ -150,9 +158,9 @@ class ReportPrepGetView(APIView):
                 "details": {}
             } for work_name in work_names
         ]
-        
+
         for meeting in meetings_within_range: 
-            works_for_meeting = Work.objects.filter(meeting=meeting.id) 
+            works_for_meeting = Work.objects.filter(meeting=meeting.id) # type:ignore
             # print("\nWorks for meeting", works_for_meeting)
 
             for workObj in works_for_meeting: 
@@ -179,12 +187,12 @@ class ReportPrepGetView(APIView):
                             if not work_summaries[work_summary_ind]['details'].get(metric): 
                                 work_summaries[work_summary_ind]['details'][metric] = 0
                             # Loop through list of same work, start incrementing count of each metric
-                            count = workObj.details.get(metric)
+                            count = workObj.details.get(metric) # type:ignore
                             # print('Looping through metrics', workObj.details, metric, count)
                             if count: 
                                 work_summaries[work_summary_ind]['details'][metric] += int(count)
-                else: 
-                    print("Looks like we have a work that's not in the worklist")
+                # else: 
+                #     print("Looks like we have a work that's not in the worklist")
 
 
         # Get financial summary
@@ -226,7 +234,7 @@ class ReportPrepGetView(APIView):
             item = item_array[0]
             ind = fin_summaries.index(item)
 
-            fin_record = FinancialRecord.objects.get(meeting=meeting.id)
+            fin_record = FinancialRecord.objects.get(meeting=meeting.id) # type:ignore
             acf = fin_record.acct_statement.acf
             sbc = fin_record.acct_announcement.sbc
             bal = fin_record.acct_statement.balance
@@ -240,11 +248,17 @@ class ReportPrepGetView(APIView):
             fin_summaries[ind]['expenses']["extension"] += exp.extension
             fin_summaries[ind]['expenses']["stationery"] += exp.stationery
             fin_summaries[ind]['expenses']["altar"] += exp.altar
-            fin_summaries[ind]['expenses']["others"] += exp.others
+            # print('Exp others', exp.others)
+            if exp.others.get('purpose'): # type: ignore
+                fin_summaries[ind]['expenses']["others"].append(
+                        {exp.others.get('purpose'): exp.others.get('value', 0)} # type:ignore
+                    ) 
 
         processed_data = {
             'last_submission_date': last_submission_date, 
             'report_number': report_number, 
+            'no_curia_meetings_held': no_curia_meetings_held,
+            'no_praesidium_meetings_held': no_praesidium_meetings_held,
             'officers_curia_attendance': officers_curia_attendance, 
             'officers_meeting_attendance': officers_meeting_attendance, 
             'no_meetings_expected': no_of_meetings_expected, 
@@ -255,7 +269,7 @@ class ReportPrepGetView(APIView):
         }
 
         # print("\nProcessed data")
-        # pprint(processed_data)
+        # print('\n', processed_data)
 
         serializer = ReportPrepGetSerializer(processed_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
