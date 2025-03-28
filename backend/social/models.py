@@ -95,4 +95,5 @@ class CommentFlag(models.Model):
 class PrayerRequestFlag(models.Model):
     request = models.ForeignKey(PrayerRequest, on_delete=models.CASCADE, related_name='flags')
     reason = models.CharField(max_length=100, choices=flag_choices)
-    
+
+# class 

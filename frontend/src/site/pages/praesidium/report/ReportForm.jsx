@@ -99,7 +99,7 @@ const RenderMeetingAttendanceRow = ({reportFormData, handleAttendanceChange}) =>
 const RenderMembershipForm = ({ defaultMembership, handleMembershipChange }) => {
     const categoriesTitleMapping = {
         'affiliated_praesidia': "Affiliated praesidia (if any)", 
-        'active_members': "Active Members", 
+        'active_members': "Active members", 
         'probationary_members': "Probationary members", 
         'auxiliary_members': "Auxiliary members", 
         'praetorian_members': "Praetorian members", 
@@ -180,7 +180,7 @@ const ReportForm = ({ method }) => {
     console.log(loc, 'financial summary', finSummary); 
 
     const navigate = useNavigate(); 
-    const qualifiedToDelete = false; 
+    const qualifiedToDelete = true; 
 
     const [btnTitle, setBtnTitle] = useState(method == 'create' ? "Create" : "Edit");
     const [prepData, setPrepData] = useState(prepDataInit); 
@@ -223,6 +223,12 @@ const ReportForm = ({ method }) => {
     const defaultPraesidiumMeetingsHeld = report 
     ? report.no_praesidium_meetings_held 
     : prepData.no_praesidium_meetings_held;
+    const defaultCuriaMeetingsHeldPrevious = report
+    ? report.no_curia_meetings_held_previous
+    : prepData.no_curia_meetings_held_previous;
+    const defaultPraesidiumMeetingsHeldPrevious = report 
+    ? report.no_praesidium_meetings_held_previous 
+    : prepData.no_praesidium_meetings_held_previous;
     const defaultMeetingsExpected = report? report.no_meetings_expected: 0
     const defaultMeetingsHeld = report? report.no_meetings_held: 0
     const defaultAvgAttendance = report? report.avg_attendance: 0
@@ -247,9 +253,17 @@ const ReportForm = ({ method }) => {
     };
     // const defaultAchievements = report? report.achievement? report.achievement: tempAchievement: tempAchievement;
     const defaultAchievements = report? report.achievement: tempAchievement;
-    const tempOtherKey = parseObjectKeys(report.achievements.others)[0]
+    const tempOtherKey = report? parseObjectKeys(report.achievements.others)[0] || '': '';
     const [otherAchievementName, setOtherAchievementName] = useState(report? tempOtherKey: '');
-    const [otherAchievementValue, setOtherAchievementValue] = useState(report? report.achievement.others[tempOtherKey]: [0,0]); 
+    const [otherAchievementValue, setOtherAchievementValue] = useState(
+                report? 
+                parseObjectKeys(report.achievement.others)[0]? 
+                report.achievement.others[tempOtherKey]:
+                [0, 0]:
+                [0,0]
+                ); 
+
+    console.log(loc, 'other achievement', otherAchievementName, otherAchievementValue);
 
     const initialFxnAttendances = [
         {
@@ -313,7 +327,7 @@ const ReportForm = ({ method }) => {
             "previous_year_attendance": 0,
         },
         {
-            "name": "Patricians Meetings",
+            "name": "Patrician Meetings",
             "date": null,
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
@@ -395,6 +409,9 @@ const ReportForm = ({ method }) => {
         remarks: defaultRemarks, 
         no_curia_meetings_held: defaultCuriaMeetingsHeld, 
         no_praesidium_meetings_held: defaultPraesidiumMeetingsHeld, 
+        no_curia_meetings_held_previous: defaultCuriaMeetingsHeldPrevious, 
+        no_praesidium_meetings_held_previous: defaultPraesidiumMeetingsHeldPrevious, 
+
         no_meetings_expected: defaultMeetingsExpected, 
         no_meetings_held: defaultMeetingsHeld, 
         avg_attendance: defaultAvgAttendance, 
@@ -685,6 +702,24 @@ const ReportForm = ({ method }) => {
                 ...reportFormData, 
                 no_praesidium_meetings_held: {
                     ...reportFormData.no_praesidium_meetings_held,
+                    [officeName]: e.target.value*1
+                }
+            }); 
+            // console.log(loc, reportFormData.no_praesidium_meetings_held); 
+        } else if (council == 'curiaMeetingsHeldPrevious') {
+            setReportFormData({
+                ...reportFormData, 
+                no_curia_meetings_held_previous: {
+                    ...reportFormData.no_curia_meetings_held_previous,
+                    [officeName]: e.target.value*1
+                }
+            }); 
+            // console.log(loc, reportFormData.no_praesidium_meetings_held); 
+        } else if (council == 'praesidiumMeetingsHeldPrevious') {
+            setReportFormData({
+                ...reportFormData, 
+                no_praesidium_meetings_held_previous: {
+                    ...reportFormData.no_praesidium_meetings_held_previous,
                     [officeName]: e.target.value*1
                 }
             }); 
@@ -1053,7 +1088,7 @@ const ReportForm = ({ method }) => {
             </div>
             {/* main content */}
             <div className="main-content">
-                <p className="fs-4">Praesidium: {praesidium.name}</p>
+                <p className="fs-2 text-dark">Praesidium: {praesidium.name}</p>
                 <form onSubmit={handleReportSubmission}>
 
                 {/* History */}
@@ -1103,7 +1138,7 @@ const ReportForm = ({ method }) => {
                                 name="report_period" id="report_period"
                                 className='form-control-sm rounded rounded-3 border border-dark '
                                 onChange={handleReportChange}
-                                value={reportFormData.no_meetings_expected} 
+                                value={reportFormData.report_period} 
                             />
                         </label>
                     </div>
@@ -1111,7 +1146,7 @@ const ReportForm = ({ method }) => {
 
                 {/* Curia */}
                 <div className="row border border-dark rounded rounded-3 p-3 my-2">
-                    <p className="fs-3">Curia</p>
+                    <p className="fs-3 text-primary">Curia</p>
                     <hr />
                     <p className="fs-4">Visiting</p> {/* Date of last visit by curia */}
                     <div className="col">
@@ -1146,9 +1181,10 @@ const ReportForm = ({ method }) => {
                             <thead>
                                 <tr>
                                     <th>Officer</th>
-                                    <th>No. meetings held</th>
                                     <th>Current year</th>
+                                    <th>No. meetings held in current year</th>
                                     <th>Previous year</th>
+                                    <th>No. meetings held in previous year</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1160,19 +1196,19 @@ const ReportForm = ({ method }) => {
                                     <td>President</td>
                                     <td>
                                         <input type="number" 
-                                            name={'pres_at__'+'curiaMeetingsHeld'} id="" 
+                                            name={'pres_at__'+'curia'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.no_curia_meetings_held['President']}
-                                            value={reportFormData.no_curia_meetings_held['President']}
+                                            // defaultValue={reportFormData.officers_curia_attendance['President']}
+                                            value={reportFormData.officers_curia_attendance['President']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
                                     <td>
                                         <input type="number" 
-                                            name={'pres_at__'+'curia'} id="" 
+                                            name={'pres_at__'+'curiaMeetingsHeld'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.officers_curia_attendance['President']}
-                                            value={reportFormData.officers_curia_attendance['President']}
+                                            // defaultValue={reportFormData.no_curia_meetings_held['President']}
+                                            value={reportFormData.no_curia_meetings_held['President']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
@@ -1184,18 +1220,18 @@ const ReportForm = ({ method }) => {
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td>Vice President</td>
                                     <td>
                                         <input type="number" 
-                                            name={'vp_at__'+'curiaMeetingsHeld'} id="" 
+                                            name={'pres_at__'+'curiaMeetingsHeldPrevious'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.no_curia_meetings_held['Vice President']}
-                                            value={reportFormData.no_curia_meetings_held['Vice President']}
+                                            // defaultValue={reportFormData.no_curia_meetings_held['President']}
+                                            defaultValue={reportFormData.no_curia_meetings_held_previous['President']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td>Vice President</td>
                                     <td>
                                         <input type="number" 
                                             name={'vp_at__'+'curia'} id="" 
@@ -1206,10 +1242,27 @@ const ReportForm = ({ method }) => {
                                         />
                                     </td>
                                     <td>
+                                        <input type="number" 
+                                            name={'vp_at__'+'curiaMeetingsHeld'} id="" 
+                                            className="form-control border border-dark"
+                                            // defaultValue={reportFormData.no_curia_meetings_held['Vice President']}
+                                            value={reportFormData.no_curia_meetings_held['Vice President']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
                                     <input type="number" 
                                             name={'vp_at__'+'curiaPrev'} id="" 
                                             className="form-control border border-dark"
-                                            defaultValue={reportFormData.previous_curia_attendance['Vice President']}
+                                            value={reportFormData.previous_curia_attendance['Vice President']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                            name={'vp_at__'+'curiaMeetingsHeldPrevious'} id="" 
+                                            className="form-control border border-dark"
+                                            defaultValue={reportFormData.no_curia_meetings_held_previous['Vice President']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
@@ -1218,19 +1271,19 @@ const ReportForm = ({ method }) => {
                                     <td>Secretary</td>
                                     <td>
                                         <input type="number" 
-                                            name={'sec_at__'+'curiaMeetingsHeld'} id="" 
+                                            name={'sec_at__'+'curia'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.no_curia_meetings_held['Secretary']}
-                                            value={reportFormData.no_curia_meetings_held['Secretary']}
+                                            // defaultValue={reportFormData.officers_curia_attendance['Secretary']}
+                                            value={reportFormData.officers_curia_attendance['Secretary']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
                                     <td>
                                         <input type="number" 
-                                            name={'sec_at__'+'curia'} id="" 
+                                            name={'sec_at__'+'curiaMeetingsHeld'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.officers_curia_attendance['Secretary']}
-                                            value={reportFormData.officers_curia_attendance['Secretary']}
+                                            // defaultValue={reportFormData.no_curia_meetings_held['Secretary']}
+                                            value={reportFormData.no_curia_meetings_held['Secretary']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
@@ -1242,18 +1295,17 @@ const ReportForm = ({ method }) => {
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td>Treasurer</td>
                                     <td>
                                         <input type="number" 
-                                            name={'tres_at__'+'curiaMeetingsHeld'} id="" 
+                                            name={'sec_at__'+'curiaMeetingsHeldPrevious'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.no_curia_meetings_held['Treasurer']}
-                                            value={reportFormData.no_curia_meetings_held['Treasurer']}
+                                            defaultValue={reportFormData.no_curia_meetings_held_previous['Secretary']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td>Treasurer</td>
                                     <td>
                                         <input type="number" 
                                             name={'tres_at__'+'curia'} id="" 
@@ -1264,10 +1316,27 @@ const ReportForm = ({ method }) => {
                                         />
                                     </td>
                                     <td>
+                                        <input type="number" 
+                                            name={'tres_at__'+'curiaMeetingsHeld'} id="" 
+                                            className="form-control border border-dark"
+                                            // defaultValue={reportFormData.no_curia_meetings_held['Treasurer']}
+                                            value={reportFormData.no_curia_meetings_held['Treasurer']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
                                     <input type="number" 
                                             name={'tres_at__'+'curiaPrev'} id="" 
                                             className="form-control border border-dark"
                                             defaultValue={reportFormData.previous_curia_attendance['Treasurer']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                            name={'tres_at__'+'curiaMeetingsHeldPrevious'} id="" 
+                                            className="form-control border border-dark"
+                                            defaultValue={reportFormData.no_curia_meetings_held_previous['Treasurer']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
@@ -1280,7 +1349,7 @@ const ReportForm = ({ method }) => {
 
                 {/* Praesidium */}
                 <div className="row border border-dark rounded rounded-3 p-3 my-2">
-                    <p className="fs-3">Praesidium</p>
+                    <p className="fs-3 text-primary">Praesidium</p>
                     {/* <hr className="mt-4" /> */}
 
                     <p className="fs-4">Officers Attendance</p>
@@ -1313,33 +1382,30 @@ const ReportForm = ({ method }) => {
                             <thead>
                                 <tr>
                                     <th>Officer</th>
-                                    <th>No. meetings held</th>
                                     <th>Current year</th>
+                                    <th>No. meetings held in current year</th>
                                     <th>Previous year</th>
+                                    <th>No. meetings held in previous year</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {/* <RenderMeetingAttendanceRow 
-                                    reportFormData={reportFormData}
-                                    handleAttendanceChange={handleAttendanceChange}
-                                /> */}
                                 <tr>
                                     <td>President</td>
-                                    <td>
-                                        <input type="number" 
-                                            name={'pres_at__'+'praesidiumMeetingsHeld'} id="" 
-                                            className="form-control border border-dark"
-                                            // defaultValue={reportFormData.no_praesidium_meetings_held['President']}
-                                            value={reportFormData.no_praesidium_meetings_held['President']}
-                                            onChange={handleAttendanceChange}
-                                        />
-                                    </td>
                                     <td>
                                         <input type="number" 
                                             name={'pres_at__'+'meeting'} id="" 
                                             className="form-control border border-dark"
                                             // defaultValue={reportFormData.officers_meeting_attendance['President']}
                                             value={reportFormData.officers_meeting_attendance['President']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                            name={'pres_at__'+'praesidiumMeetingsHeld'} id="" 
+                                            className="form-control border border-dark"
+                                            // defaultValue={reportFormData.no_praesidium_meetings_held['President']}
+                                            value={reportFormData.no_praesidium_meetings_held['President']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
@@ -1351,24 +1417,33 @@ const ReportForm = ({ method }) => {
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td>Vice President</td>
                                     <td>
                                         <input type="number" 
-                                            name={'vp_at__'+'praesidiumMeetingsHeld'} id="" 
+                                            name={'pres_at__'+'praesidiumMeetingsHeldPrevious'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.no_praesidium_meetings_held['Vice President']}
-                                            value={reportFormData.no_praesidium_meetings_held['Vice President']}
+                                            // defaultValue={reportFormData.no_praesidium_meetings_held['President']}
+                                            value={reportFormData.no_praesidium_meetings_held_previous['President']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td>Vice President</td>
                                     <td>
                                         <input type="number" 
                                             name={'vp_at__'+'meeting'} id="" 
                                             className="form-control border border-dark"
                                             // defaultValue={reportFormData.officers_meeting_attendance['Vice President']}
                                             value={reportFormData.officers_meeting_attendance['Vice President']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                            name={'vp_at__'+'praesidiumMeetingsHeld'} id="" 
+                                            className="form-control border border-dark"
+                                            // defaultValue={reportFormData.no_praesidium_meetings_held['Vice President']}
+                                            value={reportFormData.no_praesidium_meetings_held['Vice President']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
@@ -1380,24 +1455,32 @@ const ReportForm = ({ method }) => {
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td>Secretary</td>
                                     <td>
                                         <input type="number" 
-                                            name={'sec_at__'+'praesidiumMeetingsHeld'} id="" 
+                                            name={'vp_at__'+'praesidiumMeetingsHeldPrevious'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.no_praesidium_meetings_held['Secretary']}
-                                            value={reportFormData.no_praesidium_meetings_held['Secretary']}
+                                            value={reportFormData.no_praesidium_meetings_held_previous['Vice President']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td>Secretary</td>
                                     <td>
                                         <input type="number" 
                                             name={'sec_at__'+'meeting'} id="" 
                                             className="form-control border border-dark"
                                             // defaultValue={reportFormData.officers_meeting_attendance['Secretary']}
                                             value={reportFormData.officers_meeting_attendance['Secretary']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                            name={'sec_at__'+'praesidiumMeetingsHeld'} id="" 
+                                            className="form-control border border-dark"
+                                            // defaultValue={reportFormData.no_praesidium_meetings_held['Secretary']}
+                                            value={reportFormData.no_praesidium_meetings_held['Secretary']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
@@ -1409,18 +1492,17 @@ const ReportForm = ({ method }) => {
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td>Treasurer</td>
                                     <td>
                                         <input type="number" 
-                                            name={'tres_at__'+'praesidiumMeetingsHeld'} id="" 
+                                            name={'sec_at__'+'praesidiumMeetingsHeldPrevious'} id="" 
                                             className="form-control border border-dark"
-                                            // defaultValue={reportFormData.no_praesidium_meetings_held['Treasurer']}
-                                            value={reportFormData.no_praesidium_meetings_held['Treasurer']}
+                                            value={reportFormData.no_praesidium_meetings_held_previous['Secretary']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td>Treasurer</td>
                                     <td>
                                         <input type="number" 
                                             name={'tres_at__'+'meeting'} id="" 
@@ -1431,10 +1513,27 @@ const ReportForm = ({ method }) => {
                                         />
                                     </td>
                                     <td>
+                                        <input type="number" 
+                                            name={'tres_at__'+'praesidiumMeetingsHeld'} id="" 
+                                            className="form-control border border-dark"
+                                            // defaultValue={reportFormData.no_praesidium_meetings_held['Treasurer']}
+                                            value={reportFormData.no_praesidium_meetings_held['Treasurer']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
                                     <input type="number" 
                                             name={'tres_at__'+'meetingPrev'} id="" 
                                             className="form-control border border-dark"
                                             defaultValue={reportFormData.previous_meeting_attendance['Treasurer']}
+                                            onChange={handleAttendanceChange}
+                                        />
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                            name={'tres_at__'+'praesidiumMeetingsHeldPrevious'} id="" 
+                                            className="form-control border border-dark"
+                                            value={reportFormData.no_praesidium_meetings_held_previous['Treasurer']}
                                             onChange={handleAttendanceChange}
                                         />
                                     </td>
@@ -1483,7 +1582,7 @@ const ReportForm = ({ method }) => {
                 
                 {/* Membership */}
                 <div className="row border border-dark rounded rounded-3 p-3 my-2">
-                    <p className="fs-3">Membership</p>
+                    <p className="fs-3 text-primary">Membership</p>
                     <div className="row my-2 text-dark">
                         <div className="col">
                             <label htmlFor="include_intermediate">
@@ -1517,7 +1616,7 @@ const ReportForm = ({ method }) => {
 
                 {/* Achievements */}
                 <div className="row border border-dark rounded rounded-3 p-3 my-2">
-                    <p className="fs-3">Achievements</p>
+                    <p className="fs-3 text-primary">Achievements</p>
                     <table className="table-bordered">
                         <thead>
                             <tr>
@@ -1567,12 +1666,12 @@ const ReportForm = ({ method }) => {
 
                 {/* Works */}
                 <div className="row border border-dark rounded rounded-3 p-3 my-2">
-                    <p className="fs-3">Works</p>
+                    <p className="fs-3 text-primary">Works</p>
                     {
                         workSummaries.map(summary => {
                             // console.log('check 3', summary.type); 
                             return (
-                                <>
+                                <div key={summary.id}>
                                 <div className="row row-cols-lg-2 row-cols-md-2 border mx-1 p-3" key={summary.id}>
                                 <div className="col-12">
                                     {/* title */}
@@ -1661,7 +1760,7 @@ const ReportForm = ({ method }) => {
                                     </div>
                                 </>
                                 : <></>}
-                                </>
+                                </div>
                             )
                         })
                     }
@@ -1669,7 +1768,7 @@ const ReportForm = ({ method }) => {
 
                 {/* Function attendances */}
                 <div className="fxn-attendance row  p-3 my-2">
-                    <p className="fs-3">Legion Functions with Attendance</p>
+                    <p className="fs-3 text-primary">Legion Functions with Attendance</p>
                     <table className="table border border-dark">
                         <thead>
                         <tr>
@@ -1682,11 +1781,11 @@ const ReportForm = ({ method }) => {
                         <tbody>
                         {
                             defaultFxnAttendance.map(fxn => (
-                                <tr>
+                                <tr key={fxn.name}>
                                     <td>{fxn.name}</td>
                                     <td>
                                         {
-                                            fxn.name !== 'Patricians Meetings'
+                                            fxn.name !== 'Patrician Meetings'
                                             ? 
                                             <input 
                                                 type="date" 
@@ -1735,7 +1834,7 @@ const ReportForm = ({ method }) => {
 
                 {/* Finance */}
                 <div className="finance row  p-3 my-2">
-                    <p className="fs-3">Finance</p>
+                    <p className="fs-3 text-primary">Finance</p>
                     <table className="table table-bordered">
                         <thead className="">
                         <tr> {/* Top header row */}
@@ -1743,7 +1842,7 @@ const ReportForm = ({ method }) => {
                             <th colSpan={2} className="text-center">Income</th>
                             <th colSpan={expenditureLen+1} className="text-center">Expenditure</th>
                             <th></th>
-                            <th></th>
+                            {/* <th></th> */}
                         </tr>
                         <tr> {/* Second header row */}
                             <th className="text-center">Month</th>
@@ -1886,7 +1985,7 @@ const ReportForm = ({ method }) => {
 
                 {/* Comments */}
                 <div className="row border border-dark rounded rounded-3 p-3 my-2">
-                    <p className="fs-3">Comments</p>
+                    <p className="fs-3 text-primary">Comments</p>
                     <div className="col-12 mt-1">
                         <label htmlFor="problems">
                             Problems: 

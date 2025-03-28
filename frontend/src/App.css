@@ -140,11 +140,22 @@ table.attendance .function-name {
     overflow: hidden; /* Optional: Hide overflow content */
 }
 
+th.amount, td.amount {
+    width: 100px;
+    text-align: center; /* Optional: Center align text */
+    white-space: nowrap; /* Optional: Prevent text wrapping */
+    overflow: hidden; /* Optional: Hide overflow content */
+}
+
 table.finance .description {
     width: 300px;
     text-align: center; /* Optional: Center align text */
     white-space: nowrap; /* Optional: Prevent text wrapping */
     overflow: hidden; /* Optional: Hide overflow content */
+}
+
+table.audit>td {
+    height: fit-content;
 }
 
 .table-date {

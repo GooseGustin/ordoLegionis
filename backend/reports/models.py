@@ -37,12 +37,14 @@ class Report(models.Model):
     previous_curia_attendance = models.JSONField(default=dict)
     previous_meeting_attendance = models.JSONField(default=dict)
 
+    no_curia_meetings_held = models.JSONField(default=dict)
+    no_praesidium_meetings_held = models.JSONField(default=dict)
+    no_curia_meetings_held_previous = models.JSONField(default=dict)
+    no_praesidium_meetings_held_previous = models.JSONField(default=dict)
+
     extension_plans = models.TextField(null=True, blank=True)
     problems = models.TextField(null=True, blank=True)
     remarks = models.TextField(null=True, blank=True)
-
-    no_curia_meetings_held = models.JSONField(default=dict)
-    no_praesidium_meetings_held = models.JSONField(default=dict)
 
     no_meetings_expected = models.IntegerField(default=0)
     no_meetings_held = models.IntegerField(default=0)
@@ -53,8 +55,8 @@ class Report(models.Model):
     work_total_and_average = models.JSONField(default=dict)
 
     include_intermediate = models.BooleanField(default=True)
-    patricians_start = models.CharField(max_length=8, default='Jan 2024') 
-    patricians_end = models.CharField(max_length=8, default='Dec 2024')
+    patricians_start = models.CharField(max_length=8, default='Jan 2024', null=True, blank=True) 
+    patricians_end = models.CharField(max_length=8, default='Dec 2024', null=True, blank=True)
     audited = models.BooleanField(default=False)
     read_and_accepted = models.BooleanField(default=True)
     conclusion = models.TextField(default='This report was carefully extracted from the records of the praesidium, which include the worksheet, roll call book, minutes book, and treasurer\'s book.')

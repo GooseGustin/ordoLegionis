@@ -103,6 +103,14 @@ class ReportPrepGetView(APIView):
             "Treasurer": len(meetings_held_tres)
         }
 
+        no_curia_meetings_held_previous = {
+            "President": 0, 
+            "Vice President": 0, 
+            "Secretary": 0,  
+            "Treasurer": 0
+        }
+        no_praesidium_meetings_held_previous = no_curia_meetings_held_previous.copy()
+
         no_of_meetings_expected = (end_date - start_date).days // 7 
         no_of_meetings_held = len(meetings_within_range)
         average_attendance = 0
@@ -129,6 +137,7 @@ class ReportPrepGetView(APIView):
 
         # Get submission and last submission date
         last_report = Report.objects.filter(praesidium=praesidium).last()
+
         # Perhaps the last report is the current report, the submission date
         # will be in the future not the past, so we take the last submision
         # date instead 
@@ -140,6 +149,8 @@ class ReportPrepGetView(APIView):
             else: 
                 last_submission_date = last_report.last_submission_date
             report_number = last_report.report_number
+            no_curia_meetings_held_previous = last_report.no_curia_meetings_held
+            no_praesidium_meetings_held_previous = last_report.no_praesidium_meetings_held
 
 
         # Get work summaries
@@ -230,7 +241,7 @@ class ReportPrepGetView(APIView):
         # Update financial summary
         
         acf_set = set() # Track first occurrence of ACF for each month
-        
+
         for meeting in meetings_within_range: 
             [year, month, _] = getMonth(meeting.date)
             # print("year and month", year, month)
@@ -240,7 +251,8 @@ class ReportPrepGetView(APIView):
 
             fin_record = FinancialRecord.objects.get(meeting=meeting.id) # type:ignore
             acf = fin_record.acct_statement.acf
-            sbc = fin_record.acct_announcement.sbc
+            # sbc = fin_record.acct_announcement.sbc
+            sbc = fin_record.acct_statement.sbc
             bal = fin_record.acct_statement.balance
             exp = fin_record.acct_statement.expenses
 
@@ -249,29 +261,39 @@ class ReportPrepGetView(APIView):
                 # Only keep the first for the month
                 fin_summaries[ind]['bf'] = acf 
                 acf_set.add(month_key)  # Mark this month as recorded
-                print('Set acf for', month_key, acf)
+                # print('Set acf for', month_key, acf)
 
             fin_summaries[ind]['sbc'] += sbc 
+
+            # print('month', month) 
+            if month == 5: 
+                print('\nMay sbc', sbc, fin_summaries[ind]['sbc'])
+
             fin_summaries[ind]['balance'] = bal # so that the last balance for the month (ind) is kept
             fin_summaries[ind]['remittance'] += exp.remittance
             fin_summaries[ind]['expenses']["bouquet"] += exp.bouquet
             fin_summaries[ind]['expenses']["extension"] += exp.extension
             fin_summaries[ind]['expenses']["stationery"] += exp.stationery
+            # if exp.stationery > 0:
+            #     print(meeting.meeting_no, 'has a non-zero stationery expense')
             fin_summaries[ind]['expenses']["altar"] += exp.altar
             # print('Exp others', exp.others)
             if exp.others.get('purpose'): # type: ignore
                 fin_summaries[ind]['expenses']["others"].append(
                         {exp.others.get('purpose'): exp.others.get('value', 0)} # type:ignore
-                    ) 
+                    )
 
         # Get first acf
         # first_meeting = meetings_within_range[0]
         # first_acf = first_meeting.
+
         processed_data = {
             'last_submission_date': last_submission_date, 
             'report_number': report_number, 
-            'no_curia_meetings_held': no_curia_meetings_held,
-            'no_praesidium_meetings_held': no_praesidium_meetings_held,
+            'no_curia_meetings_held': no_curia_meetings_held, 
+            'no_praesidium_meetings_held': no_praesidium_meetings_held, 
+            'no_curia_meetings_held_previous': no_curia_meetings_held_previous, 
+            'no_praesidium_meetings_held_previous': no_praesidium_meetings_held_previous, 
             'officers_curia_attendance': officers_curia_attendance, 
             'officers_meeting_attendance': officers_meeting_attendance, 
             'no_meetings_expected': no_of_meetings_expected, 
@@ -282,8 +304,12 @@ class ReportPrepGetView(APIView):
         }
 
         # print("\nProcessed data")
-        # print('\n', processed_data)
+        # print('\n', processed_data['financial_summary'])
 
         serializer = ReportPrepGetSerializer(processed_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+# class GenerateDocument(APIView):
+#     def get(self, request, *args, **kwargs): 
+        

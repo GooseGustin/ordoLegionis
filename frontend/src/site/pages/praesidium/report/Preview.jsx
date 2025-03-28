@@ -58,7 +58,10 @@ const RenderWorksInCells = ({ summary, active, work_total_and_average }) => {
                         const metrics = parseObjectKeys(work.details)
                         let totalNo = 0;
                         metrics.forEach((item) => {
-                            totalNo += work.details[item]; 
+                            // console.log('Dont add no of homes', item); 
+                            if (item !== 'No. of homes' || item !== 'No. of Homes' || item !== 'No of homes') {
+                                totalNo += work.details[item]; 
+                            }
                         })
                         const total_or_average = work_total_and_average[work.type]; 
                         let total, average; 
@@ -106,7 +109,7 @@ const RenderAchievements = ({ achvObj }) => {
         'no_confirmed': "Confirmed", 
         'no_converted': "Converted to Christianity", 
         'no_first_communicants': 'First communicants', 
-        'no_marriages': "Marriages solemnized", 
+        'no_married': "Marriages solemnized", 
         'no_recruited': "Recruited into the Legion", 
         'no_vocations': "Called to vocation", 
         'no_promised': "Legion promises taken"
@@ -116,8 +119,8 @@ const RenderAchievements = ({ achvObj }) => {
     return (
         objKeys.map(item => {
             const name = achievementNames[item]; 
+            console.log('check 1', achvObj, item, name)
             if (name) {
-                // console.log('check 1', achvObj, name, achvObj[name])
                 return (
                     <tr key={name}>
                         <td>{name}</td>
@@ -127,14 +130,16 @@ const RenderAchievements = ({ achvObj }) => {
                 )
             } else {
                 const name = parseObjectKeys(achvObj[item])[0]; 
-                const values = achvObj[item][name]; 
-                return (
-                    <tr key='others'>
-                        <td>{name}</td>
-                        <td className='text-center'>{values[0]}</td>
-                        <td className='text-center'>{values[1]}</td>
-                    </tr>
-                )
+                if (name) {
+                    const values = achvObj[item][name]; 
+                    return (
+                        <tr key='others'>
+                            <td>{name}</td>
+                            <td className='text-center'>{values[0]}</td>
+                            <td className='text-center'>{values[1]}</td>
+                        </tr>
+                    )
+                }
             }
         })
     )
@@ -150,9 +155,13 @@ const RenderMembership = ({ memberObj, includeIntermediate }) => {
         adjutorian_members: "Adjutorian Members"
     }
     const objKeys = parseObjectKeys(memberObj); 
-    if (objKeys.includes('id')) objKeys.shift(); // remove id 
+    // if (objKeys.includes('id')) objKeys.shift(); // remove id 
+    const totalMembersSenior = memberObj.active_members[0]+memberObj.probationary_members[0]+memberObj.auxiliary_members[0]
+    const totalMembersInter = memberObj.active_members[1]+memberObj.probationary_members[1]+memberObj.auxiliary_members[1]
+    const totalMembersJunior = memberObj.active_members[2]+memberObj.probationary_members[2]+memberObj.auxiliary_members[2]
     return (
-        objKeys.map(item => {
+        <>
+        {objKeys.map(item => {
             const name = membershipTitles[item]; 
             if (name) {
                 // console.log('check 1', memberObj, name, memberObj[item])
@@ -165,7 +174,14 @@ const RenderMembership = ({ memberObj, includeIntermediate }) => {
                     </tr>
                 )
             }
-        })
+        })}
+        <tr>
+            <td>Total members</td>
+            <td className='text-center'>{totalMembersSenior}</td>
+            {includeIntermediate && <td className='text-center'>{totalMembersInter}</td>}
+            <td className='text-center'>{totalMembersJunior}</td>
+        </tr>
+        </>
     )
 
 }
@@ -182,7 +198,7 @@ const RenderFxnAttendanceDate = ({ fxnObj, report }) => {
         dateItem = (<td className='table-date'>01 May to 31 May {mayDevotionYear}</td>)
     } else if (fxnObj.name == 'October Devotion') {
         dateItem = (<td className='table-date'>01 Oct to 31 Oct {octoberDevotionYear}</td>)
-    } else if (fxnObj.name == 'Patricians Meetings') {
+    } else if (fxnObj.name == 'Patrician Meetings') {
         const [w, m, d, y] = formatDate(report.patricians_start) 
         const [w2, m2, d2, y2] = formatDate(report.patricians_end)
         let patricians_range = m + ' ' + y + ' to ' + m2 + ' ' + y2; 
@@ -229,7 +245,7 @@ const Preview = () => {
 
     const includeIntermediate = report.include_intermediate || false; 
     
-    const defaultMembership = {
+    const defaultMembership = report? report.membership: {
         id: 0, 
         affiliated_praesidia: [1, 0, 1], 
         active_members: [5, 0, 15], 
@@ -239,14 +255,14 @@ const Preview = () => {
         adjutorian_members: [0, 0, 0], 
         others: {'No. who took Legion promise': [2, 3]}
     }
-    const defaultAchievements = {
+    const defaultAchievements = report? report.achievements: {
         id: 0, 
-        no_recruited: [3, 3],
-        no_baptized: [2, 0], 
-        no_confirmed: [2, 3], 
-        no_first_communicants: [4, 4], 
+        no_recruited: [0, 0],
+        no_baptized: [0, 0], 
+        no_confirmed: [0, 0],  
+        no_first_communicants: [0, 0], 
         no_vocations: [0, 0], 
-        no_marriages: [2, 2], 
+        no_marriages: [0, 0], 
         no_converted: [0, 0]
     }
 
@@ -297,7 +313,103 @@ const Preview = () => {
         return sum; 
     }
 
+    const convertFinSummaryForFrontend = (finSummaryObj) => {
+        let finSummaryArray = []; 
+        const num = finSummaryObj.acf.length; 
+        // log('Convert fin summary for frontend', finSummaryObj, num);
+        for (let i=0; i < num; i++) {
+            const monthObj = {
+                "month": finSummaryObj.month_year[i][0],
+                "year": finSummaryObj.month_year[i][1],
+                "bf": finSummaryObj.acf[i],
+                "sbc": finSummaryObj.sbc[i],
+                "balance": finSummaryObj.balance[i],
+                "remittance": finSummaryObj.expenses.remittance[i],
+                "expenses": {
+                    "bouquet": finSummaryObj.expenses.bouquet[i],
+                    "stationery": finSummaryObj.expenses.stationery[i],
+                    "altar": finSummaryObj.expenses.altar[i],
+                    "extension": finSummaryObj.expenses.extension[i],
+                    "others": finSummaryObj.expenses.others[i]
+                    }, 
+                "report_production": finSummaryObj.report_production,
+                "balance_at_hand": finSummaryObj.balance_at_hand
+            }; 
+            finSummaryArray.push(monthObj); 
+        }
+        // log('Backend to frontend', finSummaryArray); 
+        return finSummaryArray; 
+    }
 
+    const calcPraesidiumExpenses = (monthlyFinanceObj, tag='') => {
+        try {
+            let {bouquet, stationery, altar, extension, others} = monthlyFinanceObj.expenses; 
+            let othersSum = 0; 
+            for (let i in others) {
+                let othersKeys = parseObjectKeys(others[i]); 
+                for (let j in othersKeys) {
+                    const val = others[i][othersKeys[j]];
+                    othersSum += val; 
+                }
+            }
+            return bouquet + stationery + altar + extension + othersSum; 
+        } catch (err) {
+            let others = monthlyFinanceObj;
+            let othersSum = 0; 
+            for (let i in others) {
+                let othersKeys = parseObjectKeys(others[i]); 
+                for (let j in othersKeys) {
+                    const val = others[i][othersKeys[j]];
+                    othersSum += val; 
+                }
+            }
+            if (tag === 'others') {
+                // console.log("exiting", othersSum)
+                return othersSum; 
+            }
+        }
+    }
+
+    const getAuditTotal = (name) => {
+        const finances = report.financial_summary; 
+        let total = 0;
+        if (name === 'sbc') {
+            finances.sbc.forEach(i => total += i); 
+        } else if (name === 'remittance') {
+            finances.expenses.remittance.forEach(i => total += i); 
+        } else if (name === 'praesidium') {
+            finances.expenses.bouquet.forEach(i => total += i); 
+            finances.expenses.stationery.forEach(i => total += i); 
+            finances.expenses.altar.forEach(i => total += i); 
+            finances.expenses.extension.forEach(i => total += i); 
+            finances.expenses.others.forEach(arr => total += calcPraesidiumExpenses(arr, 'others'))
+        }
+        return total;
+    } 
+
+    const getMonthlyBreakdown = (monthlyFinanceObj) => {
+        let statement = []; 
+        const remittance = monthlyFinanceObj.remittance; 
+        const {bouquet, stationery, altar, extension, others} = monthlyFinanceObj.expenses; 
+        if (remittance) {statement.push(`Remittance: ${currency}${remittance}`)}
+        if (bouquet) {statement.push(`Spiritual bouquet: ${currency}${bouquet}`)}
+        if (stationery) {statement.push(`Stationery: ${currency}${stationery}`)}
+        if (altar) {statement.push(`Altar: ${currency}${altar}`)}
+        if (extension) {statement.push(`Extension: ${currency}${extension}`)}
+        for (let i in others) {
+            let othersKeys = parseObjectKeys(others[i]); 
+            for (let j in othersKeys) {
+                const val = others[i][othersKeys[j]];
+                // othersSum += val; 
+                statement.push(`${othersKeys[j]}: ${currency}${val}`)
+            }
+        }
+        statement = statement.join(', ')
+        return statement
+    }
+
+    const finances = convertFinSummaryForFrontend(report.financial_summary);
+    const currency = '\u20A6';
 
     const fin_bf = report.financial_summary.acf[0];
     const fin_sbc = sumUp(report.financial_summary.sbc); 
@@ -441,7 +553,7 @@ const Preview = () => {
                             </table>
                         </div>
                         <div className="row"> {/* Curia Attendance */}
-                            <p className='title mt-2'><span className="fw-bold">8.a. Attendance to Curia</span></p>
+                            <p className='title mt-2'><span className="fw-bold">8. Attendance to Curia</span></p>
                             <table className=" table-bordered table-condensed">
                                 <thead>
                                     <tr>
@@ -458,7 +570,7 @@ const Preview = () => {
                             </table>
                         </div>
                         <div className="row"> {/* Praesidium Meeting Attendance */}
-                            <p className='title mt-2'><span className="fw-bold">8.b. Attendance to Praesidium</span></p>
+                            <p className='title mt-2'><span className="fw-bold">9. Attendance to Praesidium</span></p>
                             <table className=" table-bordered table-condensed">
                                 <thead>
                                     <tr>
@@ -482,7 +594,7 @@ const Preview = () => {
                 <div className="row mx-3 container"> 
                     <div className="col mt-3 container px-5">
                         <div className="row">{/* Membership */}
-                            <p className='title'><span className="fw-bold">9. Membership</span></p>
+                            <p className='title'><span className="fw-bold">10. Membership</span></p>
                             <table className="table-bordered">
                                 <thead>
                                     <tr>
@@ -501,7 +613,7 @@ const Preview = () => {
                             </table>
                         </div>
                         <div className="row"> {/* Meetings and Attendance */}
-                            <p className="fw-bold mt-2">10. Meetings and Attendace</p>
+                            <p className="fw-bold mt-2">11. Meetings and Attendace</p>
                             <table className='table-bordered'>
                                 <thead>
                                     <tr>
@@ -521,12 +633,12 @@ const Preview = () => {
                             <p><span className="fs-bold me-1">Reason for poor attendance:</span>{report.poor_attendance_reason}</p>
                         </div>
                         <div className="row"> {/* Works Undertaken */}
-                            <p className="fw-bold mt-2">11. Works Undertaken</p>
+                            <p className="fw-bold mt-2">12. Works Undertaken</p>
                             <p><strong>Active: </strong>{listOutWorks(report.work_summary, false)}</p>
                             <p><strong>Others: </strong>{listOutWorks(report.work_summary, true)}</p>
                         </div>
                         <div className="row"> {/* Efforts Made */}
-                            <p className="fw-bold">12. Efforts Made</p>
+                            <p className="fw-bold">13. Efforts Made</p>
                             <table className="table-bordered table-condensed">
                                 <tbody>
                                 <RenderWorksInCells 
@@ -568,7 +680,7 @@ const Preview = () => {
                             </table>
                         </div>
                         <div className="row mb-4"> {/* Achievements */}
-                            <p><strong>13. Achievements Recorded</strong></p>
+                            <p><strong>14. Achievements Recorded</strong></p>
                             <table className="table-bordered">
                                 <thead>
                                     <tr className='text-center'>
@@ -580,22 +692,22 @@ const Preview = () => {
                                 </thead>
                                 <tbody>
                                     <RenderAchievements achvObj={defaultAchievements} />
-                                    {otherAchievementName.trim() ? 
+                                    {otherAchievementName? otherAchievementName.trim() ? 
                                     (
                                         <tr>
                                             <td>{otherAchievementName}</td>
                                             <td className='text-center'>{otherAchievementValue[0]}</td>
                                             <td className='text-center'>{otherAchievementValue[1]}</td>
                                         </tr>
-                                    ): <></>}
+                                    ): <></>: <></>}
                                 </tbody>
                             </table>
                         </div>
                         <div className="row"> {/* Extension Plans */}
-                            <p><strong>14. Plans for Extension Work:</strong> {report.extension_plans}</p>
+                            <p><strong>15. Plans for Extension Work:</strong> {report.extension_plans}</p>
                         </div>
                         <div className="row"> {/* Functions Attendance */}
-                            <p><strong>15. Legion Functions with Attendance</strong></p>
+                            <p><strong>16. Legion Functions with Attendance</strong></p>
                             <table className="table-bordered attendance">
                                 <thead>
                                     <tr>
@@ -630,14 +742,14 @@ const Preview = () => {
                 <div className="row mx-3 container"> 
                     <div className="col mt-3 container px-5">
                         <div className="row mb-4"> {/* Finance */}
-                            <p><strong>16. Finance</strong></p>
+                            <p><strong>17. Finance</strong></p>
                             <table className="table-bordered finance">
                                 <thead>
                                     <tr>
                                         <th className="table-index">S/N</th>
                                         <th className='description'>Description</th>
-                                        <th className='amount'>N</th>
-                                        <th className='amount'>N</th>
+                                        <th className='amount'>{currency}</th>
+                                        <th className='amount'>{currency}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -735,16 +847,19 @@ const Preview = () => {
                             </table>
                         </div>
                         <div className="row mb-4"> {/* Conclusion */}
-                            <p><strong>17. Were the finances audited? </strong>{report.audited? 'Yes': 'No'}</p>
-                            <p><strong>18. Problems: </strong>{report.problems}</p>
-                            <p><strong>19. Was the report read and accepted by members before submission? </strong>{report.read_and_accepted? 'Yes': 'No'}</p>
-                            <p><strong>20. Final Remarks: </strong>{report.remarks}</p>
-                            <p><strong>21. Conclusion: </strong>{report.conclusion}</p>
+                            <p><strong>18. Were the finances audited? </strong>{report.audited? 'Yes': 'No'}</p>
+                            <p><strong>19. Problems: </strong>{report.problems}</p>
+                            <p><strong>20. Was the report read and accepted by members before submission? </strong>{report.read_and_accepted? 'Yes': 'No'}</p>
+                            <p><strong>21. Final Remarks: </strong>{report.remarks}</p>
+                            <p><strong>22. Conclusion: </strong>{report.conclusion}</p>
                         </div>
                         <div className="row mb-4"> {/* Signatures */}
                             <div className="row px-5">
                                 <div className="col">
                                     <div className="row">______________________</div>
+                                    <div className="row text-center pe-5">
+                                        <div className="col"><strong>{praesidium.president}</strong></div>
+                                    </div>
                                     <div className="row text-center pe-5">
                                         <div className="col"><strong>President</strong></div>
                                     </div>
@@ -752,6 +867,9 @@ const Preview = () => {
                                 <div className="col-5"></div>
                                 <div className="col">
                                     <div className="row">______________________</div>
+                                    <div className="row text-center pe-5">
+                                        <div className="col"><strong>{praesidium.secretary}</strong></div>
+                                    </div>
                                     <div className="row text-center pe-5">
                                         <div className="col"><strong>Secretary</strong></div>
                                     </div>
@@ -768,8 +886,218 @@ const Preview = () => {
                                         <div className="col"><strong>______________________</strong></div>
                                     </div>
                                     <div className="row text-center ">
+                                        <div className="col"><strong>{praesidium.spiritual_director}</strong></div>
+                                    </div>
+                                    <div className="row text-center ">
                                         <div className="col"><strong>Spiritual Director</strong></div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="page border py-3 me-5 border-dark my-3">
+                <div className="row mx-3 container"> 
+                    <div className="col mt-3 container px-5">
+                        <div className="row mb-4"> {/* Auditor's report */}
+                            <p className='text-center h5 text-dark'><strong>Auditor's Report</strong></p>
+                            <table className=" table-bordered finance audit">
+                                <thead className="">
+                                    <tr> {/* Top header row */}
+                                        <th className='table-index'></th>
+                                        <th></th>
+                                        <th colSpan={2} className="text-center">Income</th>
+                                        <th colSpan={2} className="text-center">Expenditure</th>
+                                        <th></th>
+                                    </tr>
+                                    <tr> {/* Second header row */}
+                                        <th className="text-center table-index">S/N</th>
+                                        <th className="text-center">Month</th>
+                                        <th className="text-center">BF ({currency})</th>
+                                        <th className="text-center">SBC ({currency})</th>
+                                        <th className="text-center">Curia ({currency})</th>
+                                        <th className="text-center">Praesidium ({currency})</th>
+                                        <th className="text-center">Balance ({currency})</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    { 
+                                        finances.map((item, key) => {
+                                            // console.log("Check 2", item);
+                                            return (
+                                            <tr key={item.id}>
+                                                <td className='table-index'>{key+1}</td>
+                                                <td>{item.month}, {item.year}</td>
+                                                <td>
+                                                    {item.bf}
+                                                </td>
+                                                <td>
+                                                    {item.sbc}
+                                                </td>
+                                                <td>
+                                                    {item.remittance}
+                                                </td>
+                                                <td>
+                                                    {calcPraesidiumExpenses(item)}
+                                                </td>
+                                                <td>
+                                                    {item.balance}
+                                                </td>
+                                            </tr>)
+                                        })
+                                    }
+                                    <tr>
+                                        <th></th>
+                                        <th>Total</th>
+                                        <th></th>
+                                        <th>{getAuditTotal('sbc')}</th>
+                                        <th>{getAuditTotal('remittance')}</th>
+                                        <th>{getAuditTotal('praesidium')}</th>
+                                        <th></th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="row mb-4"> {/* Analysis */}
+                            <p className='text-center h5 text-dark'><strong>Analysis</strong></p>
+                            <table className="table-bordered finance">
+                                <thead>
+                                    <tr>
+                                        <th className='description'>Description</th>
+                                        <th className='amount'>{currency}</th>
+                                        <th className='amount'>{currency}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th className='description'>Income</th>
+                                        <th className='amount'></th>
+                                        <th className='amount'></th>
+                                    </tr>
+                                    <tr>
+                                        <td className='description'>Amount Brought Forward from Last Report</td>
+                                        <td className='amount'></td>
+                                        <td className='amount'>{fin_bf}</td>
+                                    </tr>
+                                    <tr>
+                                        <td className='description'>SBC for the Period</td>
+                                        <td className='amount'></td>
+                                        <td className='amount'>{fin_sbc}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className='description'>Total Income</th>
+                                        <td className='amount'></td>
+                                        <td className='amount'>{fin_total_income}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className='description'>Expenditure</th>
+                                        <td className='amount'></td>
+                                        <td className='amount'></td>
+                                    </tr>
+                                    <tr>
+                                        <td className='description'>To Curia</td>
+                                        <td className='amount'>{fin_rem}</td>
+                                        <td className='amount'></td>
+                                    </tr>
+                                    <tr>
+                                        <td className='description'>To Praesidium</td>
+                                        <td className='amount'>{getAuditTotal('praesidium')}</td>
+                                        <td className='amount'></td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <th className='description'>Total Expenses</th>
+                                        <td className='amount'></td>
+                                        <td className='amount'>{fin_total_exp}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className='description'>Surplus Funds to Curia</th>
+                                        <td className='amount'></td>
+                                        <td className='amount'>{fin_surplus}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className='description'>Balance at Hand</th>
+                                        <td className='amount'></td>
+                                        <td className='amount'>{report.financial_summary.balance_at_hand}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="page border py-3 me-5 border-dark my-3">
+                <div className="row mx-3 container"> 
+                    <div className="col mt-3 container px-5">
+                        <div className="row mb-4"> {/* Breakdown */}
+                            <p className='text-center h5 text-dark'><strong>Breakdown of Expenditure</strong></p>
+                            <table className="attendance table-bordered finance audit">
+                                <thead className="">
+                                    <tr> {/* Top header row */}
+                                        <th className='table-index'>S/N</th>
+                                        <th className='function-name'>Month</th>
+                                        <th>Item</th>
+                                        <th className='amount'>Amount ({currency})</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    { 
+                                        finances.map((item, key) => {
+                                            // console.log("Check 2", item);
+                                            return (
+                                            <tr key={item.id}>
+                                                <td className='table-index'>{key+1}</td>
+                                                <td className='function-name'>{item.month}, {item.year}</td>
+                                                <td>
+                                                    {getMonthlyBreakdown(item)}
+                                                </td>
+                                                <td className='amount'>
+                                                    {calcPraesidiumExpenses(item) + item.remittance}
+                                                </td>
+                                            </tr>)
+                                        })
+                                    }
+                                    <tr>
+                                        <th></th>
+                                        <th className='function-name'>Total</th>
+                                        <th></th>
+                                        <th className='amount'>{getAuditTotal('remittance') + getAuditTotal('praesidium')}</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="row mb-4"> {/* Analysis */}
+                            <p><strong>Observations:</strong></p>
+                            <p><br /></p>
+                            <p><strong>Recommendations:</strong></p>
+                            <p><br /></p>
+                            <p><strong>Conclusion:</strong></p>
+                            <p><br /></p>
+                        </div>
+                        <div className="row mb-4">
+                            <div className="col">
+                                <div className="row text-center">
+                                    <div className="col"><strong>______________________</strong></div>
+                                </div>
+                                <div className="row text-center pe-5">
+                                    <div className="col"><strong>Name</strong></div>
+                                </div>
+                                <div className="row text-center pe-5">
+                                    <div className="col"><strong>Auditor 1</strong></div>
+                                </div>
+                            </div>
+                            <div className="col">
+                                <div className="row text-center">
+                                    <div className="col"><strong>______________________</strong></div>
+                                </div>
+                                <div className="row text-center pe-5">
+                                    <div className="col"><strong>Name</strong></div>
+                                </div>
+                                <div className="row text-center pe-5">
+                                    <div className="col"><strong>Auditor 2</strong></div>
                                 </div>
                             </div>
                         </div>
@@ -867,3 +1195,4 @@ export const reportPreviewLoader = async ({ params }) => {
     }
 }
 
+ 

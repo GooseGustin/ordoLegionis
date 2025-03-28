@@ -130,14 +130,14 @@ const PraesidiumForm = (props) => {
                     }
                     const workListResponse = await axios.post(`${BASEURL}works/work_list/`, initialWorkList, config);
                     console.log("Initialising worklist", workListResponse.data); 
-                
+                    navigate(`../${praesidiumResponse.data.id}`);
                 } else {
                     praesidiumResponse = await axios.put(`${BASEURL}praesidium/praesidium/${obj.id}/`, praesidiumForm, config);
                 }
                 
                 const praesidiumFeedback = praesidiumResponse.data; 
                 console.log('In submit praesidium form, code', praesidiumFeedback, praesidiumFeedback.status_code);
-                navigate('../');
+                
             } else {
                 console.log("Sign in to get praesidia paradisei")
                 // navigate('../')
@@ -447,7 +447,7 @@ const PraesidiumForm = (props) => {
                         <label htmlFor="">
                             <span className="me-1">Treasurer</span>
                             <input 
-                                type="text" name="tres_president" id="" 
+                                type="text" name="treasurer" id="" 
                                 className="form-control border border-dark"
                                 defaultValue={defaultTreasurer}
                                 onChange={handleChange}

@@ -19,7 +19,7 @@ const MeetingForm = (props) => {
     const defaultMeeting = meetingObj ? meetingObj.id : 1; 
     const defaultMeetingNo = meetingObj ? meetingObj.meeting_no : 1;
     const defaultNoPresent = meetingObj ? meetingObj.no_present : 1;
-    const defaultOfficersAtMeeting = meetingObj ? meetingObj.officers_meeting_attendance : ["President", "Secretary"] // [];
+    const defaultOfficersAtMeeting = meetingObj ? meetingObj.officers_meeting_attendance : ["Vice President", "Treasurer"] // [];
     const defaultOfficersAtCuria = meetingObj ? meetingObj.officers_curia_attendance : [];
     const defaultNotes = objNotes
             ? objNotes
@@ -43,19 +43,19 @@ const MeetingForm = (props) => {
 
     ////////////////////////////////////////////////////////////////////////
     const defaultAcctStatement = recordObj ? recordObj.acct_statement : {
-        acf: 200, sbc: 200, balance: 200
+        acf: 0, sbc: 0, balance: 0
     };
-    const defaultStatementAcf = recordObj ? recordObj.acct_statement.acf : 200;
-    const defaultStatementSbc = recordObj ? recordObj.acct_statement.sbc : 200;
-    const defaultStatementBalance = recordObj ? recordObj.acct_statement.balance : 200;
+    const defaultStatementAcf = recordObj ? recordObj.acct_statement.acf : 0;
+    const defaultStatementSbc = recordObj ? recordObj.acct_statement.sbc : 0;
+    const defaultStatementBalance = recordObj ? recordObj.acct_statement.balance : 0;
 
     const defaultExpenses = recordObj ? recordObj.acct_statement.expenses : {
-        extension: 100, remittance: 0, stationery: 100, altar: 0,
+        extension: 0, remittance: 0, stationery: 0, altar: 0,
         bouquet: 0, others: {}
     };
-    const defaultExpenseExtension = recordObj ? recordObj.acct_statement.expenses.extension : 100;
+    const defaultExpenseExtension = recordObj ? recordObj.acct_statement.expenses.extension : 0;
     const defaultExpenseRemittance = recordObj ? recordObj.acct_statement.expenses.remittance : 0;
-    const defaultExpenseStationery = recordObj ? recordObj.acct_statement.expenses.stationery : 100;
+    const defaultExpenseStationery = recordObj ? recordObj.acct_statement.expenses.stationery : 0;
     const defaultExpenseAltar = recordObj ? recordObj.acct_statement.expenses.altar : 0;
     const defaultExpenseBouquet = recordObj ? recordObj.acct_statement.expenses.bouquet : 0;
     const defaultExpenseOthers = recordObj ? recordObj.acct_statement.expenses.others : {purpose: '', value: 0};
