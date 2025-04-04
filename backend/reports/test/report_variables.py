@@ -57,13 +57,13 @@ praesidium = {
 }
 # -----------------------------------------------
 report = {
-    "id": 19,
+    "id": 20,
     "praesidium": 2,
-    "submission_date": "2025-04-13",
-    "last_submission_date": "2024-04-14",
-    "report_number": 1,
-    "report_period": 52,
-    "last_curia_visit_date": None,
+    "submission_date": "2025-03-30",
+    "last_submission_date": "2024-04-21",
+    "report_number": 4,
+    "report_period": 0,
+    "last_curia_visit_date": "2025-03-23",
     "last_curia_visitors": "Sis. Victoria Pam from Ark of the Covenant, Mazaram",
     "officers_curia_attendance": {
         "President": 0,
@@ -72,46 +72,48 @@ report = {
         "Treasurer": 0
     },
     "no_curia_meetings_held": {
+        "President": 12,
+        "Vice President": 12,
+        "Secretary": 12,
+        "Treasurer": 12
+    },
+    "no_praesidium_meetings_held": {
+        "President": 48,
+        "Vice President": 48,
+        "Secretary": 48,
+        "Treasurer": 48
+    },
+    "no_curia_meetings_held_previous": {
         "President": 13,
         "Vice President": 13,
         "Secretary": 13,
         "Treasurer": 13
     },
-    "no_praesidium_meetings_held": {
+    "no_praesidium_meetings_held_previous": {
         "President": 49,
         "Vice President": 49,
         "Secretary": 49,
         "Treasurer": 49
     },
-    "no_curia_meetings_held_previous": {
-        "President": 0,
-        "Vice President": 0,
-        "Secretary": 5,
-        "Treasurer": 0
-    },
-    "no_praesidium_meetings_held_previous": {
-        "President": 0,
-        "Vice President": 0,
-        "Secretary": 10,
-        "Treasurer": 0
-    },
     "officers_meeting_attendance": {
-        "President": 45,
-        "Vice President": 49,
+        "President": 44,
+        "Vice President": 48,
         "Secretary": 28,
-        "Treasurer": 39
+        "Treasurer": 38
     },
     "extension_plans": "Recruit more members",
+    "auditor1": "Bro. James Kim Yop", 
+    "auditor2": 'Sis. Amelia Rose',
     "problems": "",
     "remarks": "",
-    "no_meetings_expected": 52,
-    "no_meetings_held": 49,
+    "no_meetings_expected": 49,
+    "no_meetings_held": 48,
     "avg_attendance": 6,
-    "poor_attendance_reason": "Most members are students, usually away for school",
-    "membership_details": 22,
+    "poor_attendance_reason": "Most members are students",
+    "membership_details": 24,
     "include_intermediate": True,
     "achievements": {
-        "id": 41,
+        "id": 44,
         "no_recruited": [
             1,
             0
@@ -140,49 +142,58 @@ report = {
             0,
             0
         ],
-        "others": {
-            "Took Legion promise": [4, 3]
-        }
+        "others": {}
     },
     "function_attendances": [
-        243,
-        244,
-        245,
-        246,
-        247,
-        248,
-        249,
-        250,
-        251,
-        252,
-        253,
-        254,
-        255,
-        256
+        257,
+        258,
+        259,
+        260,
+        261,
+        262,
+        263,
+        264,
+        265,
+        266,
+        267,
+        268,
+        269,
+        270
     ],
     "work_total_and_average": {
         "Home Visitation": {
             "total": True,
-            "average": True
+            "average": False
         },
         "Crowd Contact": {
+            "total": True
+        },
+        "Catechism Instruction": {
+            "total": True,
+            "average": True
+        },
+        "Care for Children at Mass": {
+            "total": True,
+            "average": True
+        },
+        "Care for the Junior Praesidium": {
             "total": True,
             "average": True
         }
     },
     "patricians_start": "2024-04",
-    "patricians_end": "2025-04",
+    "patricians_end": "2025-03",
     "work_summaries": [
-        131,
-        132,
-        133,
-        134,
-        135,
-        136
+        137,
+        138,
+        139,
+        140,
+        141,
+        142
     ],
     "financial_summary": {
-        "id": 19,
-        "report": 19,
+        "id": 20,
+        "report": 20,
         "month_year": [
             [
                 "Apr",
@@ -248,18 +259,18 @@ report = {
             220
         ],
         "sbc": [
-            610,
-            920,
-            1300,
-            970,
-            800,
-            1480,
-            1180,
-            730,
-            1520,
-            880,
+            490,
+            940,
+            1140,
             1030,
-            670
+            900,
+            1480,
+            1350,
+            690,
+            1090,
+            1380,
+            930,
+            770
         ],
         "balance": [
             90,
@@ -347,11 +358,7 @@ report = {
                 200
             ],
             "others": [
-                [
-                    {
-                        "Previous report": 250
-                    }
-                ],
+                [],
                 [
                     {
                         "Booking of Edel Quinn Mass": 500
@@ -402,19 +409,19 @@ report = {
     "read_and_accepted": True,
     "conclusion": "This report was carefully extracted from the records of the praesidium, which include the worksheet, roll call book, minutes book, and treasurer's book.",
     "membership": {
-        "id": 22,
+        "id": 24,
         "affiliated_praesidia": [
-            1,
             0,
-            1
+            0,
+            0
         ],
         "active_members": [
-            7,
+            0,
             0,
             0
         ],
         "probationary_members": [
-            1,
+            0,
             0,
             0
         ],
@@ -436,116 +443,116 @@ report = {
     },
     "fxn_attendances": [
         {
-            "id": 243,
+            "id": 257,
             "name": "Acies",
-            "date": "2025-03-30",
+            "date": None,
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 244,
+            "id": 258,
             "name": "May Devotion",
             "date": "2024-05-01",
-            "current_year_attendance": 3,
+            "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 245,
+            "id": 259,
             "name": "Edel Quinn Mass",
             "date": "2024-05-12",
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 246,
+            "id": 260,
             "name": "Annual Enclosed Retreat",
             "date": None,
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 247,
+            "id": 261,
             "name": "Mary's Birthday",
             "date": "2024-09-08",
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 248,
+            "id": 262,
             "name": "Officers' Workshop",
             "date": None,
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 249,
+            "id": 263,
             "name": "October Devotion",
             "date": "2024-10-01",
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 250,
+            "id": 264,
             "name": "Departed Legionaries' Mass",
             "date": "2024-11-02",
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 251,
+            "id": 265,
             "name": "Frank Duff's Mass",
             "date": "2024-11-12",
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 252,
+            "id": 266,
             "name": "Legion Congress",
             "date": None,
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 253,
+            "id": 267,
             "name": "Patrician Meetings",
+            "date": None,
+            "current_year_attendance": 3,
+            "previous_year_attendance": 4,
+            "report": 20
+        },
+        {
+            "id": 268,
+            "name": "Annual General Reunion",
             "date": None,
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 254,
-            "name": "Annual General Reunion",
-            "date": "2024-12-15",
-            "current_year_attendance": 7,
-            "previous_year_attendance": 0,
-            "report": 19
-        },
-        {
-            "id": 255,
+            "id": 269,
             "name": "Exporatio Dominicalis",
             "date": None,
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         },
         {
-            "id": 256,
+            "id": 270,
             "name": "Outdoor Function",
             "date": None,
             "current_year_attendance": 0,
             "previous_year_attendance": 0,
-            "report": 19
+            "report": 20
         }
     ],
     "work_summary": [
@@ -610,4 +617,3 @@ report = {
         }
     ]
 }
-

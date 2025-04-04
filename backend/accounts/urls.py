@@ -13,4 +13,5 @@ urlpatterns += [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('user/', UserInfoAPIView.as_view(), name='user-info'),
+    path('legionary_info/', LegionaryInfoAPIView.as_view(), name='legionary-info'),
 ]

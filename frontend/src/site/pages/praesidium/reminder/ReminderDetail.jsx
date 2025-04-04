@@ -1,8 +1,18 @@
+import { useEffect } from 'react';
 import { Link, NavLink, useLoaderData, useNavigate } from 'react-router-dom'
 
 const ReminderDetail = () => {
-    const [reminderObj, _] = useLoaderData();
+    const [reminderObj, praedidium, isMember, isManager] = useLoaderData();
     console.log("in reminder detail")
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        // Leave this page if you're not a member 
+        if (!isMember) {
+            navigate('/praesidium'); 
+        }
+    }, [])
 
     const reminderDeadline = reminderObj.deadline
         ? new Date(reminderObj.deadline.split('-')).toDateString()
@@ -72,7 +82,7 @@ const ReminderDetail = () => {
                 <div className="row p-2">
                     {
                     reminderDeadline 
-                    ?   (<div className="col border border-info rounded rounded-5 ms-3">
+                    ?   (<div className="col border border-danger rounded rounded-5 ms-3">
                             <span className="fw-bold">Deadline:</span> {reminderDeadline}
                         </div>)
                     :   (<></>)

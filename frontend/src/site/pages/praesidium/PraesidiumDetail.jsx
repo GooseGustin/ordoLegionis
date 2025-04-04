@@ -6,46 +6,16 @@ const BASEURL = "http://localhost:8000/api/";
 
 
 const PraesidiumDetail = () => {
-    const [praesidium, meetings] = useLoaderData(); 
+    const [praesidium, meetings, isMember, isManager] = useLoaderData(); 
     const loc = "In praesidium detail"; 
-
     console.log(loc, praesidium, meetings);
-    
     const curia = praesidium.curiaDetails; 
-    // const workList = praesidium.worklist;
 
-    const navigate = useNavigate(); 
-
-    // const deletePraesidium = async () => {
-    //     try {
-    //         const token = localStorage.getItem('accessToken'); 
-    //         if (token) {
-    //             console.log('Get the praesidium');
-    //             const config = {
-    //                 headers: {
-    //                     "Authorization": `Bearer ${token}` 
-    //                 }
-    //             }; 
-    //             const res = await axios.delete("http://localhost:8000/api/praesidium/praesidium/"+praesidium.id+"/", config); 
-    //             console.log("Successfully deleted"); 
-    //             navigate("../")
-    //         }  else {
-    //             console.log("Sign in to delete the praesidium")
-    //         }
-    //     } catch (err) {
-    //         if (err.status === 401) {
-    //             console.log("The session is expired. Please sign in again to delete this praesidium")
-    //         } else {
-    //             console.error("Error deleting the praesidium:", err);
-    //         }
-    //     }
-    // }
-
-
+    // const navigate = useNavigate(); 
 
     const inaugDate = getFormattedDate(praesidium.inaug_date);
     const nextReportDeadline = getFormattedDate(praesidium.next_report_deadline); 
-    const spAppDate = getFormattedDate(curia.spiritual_director_app_date);
+    const spAppDate = getFormattedDate(praesidium.spiritual_director_app_date);
     const presAppDate = getFormattedDate(praesidium.pres_app_date); 
     const vpAppDate = getFormattedDate(praesidium.vp_app_date); 
     const secAppDate = getFormattedDate(praesidium.sec_app_date); 
@@ -58,59 +28,72 @@ const PraesidiumDetail = () => {
             {/* sidebar */}
             <div className="sidebar">
                 <nav className="nav flex-column">
-                    <NavLink className="nav-link" to='edit'>
-                        <span className="icon">
-                            <i className="bi bi-grid"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                        </span>
-                        <span className="description">Edit details</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='meeting/create'>
-                        <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                        </span>
-                        <span className="description">New meeting</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='meeting'>
-                        <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                        </span>
-                        <span className="description">Meetings</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='reminder/create'>
-                        <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                        </span>
-                        <span className="description">New reminder</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='reminder'>
-                        <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                        </span>
-                        <span className="description">Reminders</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='report'>
-                        <span className="icon">
-                            <i className="bi bi-grid"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                        </span>
-                        <span className="description">Reports</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='report/create'>
-                        <span className="icon">
-                            <i className="bi bi-grid"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                        </span>
-                        <span className="description">New report</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='worklist'>
-                        <span className="icon">
-                            <i className="bi bi-grid"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                        </span>
-                        <span className="description">Work List</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='worklist'>
+                    {
+                        isMember ? 
+                        <>
+                        <NavLink className="nav-link" to='edit'>
+                            <span className="icon">
+                                <i className="bi bi-grid"></i>
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            </span>
+                            <span className="description">Edit details</span>
+                        </NavLink>
+                        {isManager?
+                        <NavLink className="nav-link" to='meeting/create'>
+                            <span className="icon">
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            </span>
+                            <span className="description">New meeting</span>
+                        </NavLink>
+                        : <></>}
+                        <NavLink className="nav-link" to='meeting'>
+                            <span className="icon">
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            </span>
+                            <span className="description">Meetings</span>
+                        </NavLink>
+                        {isManager? 
+                        <NavLink className="nav-link" to='reminder/create'>
+                            <span className="icon">
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            </span>
+                            <span className="description">New reminder</span>
+                        </NavLink>
+                        : <></>}
+                        <NavLink className="nav-link" to='reminder'>
+                            <span className="icon">
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            </span>
+                            <span className="description">Reminders</span>
+                        </NavLink>
+                        <NavLink className="nav-link" to='report'>
+                            <span className="icon">
+                                <i className="bi bi-grid"></i>
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            </span>
+                            <span className="description">Reports</span>
+                        </NavLink>
+                        {isManager?
+                        <NavLink className="nav-link" to='report/create'>
+                            <span className="icon">
+                                <i className="bi bi-grid"></i>
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            </span>
+                            <span className="description">New report</span>
+                        </NavLink>
+                        : <></>}
+                        <NavLink className="nav-link" to='worklist'>
+                            <span className="icon">
+                                <i className="bi bi-grid"></i>
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            </span>
+                            <span className="description">Work List</span>
+                        </NavLink>
+                        </>
+                        : 
+                        <></>
+                    }
+                    <NavLink className="nav-link" to=''>
                         <span className="icon">
                             <i className="bi bi-grid"></i>
                             <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
@@ -140,7 +123,7 @@ const PraesidiumDetail = () => {
             </div>
             
             {/* main content */}
-            <div className="main-content pt-5">
+            <div className="main-content pt-5 text-dark">
                 {/* <div className="col-10 col-md-5 col-lg-6 col-sm-10"> */}
                     <p className="fs-3 text-dark">{praesidium.name} Praesidium</p>
                 {/* </div> */}
@@ -216,7 +199,7 @@ const PraesidiumDetail = () => {
                         <div className="col-5 col-md-6 col-lg-6 col-sm-10">
                             <label htmlFor="">
                                 <span className="me-1 fw-bold">Spiritual director:</span>
-                                <span>{curia.spiritual_director}</span>
+                                <span>{praesidium.spiritual_director}</span>
                             </label>
                         </div>
                         <div className="col-5 col-md-6 col-lg-6 col-sm-10">
@@ -237,7 +220,6 @@ const PraesidiumDetail = () => {
                                 <span className="me-1 fw-bold">Appointment date:</span>
                                 <span>{presAppDate}</span>
                             </label>
-
                         </div>
                         <div className="col-5 col-md-6 col-lg-6 col-sm-10">
                             <label htmlFor="">
@@ -250,7 +232,6 @@ const PraesidiumDetail = () => {
                                 <span className="me-1 fw-bold">Appointment date:</span>
                                 <span>{vpAppDate}</span>
                             </label>
-
                         </div>
                         <div className="col-5 col-md-6 col-lg-6 col-sm-10">
                             <label htmlFor="">
@@ -264,7 +245,6 @@ const PraesidiumDetail = () => {
                                 <span>{secAppDate}</span>
                             </label>
                         </div>
-                        
                         <div className="col-5 col-md-6 col-lg-6 col-sm-10">
                             <label htmlFor="">
                                 <span className="me-1 fw-bold">Treasurer:</span>
@@ -286,16 +266,15 @@ const PraesidiumDetail = () => {
 
 export default PraesidiumDetail
 
-
 export const praesidiumLoader = async ({ params }) => {
     const {pid} = params;
     // return the praesidiumObj, list of meeting numbers and dates
     const loc = "In the praesidium loader fxn";
     let meetings = []; 
-    let praesidium; 
+    let praesidium, legionary, isMember = false, isManager = false; 
 
     console.log(loc); 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken'); 
         if (token) {
             const config = {
@@ -322,57 +301,20 @@ export const praesidiumLoader = async ({ params }) => {
             // Add the curia details to the praesidium data
             praesidium.curiaDetails = curiaResponse.data;
 
+            
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            legionary = legionaryResponse.data;
+
+            console.log(' praesidium.members',  praesidium.members, legionary.id)
+            isMember = praesidium.members.includes(legionary.id)
+            isManager = praesidium.managers.includes(legionary.id)
+            // console.log(loc, 'legionary is a member', isMember, legionary)
 
         } else {
             console.log("Sign in to get workLists")
         }
 
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view workLists")
-            // setErrStatus(401); 
-            errorStatus = 401;
-        } else {
-            console.error("Error fetching workLists or praesidium:", err);                    
-            errorStatus = err.status; 
-
-        }
-    } finally {
-        return [praesidium, meetings]; 
-    }
+        return [praesidium, meetings, isMember, isManager]; 
 
 }
 
-
-
-/*
-
-            <div className="praesidium-details main-content">
-                <h3>{praesidium.name}</h3>
-                <p>State: {praesidium.state}</p>
-                <p>Country: {praesidium.country}</p>
-                <p>Parish: {praesidium.parish}</p>
-                <p>Curia: {curia}</p>
-                <p>Address: {praesidium.address}</p>
-                <p>Meeting time: {praesidium.meeting_time}</p>
-                <p>Inauguration date: {praesidium.inaug_date}</p>
-                <p>Spiritual Director: {praesidium.curiaDetails.spiritual_director}</p>
-                <p>President: {praesidium.president}</p>
-                <p>President inauguration date: {praesidium.pres_app_date}</p>
-                <p>Vice president: {praesidium.vice_president}</p>                
-                <p>Vice president inauguration date: {praesidium.vp_app_date}</p>
-                <p>Secretary: {praesidium.secretary}</p>
-                <p>Secretary inauguration date: {praesidium.sec_app_date}</p>
-                <p>Treasurer: {praesidium.treasurer}</p>
-                <p>Treasurer inauguration date: {praesidium.tres_app_date}</p>
-                
-                <p>Created at: {praesidium.created_at}</p>
-                <p>Managers: {praesidium.managers}</p>
-                <p>Members: {praesidium.members}</p>
-                <p>Next report due: {praesidium.next_report_deadline}</p>
-                
-                
-
-            </div>
-
-*/

@@ -1,11 +1,12 @@
 import axios from "axios"
 import { useLoaderData, useNavigate } from "react-router-dom"
 import { NavLink, Link } from "react-router-dom";
+import { removeRepeatedFromArray } from "../../../functionVault";
 
 const BASEURL = "http://localhost:8000/api/";
 
 const AnnouncementList = () => {
-    const announcements = useLoaderData();
+    const [announcements, isMember, isManager] = useLoaderData();
     console.log('announcements', announcements);
 
     return (
@@ -14,18 +15,22 @@ const AnnouncementList = () => {
             {/* sidebar */}
             <div className="sidebar">
                 <nav className="nav flex-column">
+                    {isMember? 
                     <NavLink className="nav-link" to='../'>
                         <span className="icon">
                             <i className="fa-solid fa-right-from-bracket fa-lg"></i>
                         </span>
                         <span className="description">Curia</span>
                     </NavLink>
+                    : <></>}
+                    {isManager? 
                     <NavLink className="nav-link" to='create'>
                         <span className="icon">
                             <i className="fa-solid fa-right-from-bracket fa-lg"></i>
                         </span>
                         <span className="description">New announcement</span>
                     </NavLink>
+                    : <></>}
 
                     {/* settings  */}
                     <NavLink className="nav-link" to=''>
@@ -83,9 +88,9 @@ export default AnnouncementList
 
 export const announcementListLoader = async ({ params }) => {
     const { cid } = params;
-    let announcements;
+    let announcements, isMember = false,isManager = false;
 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -93,16 +98,26 @@ export const announcementListLoader = async ({ params }) => {
                     "Authorization": `Bearer ${token}`
                 }
             };
+            const curiaResponse = await axios.get(BASEURL+ `curia/curia/${cid}/`, config);
+            const curia = curiaResponse.data; 
             const annResponse = await axios.get(`${BASEURL}curia/announcements/?cid=${cid}`, config);
             announcements = annResponse.data;
+
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary_info', config); 
+            const legionary = legionaryResponse.data;
+
+            const curiaeResponse = await axios.get(`${BASEURL}curia/curia/?uid=${legionary.id}`, config); 
+            const curiae = removeRepeatedFromArray(curiaeResponse.data); 
+            const curiaeIds = curiae.map(item => item.id); 
+            // console.log(loc, 'curiae', curiae, curiaeIds.includes(curia.id))
+
+            isMember = curiaeIds.includes(curia.id); 
+            isManager = curia.managers.includes(legionary.id); 
         } else {
             console.log('Sign in to access announcememnts')
 
-        }
-    } catch (err) {
-        console.log("Error", err)
-    } finally {
-        return announcements
-    }
+        } 
+        return [announcements, isMember, isManager]
+    // }
 
 }

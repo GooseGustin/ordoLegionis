@@ -172,17 +172,26 @@ const RenderAchievementForm = ({ defaultAchievements, handleAchievementChange })
 }
 
 const ReportForm = ({ method }) => {
-    const [praesidium, report, finSummary, prepDataInit] = useLoaderData();
+    const [praesidium, report, finSummary, prepDataInit, isMember, isManager] = useLoaderData();
+    
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isMember) {
+            // leave this page if not member
+            navigate('/praesidium');
+        }
+    }, []);
+
     const loc = "In report form";
     // console.log(loc, 'method', method);
     console.log(loc, "initial report", report); 
     console.log(loc, 'initial prep data', prepDataInit)
     console.log(loc, 'financial summary', finSummary); 
 
-    const navigate = useNavigate(); 
-    const qualifiedToDelete = true; 
 
-    const [btnTitle, setBtnTitle] = useState(method == 'create' ? "Create" : "Edit");
+    const creating = method == 'create';
+    const [btnTitle, setBtnTitle] = useState(creating ? "Create" : "Edit");
     const [prepData, setPrepData] = useState(prepDataInit); 
 
     const defaultSubmissionDate = report? report.submission_date: null 
@@ -360,6 +369,8 @@ const ReportForm = ({ method }) => {
     const defaultPatriciansStart = report? report.patricians_start: ''; 
     const defaultPatriciansEnd = report? report.patricians_end: ''; 
     const defaultAudited = report? report.audited: false; 
+    const defaultAuditor1 = report? report.auditor_1: ''; 
+    const defaultAuditor2 = report? report.auditor_2: ''; 
     const defaultAccepted = report? report.read_and_accepted: true; 
     // const defaultReportProduction = 
     
@@ -393,6 +404,8 @@ const ReportForm = ({ method }) => {
 
     const [reportFormData, setReportFormData] = useState({
         audited: defaultAudited, 
+        auditor_1: defaultAuditor1, 
+        auditor_2: defaultAuditor2, 
         praesidium: praesidium.id, 
         submission_date: defaultSubmissionDate, 
         last_submission_date: defaultLastSubmisisonDate, 
@@ -2026,6 +2039,7 @@ const ReportForm = ({ method }) => {
                     </div>
                 </div>
                 
+                {/* Audited */}
                 <div className="row my-2 text-dark">
                     <div className="col">
                         <label htmlFor="read_and_accepted">
@@ -2040,24 +2054,86 @@ const ReportForm = ({ method }) => {
                     </div>
                 </div>
 
+                {/* Auditors */}
+                <div className="row border border-dark rounded rounded-3 p-2 my-2">
+                    <div className="col-6 mb-2">
+                        <label htmlFor="remarks">
+                            Auditor 1: 
+                        </label>
+                            <input 
+                                name="auditor_1"
+                                type="text" 
+                                className="form-control border border-dark" 
+                                value={reportFormData.auditor_1}
+                                onChange={handleReportChange}
+                            />
+                    </div>
+
+                    <div className="col-6 mb-2">
+                        <label htmlFor="remarks">
+                            Auditor 2:
+                        </label> 
+                            <input 
+                                name="auditor_2"
+                                type="text" 
+                                className="form-control row border border-dark" 
+                                value={reportFormData.auditor_2}
+                                onChange={handleReportChange}
+                            />
+                    </div>
+
+                </div>
+
+                {/* Submission */}
+                {isManager?
                 <div className="row mt-5">
+                {
+                    (creating)? 
+                    <>
                     <div className="col">
                         <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
                     </div>
                     <div className="col">
                         <Link to="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
-                    </div>{
-                    (qualifiedToDelete && (method==='edit'))
+                    </div>
+                    </>
+                    : 
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    <div className="col">
+                        <Link to='' 
+                            className='btn btn-outline-danger col-12 rounded rounded-5'
+                            onClick={handleDelete}
+                        >Delete</Link>
+                    </div>
+                    </>
+                }
+                </div>
+                : <></>
+                }
+                {/* <div className="row mt-5">
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    {
+                    (isManager && (method==='edit'))
                     ? <div className="col">
-                        <Link 
-                            to='' 
+                        <Link to='' 
                             className='btn btn-outline-danger col-12 rounded rounded-5'
                             onClick={handleDelete}
                         >Delete</Link>
                     </div>
                     : <></>
-                }
-                </div>
+                    }
+                </div> */}
 
                 </form>
 
@@ -2073,10 +2149,10 @@ export const reportFormLoader = async ({ params }) => {
     const {pid, rid} = params;
     const loc = "In the report form loader fxn";
     // console.log(loc, 'pid', pid);
-    let praesidium, report, finSummary, prepData; 
+    let praesidium, report, finSummary, prepData, isMember = false, isManager = false; 
 
     // console.log(loc); 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken'); 
         if (token) {
             const config = {
@@ -2086,10 +2162,15 @@ export const reportFormLoader = async ({ params }) => {
             };
             console.log(loc, pid); 
             const praesidiumResponse = await axios.get(BASEURL+ `praesidium/praesidium/${pid}`, config);
+            if (!praesidiumResponse.ok) {console.log("Didn't get the praesidium from backend")}
+            else {console.log("Did get the praesidium from the backend")}
+
             praesidium = praesidiumResponse.data; 
 
             if (rid) {
                 const reportResponse = await axios.get(BASEURL + `reports/report/${rid}`, config); 
+                if (!reportResponse.ok) {console.log("Didn't get the report from backend")}
+                else {console.log("Did get the report from the backend")}
                 report = reportResponse.data; 
                 const membershipResponse = await axios.get(BASEURL + `reports/membership/${report.membership_details}`, config)
                 report.membership = membershipResponse.data; 
@@ -2117,26 +2198,19 @@ export const reportFormLoader = async ({ params }) => {
             prepData = prepDataResponse.data;
             console.log(loc, 'prepdata', prepData)
 
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            const legionary = legionaryResponse.data;
+
+            // console.log(' praesidium.members',  praesidium.members, legionary.id)
+            isMember = praesidium.members.includes(legionary.id)
+            isManager = praesidium.managers.includes(legionary.id)
+
 
         } else {
-            console.log("Sign in to get workSummary")
+            console.log("Sign in to get report")
         }
 
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view workSummarys")
-            // setErrStatus(401); 
-            errorStatus = 401;
-        } else {
-            console.error("Error fetching worksummary or praesidium:", err);                    
-            errorStatus = err.status; 
-
-        }
-    } finally {
-        console.log(loc, 'report', report);
-
-        return [praesidium, report, finSummary, prepData]; 
-    }
+        return [praesidium, report, finSummary, prepData, isMember, isManager]; 
 
 }
 

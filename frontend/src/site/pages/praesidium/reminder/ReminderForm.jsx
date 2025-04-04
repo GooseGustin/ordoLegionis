@@ -1,16 +1,26 @@
 import axios from 'axios';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, NavLink, useLoaderData, useNavigate } from 'react-router-dom';
 
 const BASEURL = "http://localhost:8000/api/";
 
 const ReminderForm = (props) => {
-    const navigate = useNavigate(); 
     const { method } = props; 
-    const [reminderObj, praesidium] = useLoaderData(); 
+    const [reminderObj, praesidium, isMember, isManager] = useLoaderData(); 
 
-    const qualifiedToDelete = true;
-    const creating = method=='create';
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        // Leave this page if you're not a member 
+        if (!isMember) {
+            navigate('/praesidium'); 
+        }
+                
+    }, [])
+
+    // const isManager = true;
+    const creating = method === 'create';
 
     // const [title, setTitle] = useState(); 
 
@@ -193,6 +203,39 @@ const ReminderForm = (props) => {
                 
             
             <div className="row mt-3">
+                {
+                    (creating)? 
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    </>: 
+                    <></>
+                }
+                
+                {
+                    (isManager && !creating) ? 
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    <div className="col">
+                        <Link to='' 
+                            className='btn btn-outline-danger col-12 rounded rounded-5'
+                            onClick={handleDelete}
+                        >Delete</Link>
+                    </div>
+                    </>
+                    : <></> 
+                }
+                
+                {/* 
                 <div className="col">
                     <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
                 </div>
@@ -200,7 +243,7 @@ const ReminderForm = (props) => {
                     <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
                 </div>
                 {
-                    (qualifiedToDelete && method=='edit')
+                    (isManager && method=='edit')
                     ? <div className="col">
                         <Link 
                             to='' 
@@ -209,7 +252,7 @@ const ReminderForm = (props) => {
                         >Delete</Link>
                     </div>
                     : <></>
-                }
+                } */}
             </div>
         </form>
         </div>
@@ -225,8 +268,8 @@ export const reminderFormLoader = async ({ params }) => {
     const { pid, id } = params; // id of reminder for edit 
     console.log('In reminder form loader, pid, id', pid, id); 
     
-    let praesidium, obj; 
-    try {
+    let praesidium, reminderObj, isMember = false, isManager = false; 
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -239,28 +282,27 @@ export const reminderFormLoader = async ({ params }) => {
                 const praesidiumResponse = await axios.get(BASEURL + `praesidium/praesidium/${pid}`, config);
                 praesidium = praesidiumResponse.data; 
 
+                const legionaryResponse = await axios.get(BASEURL + 'accounts/user', config); 
+                const legionary = legionaryResponse.data;
+                isMember = praesidium.members.includes(legionary.id)
+                isManager = praesidium.managers.includes(legionary.id)
+
                 if (id) {
 
                     const response = await axios.get(BASEURL + `praesidium/reminders/${id}`, config);
-                    obj = response.data; 
-                    console.log('In reminder form loader, reminder', obj);
+                    reminderObj = response.data; 
+                    console.log('In reminder form loader, reminder', reminderObj);
                 }
+                        
+            console.log("In reminder form loader:", praesidium, isMember, isManager, legionary.id)
 
         }  else {
             console.log("Sign in to get reminders")
         }
     }
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view praesidia")
-            // setErrStatus(401); 
-        } else {
-            console.error("Error fetching praesidium:", err);
-        }
-    } finally {
-        // console.log('Finally', obj, praesidium)
-        return [obj, praesidium];
+    
+        return [reminderObj, praesidium, isMember, isManager];
 
-    }
+    // }
 }
 

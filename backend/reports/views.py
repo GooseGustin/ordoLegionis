@@ -1,18 +1,26 @@
 from rest_framework.response import Response
 from rest_framework import viewsets, status 
 from rest_framework.views import APIView
+from django.http import FileResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from .serializers import * 
 from .models import (
     Report, FunctionAttendance, MembershipDetail, Achievement
 )
 from praesidium.models import Praesidium
+from praesidium.serializers import PraesidiumSerializer
+from curia.models import Curia 
+from curia.serializers import CuriaSerializer
 from meetings.models import Meeting
 from works.models import Work, WorkList
-from finance.models import FinancialRecord
+from works.serializers import WorkListSerializer
+from finance.models import FinancialRecord, FinancialSummary
+from finance.serializers import FinancialSummarySerializer
 from api.function_vault import removeDuplicates
 from datetime import date, datetime 
 from math import ceil
 from pprint import pprint
+from .generator import generate_report_docx
 
 # Create your views here.
 class ReportViewSet(viewsets.ModelViewSet):
@@ -55,13 +63,12 @@ class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
     serializer_class = AchievementSerializer
 
-
 class ReportPrepGetView(APIView):
     def post(self, request, *args, **kwargs):
         # print(request.data, dir(request))
         pid = request.data.get('pid')
         praesidium = Praesidium.objects.get(id=pid) 
-        print("In report prep get view", pid, praesidium.id, praesidium.name) # type:ignore
+        # print("In report prep get view", pid, praesidium.id, praesidium.name) # type:ignore
         praesidium_meetings = Meeting.objects.filter(praesidium=pid).order_by('date')
         
         # Get meeting range
@@ -78,7 +85,7 @@ class ReportPrepGetView(APIView):
         
         start_date = date(*meeting_start) # .replace(tzinfo=timezone.utc)
         end_date = date(*meeting_end) # .replace(tzinfo=timezone.utc)
-        print("Start and end dates", start_date, end_date)
+        # print("Start and end dates", start_date, end_date)
         meetings_within_range = praesidium_meetings.filter(date__range=(start_date, end_date))
 
         # Get curia attendance
@@ -265,9 +272,6 @@ class ReportPrepGetView(APIView):
 
             fin_summaries[ind]['sbc'] += sbc 
 
-            # print('month', month) 
-            if month == 5: 
-                print('\nMay sbc', sbc, fin_summaries[ind]['sbc'])
 
             fin_summaries[ind]['balance'] = bal # so that the last balance for the month (ind) is kept
             fin_summaries[ind]['remittance'] += exp.remittance
@@ -282,6 +286,10 @@ class ReportPrepGetView(APIView):
                 fin_summaries[ind]['expenses']["others"].append(
                         {exp.others.get('purpose'): exp.others.get('value', 0)} # type:ignore
                     )
+
+            # print('month', month, sbc) 
+            if month == 4: 
+                print(f"\n {months[month-1]} sbc", sbc, fin_summaries[ind]['sbc'], fin_summaries[ind]['expenses'])
 
         # Get first acf
         # first_meeting = meetings_within_range[0]
@@ -309,7 +317,57 @@ class ReportPrepGetView(APIView):
         serializer = ReportPrepGetSerializer(processed_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class GenerateReportView(APIView):
+    
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
 
-# class GenerateDocument(APIView):
-#     def get(self, request, *args, **kwargs): 
-        
+    # def generate_report_view(request):
+        # print(request.POST.get('pid'), request.method, dir(request))
+        pid = request.data.get('pid')
+        praesidium = Praesidium.objects.get(id=pid) 
+        praesidium_dict = PraesidiumSerializer(praesidium).data 
+        cid = request.data.get('cid')
+        curia = Curia.objects.get(id=cid) 
+        curia_dict = CuriaSerializer(curia).data
+        rid = request.data.get('rid')
+        report = Report.objects.get(id=rid) 
+        report_dict = ReportSerializer(report).data
+
+        membership = request.data.get('membership')
+        financial_summary = request.data.get('financial_summary') 
+        work_summary = request.data.get('work_summary'), 
+        fxn_attendances = request.data.get('fxn_attendances')
+
+        # Extend report features
+        # Membership details
+        report_dict['membership'] = membership
+        # Financial summary 
+        report_dict['financial_summary'] = financial_summary
+        # Function attendance 
+        report_dict['fxn_attendances'] = fxn_attendances
+        # Work summary
+        # print('\n', work_summary, '\n')
+        report_dict['work_summary'] = work_summary[0]
+
+        # print('Curia')  http://localhost:5173/praesidium/2/report/19/[object%20Object]
+        # pprint(curia_dict) 
+        # print('Praesidium')
+        # pprint(praesidium_dict)
+        # print('Report works')
+        # pprint(report_dict['work_summary'])
+
+        # Get the file path 
+        document, file_path = generate_report_docx(curia_dict, praesidium_dict, report_dict)
+        doc_name = f'Report {report.report_number} of {praesidium.name}.docx'
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        response['Content-Disposition'] = f'attachment; filename={doc_name}'
+        document.save(response)
+
+        return response
+
+        # # Serve the file as a response 
+        # return FileResponse(
+        #     open(file_path, 'rb'), as_attachment=True, filename='Legion_Report.docx'
+        # )

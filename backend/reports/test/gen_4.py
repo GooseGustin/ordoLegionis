@@ -2,13 +2,14 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_PARAGRAPH_ALIGNMENT
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.shared import Inches, Pt
-from docx.oxml import ns, OxmlElement
-from docx.oxml.ns import qn, nsmap
+from docx.oxml import ns, OxmlElement, parse_xml
+from docx.oxml.ns import qn, nsmap, nsdecls
 from math import ceil
 from report_variables import *
 
 from datetime import date
 currency = '\u20A6'
+
 
 def format_date(date_string): 
     months = [
@@ -44,6 +45,136 @@ def get_term(app_date, sub_date):
         return term 
     return 3
 
+def parse_object_keys(obj):
+    return list(obj.keys())
+
+def convert_fin_summary_for_frontend(fin_summary_obj):
+    fin_summary_array = []
+    num = len(fin_summary_obj['acf'])
+    
+    # print('Convert fin summary for frontend', fin_summary_obj, num)
+    
+    for i in range(num):
+        month_obj = {
+            "month": fin_summary_obj['month_year'][i][0],
+            "year": fin_summary_obj['month_year'][i][1],
+            "bf": fin_summary_obj['acf'][i],
+            "sbc": fin_summary_obj['sbc'][i],
+            "balance": fin_summary_obj['balance'][i],
+            "remittance": fin_summary_obj['expenses']['remittance'][i],
+            "expenses": {
+                "bouquet": fin_summary_obj['expenses']['bouquet'][i],
+                "stationery": fin_summary_obj['expenses']['stationery'][i],
+                "altar": fin_summary_obj['expenses']['altar'][i],
+                "extension": fin_summary_obj['expenses']['extension'][i],
+                "others": fin_summary_obj['expenses']['others'][i]
+            },
+            "report_production": fin_summary_obj['report_production'],
+            "balance_at_hand": fin_summary_obj['balance_at_hand']
+        }
+        fin_summary_array.append(month_obj)
+    
+    # print('Backend to frontend', fin_summary_array)
+    
+    return fin_summary_array
+
+def calc_praesidium_expenses(monthly_finance_obj, tag=''):
+    # print('In calc_praesidium expenses', monthly_finance_obj)
+    try:
+        if tag == 'others':
+            raise KeyError
+        expenses = monthly_finance_obj['expenses']
+        bouquet = expenses.get('bouquet', 0)
+        stationery = expenses.get('stationery', 0)
+        altar = expenses.get('altar', 0)
+        extension = expenses.get('extension', 0)
+        others = expenses.get('others', [])
+        
+        others_sum = sum(
+            sum(item[key] for key in parse_object_keys(item))
+            for item in others
+        )
+        
+        return bouquet + stationery + altar + extension + others_sum
+    except KeyError:
+        others = monthly_finance_obj
+        others_sum = sum(
+            sum(item[key] for key in parse_object_keys(item))
+            for item in others
+        )
+        
+        if tag == 'others':
+            return others_sum
+
+def get_audit_total(name, report):
+    finances = report['financial_summary']
+    total = 0
+    
+    if name == 'sbc':
+        total = sum(finances['sbc'])
+    elif name == 'remittance':
+        total = sum(finances['expenses']['remittance'])
+    elif name == 'praesidium':
+        total += sum(finances['expenses']['bouquet'])
+        total += sum(finances['expenses']['stationery'])
+        total += sum(finances['expenses']['altar'])
+        total += sum(finances['expenses']['extension'])
+        total += sum([calc_praesidium_expenses(obj, 'others') for obj in finances['expenses']['others']]) # type:ignore
+    
+    return total
+
+def get_monthly_breakdown(monthly_finance_obj, currency):
+    statement = []
+    remittance = monthly_finance_obj.get('remittance')
+    expenses = monthly_finance_obj.get('expenses', {})
+    
+    if remittance:
+        statement.append(f"Remittance: {currency}{remittance}")
+    
+    for key in ['bouquet', 'stationery', 'altar', 'extension']:
+        if key in expenses and expenses[key]:
+            statement.append(f"{key.capitalize()}: {currency}{expenses[key]}")
+    
+    others = expenses.get('others', [])
+    for item in others:
+        for key in parse_object_keys(item):
+            statement.append(f"{key}: {currency}{item[key]}")
+    
+    return ', '.join(statement)
+
+def add_watermark(doc, image_path):
+    """
+    Adds a watermark behind the text in the document header.
+    """
+    section = doc.sections[0]  # Get the first section
+    header = section.header  # Access the header
+    paragraph = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
+
+    # Add a run to the paragraph
+    run = paragraph.add_run()
+    run.add_picture(image_path, width=Inches(6))  # Adjust size as needed
+
+    # Get the last added picture XML
+    pic = run._r[-1]
+    drawing = pic.find('.//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}drawing')
+
+    if drawing is not None:
+        # Modify XML to make the image float and appear behind text
+        inline = drawing.find('.//{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}inline')
+        if inline is not None:
+            inline.getparent().remove(inline)  # Remove inline to convert to floating
+
+        # Create anchor element for floating positioning
+        anchor = OxmlElement('wp:anchor')
+        anchor.set(ns.qn('wp:behindDoc'), '1')  # Set behind text
+        anchor.set(ns.qn('wp:allowOverlap'), '1')  # Allow overlapping text
+
+        # Add anchor properties
+        anchor.extend(list(drawing))  # Move drawing content to anchor
+        drawing.append(anchor)  # Add to drawing
+
+    return doc
+
 def set_table_border(table, color='FFFFFF'): 
     """Apply custom border colour to a table in python-docx"""
     tbl = table._element # Access table XML element
@@ -71,6 +202,9 @@ def set_cell_content(cell, text, bold=False):
 
 def generate_report_docx(curia, praesidium, report):
     doc = Document()
+    
+    # doc = add_watermark(doc, "../../static/images/ordo_legionis_combination.png")
+
     # Format text 
     style = doc.styles['Normal']
     style.font.name = 'Arial' # 'Times New Roman'
@@ -434,9 +568,9 @@ def generate_report_docx(curia, praesidium, report):
         calc_average = False
         if calc_total_or_avg: 
             total = sum([val for (key, val) in key_val if not ('home' in key)])
-            if calc_total_or_avg['total']: 
+            if calc_total_or_avg.get('total'): 
                 calc_total = True
-            if calc_total_or_avg['average']: 
+            if calc_total_or_avg.get('average'): 
                 calc_average = True
                 average = ceil(total / work['no_done'])
         
@@ -534,7 +668,7 @@ def generate_report_docx(curia, praesidium, report):
     # header row
     row = table.rows[0]
     row.height = Pt(15)
-    row.cells[0].width = Inches(.6)
+    row.cells[0].width = Inches(.5)
     set_cell_content(row.cells[0], 'S/N', True)
     set_cell_content(row.cells[1], 'Function', True)
     set_cell_content(row.cells[2], "Date", True) 
@@ -669,7 +803,7 @@ def generate_report_docx(curia, praesidium, report):
     p1.bold = True
 
     p = doc.add_paragraph()
-    p1 = p.add_run('\tPresident' + '\t'*6 + 'Secretary')
+    p1 = p.add_run('President' + '\t'*6 + 'Secretary')
     p1.bold = True
 
     doc.add_paragraph()
@@ -687,6 +821,9 @@ def generate_report_docx(curia, praesidium, report):
     p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     p1.bold = True
 
+
+    '''Auditor's Report'''
+    finances = convert_fin_summary_for_frontend(report['financial_summary'])
     doc.add_page_break()
     p = doc.add_paragraph()
     r = p.add_run("Auditor's Report")
@@ -694,16 +831,25 @@ def generate_report_docx(curia, praesidium, report):
     r.font.size = Pt(12)
     p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-    table = doc.add_table(rows=num_rows, cols=7)
+    num_rows = len(finances) + 3
+    cols = 7
+    table = doc.add_table(rows=num_rows, cols=cols)
     table.style = "Table Grid"
     row = table.rows[0]     
     row.height = Pt(15)
-    set_cell_content(row.cells[2], 'Income', True)
-    set_cell_content(row.cells[4], 'Expenditure', True)
+    row.cells[0].width = Inches(.5)
+    cell_1 = row.cells[2]  # First row, 3rd column
+    cell_2 = row.cells[3]  # First row, 4th column
+    merged_cell = cell_1.merge(cell_2)
+    set_cell_content(merged_cell, 'Income', True)
+    cell_3 = row.cells[4]  # First row, 3rd column
+    cell_4 = row.cells[5]  # First row, 4th column
+    merged_cell = cell_3.merge(cell_4)
+    set_cell_content(merged_cell, 'Expenditure', True)
     row = table.rows[1]     
     row.height = Pt(15)
+    row.cells[0].width = Inches(.5)
     set_cell_content(row.cells[0], 'S/N', True)
-    row.cells[0].width = Inches(.6)
     set_cell_content(row.cells[1], 'Month', True)
     set_cell_content(row.cells[2], f'BF ({currency})', True)
     set_cell_content(row.cells[3], f'SBC ({currency})', True)
@@ -711,13 +857,166 @@ def generate_report_docx(curia, praesidium, report):
     set_cell_content(row.cells[5], f'Praesidium ({currency})', True)
     set_cell_content(row.cells[6], f'Balance ({currency})', True)
 
+    for i, item in enumerate(finances): 
+        row = table.rows[i+2]
+        row.height = Pt(15)
+        row.cells[0].width = Inches(.5)
 
+        set_cell_content(row.cells[0], str(i+1))
+        set_cell_content(row.cells[1], f"{item['month']}, {item['year']}")
+        set_cell_content(row.cells[2], str(item['bf']))
+        set_cell_content(row.cells[3], str(item['sbc']))
+        set_cell_content(row.cells[4], str(item['remittance']))
+        set_cell_content(row.cells[5], str(calc_praesidium_expenses(item)))
+        set_cell_content(row.cells[6], str(item['balance']))
+
+    row = table.rows[num_rows-1]
+    row.height = Pt(15)
+    row.cells[0].width = Inches(.5)
+    set_cell_content(row.cells[1], 'Total', True)
+    set_cell_content(row.cells[3], str(get_audit_total('sbc', report)), True)
+    set_cell_content(row.cells[4], str(get_audit_total('remittance', report)), True)
+    set_cell_content(row.cells[5], str(get_audit_total('praesidium', report)), True)
+ 
+
+    # Analysis
+    num_rows = len(finances) + 2
+    cols = 7
+    finances = report['financial_summary']
+    total_income = finances['acf'][0] + sum(finances['sbc'])
+    income_dict = {
+        "Income": NULL, 
+        "Balance brought forward": finances['acf'][0], 
+        "SBC for the period": sum(finances['sbc']), 
+        "Total Income": total_income
+    }
+    expenses_dict = {
+        "Expenditure": NULL,
+        "To Praesidium": get_audit_total('praesidium', report), 
+        "To Curia": get_audit_total('remittance', report), 
+        "Total Expenses": total_expenses, 
+        "Surplus Funds to Curia": total_income - total_expenses, 
+        "Balance at Hand": finances['balance_at_hand']
+    }
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    r = p.add_run("Analysis")
+    r.bold = True 
+    r.font.size = Pt(12)
+    p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+
+    num_rows = len(income_dict)+len(expenses_dict)
+    income_shift = len(income_dict)  + 1
+
+    table = doc.add_table(rows=num_rows, cols=3)
+    table.style = "Table Grid"
+    set_table_border(table)
+    row = table.rows[0]     
+    row.height = Pt(15)
+    cell = row.cells[0]
+    set_cell_content(cell, 'Description', True)
+    set_cell_content(row.cells[1], currency, True)
+    set_cell_content(row.cells[2], currency, True)
+
+    for i in [j+1 for j in range(num_rows-1)]:   
+        row = table.rows[i]    
+        row.height = Pt(15)
+        # print(i, end=', ')
+        if i < income_shift: 
+            # handle income 
+            keys, vals = list(income_dict.keys()), list(income_dict.values())
+            # print(keys, income_shift)
+            key, val = keys[i-1], vals[i-1]
+            bold = True if ('Desc' in key or 'Income' in key) else False
+            set_cell_content(row.cells[0], str(key), bold)
+            set_cell_content(row.cells[2], str(val))
+        elif i <= (num_rows-3): 
+            # handle expenditure 
+            keys, vals = list(expenses_dict.keys()), list(expenses_dict.values())
+            # print(keys, income_shift)
+            key, val = keys[i-income_shift], vals[i-income_shift]
+            bold = True if ('Expenditure' in key or 'Total' in key or 'Surplus' in key) else False
+            set_cell_content(row.cells[0], str(key), bold)
+            set_cell_content(row.cells[1], str(val))
+        else: 
+            keys, vals = list(expenses_dict.keys()), list(expenses_dict.values())
+            # print(keys, income_shift)
+            key, val = keys[i-income_shift], vals[i-income_shift]
+            bold = True 
+            set_cell_content(row.cells[0], str(key), bold)
+            set_cell_content(row.cells[2], str(val))
+
+
+    # Breakdown 
+    finances = convert_fin_summary_for_frontend(report['financial_summary'])
+    doc.add_page_break()
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    r = p.add_run("Breakdown of Expenditure")
+    r.bold = True 
+    r.font.size = Pt(12)
+    p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    num_rows = len(finances)+2 # 2 for title and total rows
+    
+    table = doc.add_table(rows=num_rows, cols=4)
+    table.style = "Table Grid"
+    row = table.rows[0]
+    row.height = Pt(15)
+    row.cells[0].width = Inches(.5)
+    set_cell_content(row.cells[0], 'S/N', True)
+    set_cell_content(row.cells[1], "Month", True)
+    row.cells[2].width = Inches(2.5)
+    set_cell_content(row.cells[2], f'Item ({currency})', True)
+    set_cell_content(row.cells[3], f'Amount ({currency})', True)
+
+    for i, item in enumerate(finances): 
+        # print(i, item)
+        row = table.rows[i+1]
+        row.height = Pt(15)
+        row.cells[0].width = Inches(.5)
+        set_cell_content(row.cells[0], f'{i+1}')
+        set_cell_content(row.cells[1], f"{item['month']}, {item['year']}")
+        row.cells[2].width = Inches(2.5)
+        set_cell_content(row.cells[2], get_monthly_breakdown(item, currency))
+        set_cell_content(row.cells[3], f"{calc_praesidium_expenses(item) + item['remittance']}")
+        
+    row = table.rows[num_rows-1]
+    row.height = Pt(20)
+    row.cells[0].width = Inches(.5)
+    set_cell_content(row.cells[1], "Total", True)
+    row.cells[2].width = Inches(2.5)
+    set_cell_content(row.cells[3], f"{get_audit_total('remittance', report) + get_audit_total('praesidium', report)}", True)
+
+    # Auditors' signatures
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    p1 = p.add_run("Observations:\n\n\n")
+    p1.bold = True
+    
+    p = doc.add_paragraph()
+    p1 = p.add_run("Recommendations:\n\n\n")
+    p1.bold = True
+    
+    p = doc.add_paragraph()
+    p1 = p.add_run("Conclusion:\n\n\n")
+    p1.bold = True
+
+    doc.add_paragraph()
+    p = doc.add_paragraph()
+    p1 = p.add_run('.'*65 + '\t\t\t' + '.'*65)
+
+    p = doc.add_paragraph()
+    p1 = p.add_run(report['auditor1'] + '\t'*5+ report['auditor2'])
+    p1.bold = True
+
+    p = doc.add_paragraph()
+    p1 = p.add_run('\tAuditor 1' + '\t'*5 + 'Auditor 2')
+    p1.bold = True
 
     try: 
-        doc.save('test_rep4.docx')
+        doc.save('test_rep3.docx')
     except PermissionError: 
         print("A file in this location already has that name")
-
 
 
 generate_report_docx(curia, praesidium, report)

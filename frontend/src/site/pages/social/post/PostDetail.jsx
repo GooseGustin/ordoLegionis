@@ -101,7 +101,7 @@ export const postDetailLoader = async ({ params }) => {
     const loc = 'In post detail loader'; 
     
     let obj, user, comments; 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -129,14 +129,14 @@ export const postDetailLoader = async ({ params }) => {
         } else {
             console.log("Sign in to get posts")
         }
-    } catch(err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view posts")
-        } else {
-            console.error("Error fetching post:", err);
-        }
-    }
-    console.log('Comments....', comments)
+    // } catch(err) {
+    //     if (err.status === 401) {
+    //         console.log("The session is expired. Please sign in again to view posts")
+    //     } else {
+    //         console.error("Error fetching post:", err);
+    //     }
+    // }
+    // console.log('Comments....', comments)
     return [obj, user, comments];
 }
 

@@ -35,8 +35,8 @@ class CuriaViewSet(viewsets.ModelViewSet):
             legionary = Legionary.objects.get(user=request.user)
             print(legionary, legionary.associated_praesidia)  # type: ignore
             curiae = [praesidium.curia for praesidium in legionary.associated_praesidia.iterator()]  # type: ignore
-            curiae = removeDuplicates(curiae)
             curiae.extend([curia for curia in legionary.curiae_created.iterator()]) # type: ignore
+            curiae = removeDuplicates(curiae)
             # print('Curia', curiae)
             serializer = self.get_serializer(curiae, many=True) 
             return Response(serializer.data) 

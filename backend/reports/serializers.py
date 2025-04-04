@@ -31,7 +31,7 @@ class ReportSerializer(serializers.ModelSerializer):
             'membership_details', 'include_intermediate',
             'achievements', 'function_attendances', 'work_total_and_average', 
             'patricians_start', 'patricians_end', 
-            'work_summaries', 'financial_summary', 'audited',  
+            'work_summaries', 'financial_summary', 'audited', 'auditor_1', 'auditor_2',
             'previous_curia_attendance', 'previous_meeting_attendance', 
             'read_and_accepted', 'conclusion'
         ]

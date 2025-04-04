@@ -1,21 +1,21 @@
 import { NavLink, useLoaderData } from "react-router-dom"
 import axios from "axios";
+import { removeRepeatedFromArray } from "../../../functionVault";
 
 const BASEURL = "http://localhost:8000/api/"
 
 const CuriaDetail = () => {
-    const [curia, praesidia, user] = useLoaderData();
+    const [curia, praesidia, isMember, isManager] = useLoaderData();
     const loc= "In curia details"; 
     console.log(loc, 'curia', curia); 
+    console.log(loc, 'isManager', isManager);
 
     return (
         <div>
         {/* sidebar */}
         <div className="sidebar">
             <nav className="nav flex-column">
-                {
-                    curia.managers.includes(user.id)
-                    ? 
+                {isManager ? 
                     <>
                     <NavLink className="nav-link" to='edit'>
                         <span className="icon">
@@ -34,12 +34,17 @@ const CuriaDetail = () => {
                     : <></>
                 }
                 
+                {isMember? 
+                <>
                 <NavLink className="nav-link" to='announcement/'>
                     <span className="icon">
                         <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                     </span>
                     <span className="description">Announcements</span>
                 </NavLink>
+                </>
+                : <></>}
+
                 <NavLink className="nav-link" to='../../praesidium'>
                     <span className="icon">
                         <i className="bi bi-grid"></i>
@@ -142,10 +147,10 @@ export const curiaDetailLoader = async ({ params }) => {
     const {cid} = params;
     // return the curiaObj, list of meeting numbers and dates
     const loc = "In the curia loader fxn";
-    let curia, praesidia, user; 
+    let curia, praesidia, isMember = false, isManager = false; 
 
     console.log(loc); 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken'); 
         if (token) {
             const config = {
@@ -156,35 +161,34 @@ export const curiaDetailLoader = async ({ params }) => {
             console.log(loc, cid); 
             const curiaResponse = await axios.get(BASEURL+ `curia/curia/${cid}/`, config);
             curia = curiaResponse.data; 
-
             
             const praesidiaResponse = await axios.get(BASEURL + `praesidium/praesidium/?cid=${cid}`, config);
             praesidia = praesidiaResponse.data; 
 
             // Extract the curia ID from the curia data
             const curiaId = curia.id;
-            console.log(loc, 'curia id', curiaId); 
+            console.log(loc, 'curia id', curiaId, curia); 
             
-            // Get user 
-            const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
-            user = userResponse.data;
+            // Get legionary 
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary_info', config); 
+            const legionary = legionaryResponse.data;
+
+            const curiaeResponse = await axios.get(`${BASEURL}curia/curia/?uid=${legionary.id}`, config); 
+            const curiae = removeRepeatedFromArray(curiaeResponse.data); 
+            const curiaeIds = curiae.map(item => item.id); 
+            // console.log(loc, 'curiae', curiae, curiaeIds.includes(curia.id))
+
+            isMember = curiaeIds.includes(curia.id)
+            isManager = curia.managers.includes(legionary.id); 
+            
+            console.log(loc, ':::', curia, isManager, legionary)
 
         } else {
             console.log("Sign in to get workLists")
         }
 
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view workLists")
-            // setErrStatus(401); 
-            errorStatus = 401;
-        } else {
-            console.error("Error fetching workLists or curia:", err);                    
-            errorStatus = err.status; 
 
-        }
-    } finally {
-        return [curia, praesidia, user]; 
-    }
+        return [curia, praesidia, isMember, isManager]; 
+    // }
 
 }

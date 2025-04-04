@@ -11,7 +11,6 @@ class MembershipDetail(models.Model):
     adjutorian_members = models.JSONField(default=list)
     praetorian_members = models.JSONField(default=list)
 
-
 class Achievement(models.Model):
     no_recruited = models.JSONField(default=list)
     no_baptized = models.JSONField(default=list)
@@ -58,6 +57,8 @@ class Report(models.Model):
     patricians_start = models.CharField(max_length=8, default='Jan 2024', null=True, blank=True) 
     patricians_end = models.CharField(max_length=8, default='Dec 2024', null=True, blank=True)
     audited = models.BooleanField(default=False)
+    auditor_1 = models.CharField(max_length=100, default='', blank=True)
+    auditor_2 = models.CharField(max_length=100, default='', blank=True)
     read_and_accepted = models.BooleanField(default=True)
     conclusion = models.TextField(default='This report was carefully extracted from the records of the praesidium, which include the worksheet, roll call book, minutes book, and treasurer\'s book.')
 

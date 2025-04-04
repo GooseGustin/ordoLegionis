@@ -9,16 +9,17 @@ const PraesidiumForm = (props) => {
 
     const { method } = props; 
     // curiae options should be filtered based on state and country 
-    const [obj, curiae, user] = useLoaderData();
+    const [obj, curiae, isManager] = useLoaderData();
     const navigate = useNavigate();
     
     console.log(loc, 'praesidium', obj, method)
+    console.log(loc, 'curiae', curiae); 
 
     const creating = method==='create';
-    // const qualifiedToDelete = !creating;
+    // const isManager = !creating;
 
-    const qualifiedToDelete = obj? obj.managers.includes(user.id): false;
-    console.log("user is qualified to delete this praesidium", qualifiedToDelete); 
+    // isManager = obj? obj.managers.includes(user.id): false;
+    console.log("user is qualified to delete this praesidium", isManager); 
 
 
     // define defaults
@@ -136,7 +137,7 @@ const PraesidiumForm = (props) => {
                 }
                 
                 const praesidiumFeedback = praesidiumResponse.data; 
-                console.log('In submit praesidium form, code', praesidiumFeedback, praesidiumFeedback.status_code);
+                console.log('In submit praesidium form, code', praesidiumFeedback, praesidiumResponse.status);
                 
             } else {
                 console.log("Sign in to get praesidia paradisei")
@@ -298,7 +299,8 @@ const PraesidiumForm = (props) => {
                                         <option
                                             value={curia.id}
                                             key={curia.id}
-                                            selected={curia.id == defaultCuria ? true : false}
+                                            // selected={curia.id == defaultCuria ? true : false}
+                                            defaultValue={defaultCuria}
                                         >{curia.name}</option>
                                     )
                                     : (
@@ -472,22 +474,37 @@ const PraesidiumForm = (props) => {
             </div>
 
             <div className="row">
-                <div className="col">
-                    <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
-                </div>
-                <div className="col">
-                    <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
-                </div>
                 {
-                    (qualifiedToDelete && !creating)
-                    ? <div className="col">
-                        <Link 
-                            to='' 
+                    (creating) ? // Creating?
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    </>
+                    :  // Editing
+                    <></>
+                }
+                {
+                    (!creating && isManager) ? 
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    <div className="col">
+                        <Link to='' 
                             className='btn btn-outline-danger col-12 rounded rounded-5'
                             onClick={handleDelete}
                         >Delete</Link>
                     </div>
-                    : <></>
+                    </>
+                    :
+                    <></>
                 }
             </div> 
 
@@ -503,43 +520,39 @@ export default PraesidiumForm
 
 export const praesidiumFormLoader = async ({params}) => {
     let curiaList = []; 
-    let obj, user;
+    let praesidiumObj; 
+    let isManager = false;
 
     // Get curia id 
     const {pid} = params;
     console.log('In praesidium form loader, pid', pid); 
 
-    // Get curia object 
-    try {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            const config = {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            };
-            if (pid) {
-                const praesidiumResponse = await axios.get(BASEURL + `praesidium/praesidium/${pid}`, config);
-                obj = praesidiumResponse.data; 
-                console.log('In praesidium form loader, praesidium', obj);
+    // Get curia praesidiumObject 
+    // try {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+        const config = {
+            headers: {
+                "Authorization": `Bearer ${token}`
             }
+        };
+        if (pid) {
+            const praesidiumResponse = await axios.get(BASEURL + `praesidium/praesidium/${pid}`, config);
+            praesidiumObj = praesidiumResponse.data; 
+            console.log('In praesidium form loader, praesidium', praesidiumObj);
             const curiaResponse = await axios.get(BASEURL + 'curia/curia/', config);
             curiaList = curiaResponse.data; 
             
-            const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
-            user = userResponse.data;
+            
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            const legionary = legionaryResponse.data;
+            // console.log(' praesidium.members',  praesidium.members, legionary.id)
+            isManager = praesidiumObj.managers.includes(legionary.id)
+        }
+    } else {
+        console.log("Sign in to get praesidia paradisei")
+        }
+        
+    return [praesidiumObj, curiaList, isManager]; 
 
-        } else {
-            console.log("Sign in to get praesidia paradisei")
-        }
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view praesidia")
-            // setErrStatus(401); 
-        } else {
-            console.error("Error fetching curia:", err);
-        }
-    } finally {
-        return [obj, curiaList, user]; 
-    }
 }

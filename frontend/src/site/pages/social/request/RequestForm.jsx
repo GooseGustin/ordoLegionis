@@ -188,7 +188,7 @@ export const requestFormLoader = async ({ params }) => {
     const { id } = params; // id of request for edit 
     
     let obj, legionary; 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -210,14 +210,14 @@ export const requestFormLoader = async ({ params }) => {
         } else {
             console.log("Sign in to get requests")
         }
-    } catch(err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view praesidia")
-            // setErrStatus(401); 
-        } else {
-            console.error("Error fetching curia:", err);
-        }
-    }
+    // } catch(err) {
+    //     if (err.status === 401) {
+    //         console.log("The session is expired. Please sign in again to view praesidia")
+    //         // setErrStatus(401); 
+    //     } else {
+    //         console.error("Error fetching curia:", err);
+    //     }
+    // }
     return [obj, legionary];
 }
 

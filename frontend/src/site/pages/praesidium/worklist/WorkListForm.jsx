@@ -102,10 +102,18 @@ const RenderDetailsForm = ({ workTypeName, workTypeMetrics, handleFunction, work
 }
 
 const WorkListForm = (props) => {
-    let [allWorkTypeOptions, workListObj, praesidium] = useLoaderData(); 
+    let [allWorkTypeOptions, workListObj, praesidium, isMember, isManager] = useLoaderData(); 
     const loc = "In worklist form"; 
     const navigate = useNavigate();
     const { method } = props;
+
+    
+    useEffect(() => {
+        if (!isMember) {
+            // leave this page if not member
+            navigate('/praesidium');
+        }
+    }, []);
 
     console.log(loc, 'Object and method', workListObj, method)
     console.log("Initial work type array", allWorkTypeOptions); 
@@ -318,6 +326,7 @@ const WorkListForm = (props) => {
                         </span>
                         <span className="description">Praesidium</span>
                     </NavLink>
+                    {isManager?
                     <NavLink className="nav-link" to='../meeting/create'>
                         <span className="icon">
                             <i className="bi bi-grid"></i>
@@ -325,6 +334,7 @@ const WorkListForm = (props) => {
                         </span>
                         <span className="description">New meeting</span>
                     </NavLink>
+                    : <></>}
                     <NavLink className="nav-link" to='../meeting'>
                         <span className="icon">
                             <i className="bi bi-grid"></i>
@@ -332,6 +342,7 @@ const WorkListForm = (props) => {
                         </span>
                         <span className="description">Meetings</span>
                     </NavLink>
+                    {isManager?
                     <NavLink className="nav-link" to='../create_work'>
                         <span className="icon">
                             <i className="bi bi-grid"></i>
@@ -339,6 +350,7 @@ const WorkListForm = (props) => {
                         </span>
                         <span className="description">New work</span>
                     </NavLink>
+                    : <></>}
 
 
                     {/* settings  */}
@@ -381,6 +393,7 @@ const WorkListForm = (props) => {
                     }
                     <hr />
 
+                    {isManager?
                     <div className="row">
                         <div className="col-6">
                             <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
@@ -389,6 +402,7 @@ const WorkListForm = (props) => {
                             <Link to={`../`} className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
                         </div>
                     </div>
+                    : <></>}
                 </form>
             </div>
         </div>
@@ -403,60 +417,39 @@ export const workListFormLoader = async ({ params }) => {
     // return the worktypes and the current worklist
     const loc = "In work list form loader";
     const { pid } = params;  
+    let isMember = false, isManager = false; 
 
-    try {
-        const token = localStorage.getItem('accessToken'); 
-        if (token) {
-            // console.log(loc, 'Get the workList');
-            const config = {
-                headers: {
-                    "Authorization": `Bearer ${token}` 
-                }
-            }; 
-            const workTypesResponse = await axios.get(BASEURL + "works/work_type_option/", config); 
-            const allWorkTypeOptions = workTypesResponse.data;
-            // console.log(loc, 'Work types response:', allWorkTypeOptions);
-            const praesidiumResponse = await axios.get(BASEURL + `praesidium/praesidium/${pid}`, config);
-            const praesidium = praesidiumResponse.data;
+    const token = localStorage.getItem('accessToken'); 
+    if (token) {
+        // console.log(loc, 'Get the workList');
+        const config = {
+            headers: {
+                "Authorization": `Bearer ${token}` 
+            }
+        }; 
+        const workTypesResponse = await axios.get(BASEURL + "works/work_type_option/", config); 
+        const allWorkTypeOptions = workTypesResponse.data;
+        // console.log(loc, 'Work types response:', allWorkTypeOptions);
+        const praesidiumResponse = await axios.get(BASEURL + `praesidium/praesidium/${pid}`, config);
+        const praesidium = praesidiumResponse.data;
 
-            // Fetch the worklist details 
-            const workListResponse = await axios.get(BASEURL + `works/work_list/?pid=${pid}`, config); 
-            praesidium.worklist = workListResponse.data; 
+        // Fetch the worklist details 
+        const workListResponse = await axios.get(BASEURL + `works/work_list/?pid=${pid}`, config); 
+        praesidium.worklist = workListResponse.data; 
 
-            const workListObj = workListResponse.data; 
-            return [allWorkTypeOptions, workListObj, praesidium];  
-        } else {
-            console.log("Sign in to get the work types")
-        }
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to operate on work types")
-        } else {
-            console.error("Error fetching the work types:", err);          
-        }
+        const workListObj = workListResponse.data; 
+
+        const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary_info', config); 
+        const legionary = legionaryResponse.data;
+
+        isMember = praesidium.members.includes(legionary.id)
+        isManager = praesidium.managers.includes(legionary.id); 
+
+        return [allWorkTypeOptions, workListObj, praesidium, isMember, isManager];  
+    } else {
+        console.log("Sign in to get the work types")
+        throw Error("Logged out")
     }
 }
 
 
-
-
-// function getDefaultDetails(allWorkTypeOptions) {
-//     const loc = 'In get default details'; 
-//     let defaultDetails = [];
-//     for (let key in allWorkTypeOptions) {
-//         const obj = allWorkTypeOptions[key];
-//         let detail = {
-//             name: obj.name 
-//         }; 
-//         // console.log(loc, 'check 1', detail)
-//         let objMetrics = {}; 
-//         for (let metricKey in obj.metrics) {
-//             objMetrics[obj.metrics[metricKey]] = false;  
-//             // console.log(loc, 'check 2', objMetrics);  
-//         }
-//         detail.metrics = objMetrics; 
-//         defaultDetails.push(detail); 
-//     }
-//     console.log(loc, 'check 3', defaultDetails); 
-//     return defaultDetails;
-// }

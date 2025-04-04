@@ -1,12 +1,24 @@
 import axios from "axios"
+import { useEffect } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom"
 import { NavLink, Link } from "react-router-dom";
 
 const BASEURL = "http://localhost:8000/api/";
 
 const ReminderList = () => {
-    const reminders = useLoaderData();
+    const [reminders, isMember] = useLoaderData();
     console.log('reminders', reminders);
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+
+        if (!isMember) {
+            navigate('/praesidium'); 
+        }
+                
+    }, [])
+
 
     return (
         <div>
@@ -14,18 +26,23 @@ const ReminderList = () => {
             {/* sidebar */}
             <div className="sidebar">
                 <nav className="nav flex-column">
-                    <NavLink className="nav-link" to='../'>
-                        <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
-                        </span>
-                        <span className="description">Praesidium</span>
-                    </NavLink>
-                    <NavLink className="nav-link" to='create'>
-                        <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
-                        </span>
-                        <span className="description">New reminder</span>
-                    </NavLink>
+                    {
+                        (isMember) ? 
+                        <>
+                        <NavLink className="nav-link" to='../'>
+                            <span className="icon">
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                            </span>
+                            <span className="description">Praesidium</span>
+                        </NavLink>
+                        <NavLink className="nav-link" to='create'>
+                            <span className="icon">
+                                <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                            </span>
+                            <span className="description">New reminder</span>
+                        </NavLink>
+                        </>: <></>
+                    }
 
                     {/* settings  */}
                     <NavLink className="nav-link" to=''>
@@ -82,9 +99,9 @@ export default ReminderList
 
 export const reminderListLoader = async ({ params }) => {
     const { pid } = params;
-    let reminders;
+    let reminders, isMember;
 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -92,15 +109,21 @@ export const reminderListLoader = async ({ params }) => {
                     "Authorization": `Bearer ${token}`
                 }
             };
+            const praesidiumResponse = await axios.get(BASEURL + `praesidium/praesidium/${pid}`, config);
+            const praesidiumObj = praesidiumResponse.data; 
+
             const reminderResponse = await axios.get(`${BASEURL}praesidium/reminders/?pid=${pid}`, config);
             reminders = reminderResponse.data;
+
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            const legionary = legionaryResponse.data;
+            isMember = praesidiumObj.members.includes(legionary.id)
+
         } else {
             console.log('Sign in to access reminders')
         }
-    } catch (err) {
-        console.log("Error", err)
-    } finally {
-        return reminders
-    }
+        
+        return [reminders, isMember]
+    // }
 
 }

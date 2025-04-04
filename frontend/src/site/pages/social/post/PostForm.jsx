@@ -264,7 +264,7 @@ export const postFormLoader = async ({ params }) => {
     console.log('In post form loader, id', id); 
     
     let legionary, obj, user; 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -286,14 +286,14 @@ export const postFormLoader = async ({ params }) => {
         } else {
             console.log("Sign in to get posts")
         }
-    } catch(err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view praesidia")
-            // setErrStatus(401); 
-        } else {
-            console.error("Error fetching curia:", err);
-        }
-    }
+    // } catch(err) {
+    //     if (err.status === 401) {
+    //         console.log("The session is expired. Please sign in again to view praesidia")
+    //         // setErrStatus(401); 
+    //     } else {
+    //         console.error("Error fetching curia:", err);
+    //     }
+    // }
     return [obj, legionary, user];
 }
 

@@ -25,6 +25,21 @@ export function removeRepeatedFromArray(arr) {
     return arrCopy;
 }
 
+export function removeRepeatedObjectsFromArray(arr) {
+    const seen = new Set();
+    const unique = [];
+
+    for (const item of arr) {
+        const key = JSON.stringify(item); // Convert object to string key
+        if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(item);
+        }
+    }
+
+    return unique;
+}
+
 export function isAnEmptyObject(value) {
     return typeof value === 'object' && 
            value !== null && 
@@ -47,24 +62,14 @@ export function parseObjectKeys(someObj) {
 }
 
 
-const parseDate = (dateString) => {
-    // const dateStr = dateString || '';
-    // const year = dateStr.substring(0, 4); 
-    // const month = dateStr.substring(5,7)
-    // const day = dateStr.substring(8);
-    const [year, month, day] = dateString.split('-'); 
-    console.log("datenums", year, month, day); 
-    return [year, month, 1]; 
-}
-
 export function getFormattedDate(praesidiumDate) {
-    console.log("In get formatted date", praesidiumDate)
+    // console.log("In get formatted date", praesidiumDate)
     if (!praesidiumDate) {
         return null;
     }
-    let dateOutput = new Date(praesidiumDate.split('-'));
+    let dateOutput = new Date(praesidiumDate); //.split('-'));
     dateOutput = dateOutput.toUTCString();
     dateOutput = dateOutput.substring(0, 16);
-    console.log('Formatted date', dateOutput);
+    // console.log('Formatted date', dateOutput);
     return dateOutput;
 }

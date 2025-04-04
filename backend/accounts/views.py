@@ -65,3 +65,13 @@ class UserInfoAPIView(RetrieveAPIView):
 class LegionaryViewSet(ModelViewSet):
     queryset = Legionary.objects.all()
     serializer_class = LegionarySerializer
+
+class LegionaryInfoAPIView(RetrieveAPIView): 
+    permission_classes = [IsAuthenticated,]
+    serializer_class = LegionarySerializer
+
+    def get_object(self):
+        user = self.request.user 
+        # print('\nIn legionary info api view', dir(user))
+        legionary = Legionary.objects.get(user=user)
+        return legionary 

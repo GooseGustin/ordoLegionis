@@ -1,16 +1,22 @@
 import axios from "axios"
-import { NavLink, Link, useLoaderData } from "react-router-dom"
+import { useEffect } from "react";
+import { NavLink, Link, useLoaderData, useNavigate } from "react-router-dom"
 import { parseObjectKeys } from "../../../functionVault";
 
 const BASEURL = "http://localhost:8000/api/";
 
 
 const ReportList = () => {
-    const [praesidium, reports] = useLoaderData();
-    // const membershipKeys = parseObjectKeys(reports.membership); 
-    // const achievementKeys = parseObjectKeys(report)
+    const [praesidium, reports, isMember, isManager] = useLoaderData();
+    
+    const navigate = useNavigate();
 
-
+    useEffect(() => {
+        if (!isMember) {
+            // leave this page if not member
+            navigate('/praesidium');
+        }
+    }, []);
 
     return (
         <div className="">
@@ -24,6 +30,7 @@ const ReportList = () => {
                         </span>
                         <span className="description">Praesidium</span>
                     </NavLink>
+                    {isManager?
                     <NavLink className="nav-link" to='create'>
                         <span className="icon">
                             <i className="bi bi-grid"></i>
@@ -31,6 +38,7 @@ const ReportList = () => {
                         </span>
                         <span className="description">New report</span>
                     </NavLink>
+                    : <></>}
 
                     {/* settings  */}
                     <NavLink className="nav-link" to=''>
@@ -78,11 +86,10 @@ export default ReportList
 export const reportListLoader = async ({ params }) => {
     const {pid} = params;
     const loc = "In the report list loader fxn";
-    let praesidium; 
-    let reports = [];
+    let praesidium, reports = [], isMember = false, isManager = false;
 
     console.log(loc); 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken'); 
         if (token) {
             const config = {
@@ -109,6 +116,13 @@ export const reportListLoader = async ({ params }) => {
                 reports.push(report); 
             }
 
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            const legionary = legionaryResponse.data;
+
+            // console.log(' praesidium.members',  praesidium.members, legionary.id)
+            isMember = praesidium.members.includes(legionary.id)
+            isManager = praesidium.managers.includes(legionary.id)
+
             // // Add the curia details to the praesidium data
             // praesidium.curiaDetails = curiaResponse.data;
 
@@ -117,18 +131,7 @@ export const reportListLoader = async ({ params }) => {
             console.log("Sign in to get workLists")
         }
 
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view workLists")
-            // setErrStatus(401); 
-            errorStatus = 401;
-        } else {
-            console.error("Error fetching workLists or praesidium:", err);                    
-            errorStatus = err.status; 
-
-        }
-    } finally {
-        return [praesidium, reports]; 
-    }
+        return [praesidium, reports, isMember, isManager]; 
+    // }
 
 }

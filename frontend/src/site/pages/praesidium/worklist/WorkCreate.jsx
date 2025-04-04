@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, NavLink, useLoaderData, useNavigate } from "react-router-dom"
 
 
@@ -7,10 +7,17 @@ const BASEURL = "http://localhost:8000/api/";
 
 const WorkCreate = () => {
 
-    const [_, workListObj, praesidium] = useLoaderData();
+    const [_, workListObj, praesidium, isMember, isManager] = useLoaderData();
 
     console.log("In work create", workListObj); 
     const navigate = useNavigate(); 
+    
+    useEffect(() => {
+        if (!isManager) {
+            // leave this page if not manager
+            navigate('/praesidium');
+        }
+    }, []);
 
     const [workForm, setWorkForm] = useState({
         metrics: {},
@@ -111,7 +118,7 @@ const WorkCreate = () => {
                         <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
                     </span>
                     <span className="description">New meeting</span>
-                </NavLink>
+                </NavLink>                
                 <NavLink className="nav-link" to='../worklist'>
                     <span className="icon">
                         <i className="bi bi-grid"></i>

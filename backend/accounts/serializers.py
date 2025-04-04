@@ -61,6 +61,7 @@ class LegionarySerializer(serializers.ModelSerializer):
     class Meta: 
         model = Legionary        
         fields = [
+            'id',
             'user', 
             'status', 
         ]

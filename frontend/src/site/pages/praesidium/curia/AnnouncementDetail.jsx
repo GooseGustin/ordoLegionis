@@ -1,9 +1,10 @@
 import { Link, NavLink, useLoaderData, useNavigate } from 'react-router-dom'
 
 const AnnouncementDetail = () => {
-    const [announcementObj, curia] = useLoaderData();
+    const [announcementObj, curia, isMember, isManager] = useLoaderData();
     console.log("in announcement detail") // , curia)
     // const navigate = useNavigate(); 
+    // const isManager = true; 
 
     const annDate = announcementObj.date
         ? new Date(announcementObj.date.split('-')).toDateString()
@@ -18,6 +19,8 @@ const AnnouncementDetail = () => {
             {/* sidebar */}
             <div className="sidebar">
                 <nav className="nav flex-column">
+                    {isManager? 
+                    <>
                     <NavLink className="nav-link" to='edit'>
                         <span className="icon">
                             <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
@@ -42,6 +45,27 @@ const AnnouncementDetail = () => {
                         </span>
                         <span className="description">Announcements</span>
                     </NavLink>
+                    </>
+                    : <></>
+                    }
+
+                    {isMember? 
+                    <>
+                    <NavLink className="nav-link" to='../../'>
+                        <span className="icon">
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        </span>
+                        <span className="description">Curia</span>
+                    </NavLink>
+                    <NavLink className="nav-link" to='../'>
+                        <span className="icon">
+                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        </span>
+                        <span className="description">Announcements</span>
+                    </NavLink>
+                    </>
+                    : <></>
+                    }
 
                     {/* settings  */}
                     <NavLink className="nav-link" to=''>
@@ -67,22 +91,23 @@ const AnnouncementDetail = () => {
             {/* main-content */}
             <main className="main-content text-dark">
                 <div className="row my-2 text-start">
-                    <div className="col-lg-8">
+                    <div className="col-lg-8 fs-5">
                     Announcement by <span className='text-info'>{curia.name} Curia</span>
                     </div>
-                    <div className="col col-lg-4">
+                    <div className="col col-lg-4 fs-5">
                         <span className="text-info">{annDate}</span>
                     </div>
                 </div>
                 
-                <div className="row my-2 text-center text-dark">
+                <div className="row my-2 text-center text-dark fs-5">
                     <span className="display-5">{announcementObj.title}</span>
                 </div>
 
                 <div className="row p-2">
+                    <hr />
                     {
                     annDeadline 
-                    ?   (<div className="col border border-info rounded rounded-5 ms-3">
+                    ?   (<div className="col border border-danger rounded rounded-5 ms-3">
                             <span className="fw-bold">Deadline:</span> {annDeadline}
                         </div>)
                     :   (<></>)
@@ -95,7 +120,7 @@ const AnnouncementDetail = () => {
                     </div>
                 </div>
 
-                <div className="row p-3">
+                <div className="row p-3 my-4 fs-4">
                     {announcementObj.content}
                 </div>
             </main>

@@ -55,6 +55,8 @@ User Stories
 - Social
     - User can view all of his posts, questions, and requests 
     - Editing a question erases all its previous answers 
+- Report 
+    - Enable 'Allow non-members view preview' toggle option
 
 
 Problems:
@@ -67,4 +69,9 @@ Problems:
     - Users can create empty social objects and reminders and announcements 
     - Images in posts and announcements need a proper bootstrap component to resize appropriately
     - Test update methods in serializers of all methods where only create methods were implemented
-    - WorkList, cancel button leads to 404 page
+    - // WorkList, cancel button leads to 404 page 
+    - Non-members and non-managers can view curia and praesidia other than their own
+    - Set title for each page 
+    - Set appropriate sidebar icons
+    - Small problem with finances, report production isn't included properly in total to praesidium. 
+        Also, I can't see the last remittance being included 

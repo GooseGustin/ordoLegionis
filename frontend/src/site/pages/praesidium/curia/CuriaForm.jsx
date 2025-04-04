@@ -1,20 +1,21 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link, NavLink, useLoaderData, useNavigate } from "react-router-dom"
+import { removeRepeatedFromArray } from "../../../functionVault";
 
 const BASEURL = "http://localhost:8000/api/";
 
 const CuriaForm = (props) => {
-    const [curiaObj, user] = useLoaderData(); 
+    const [curiaObj, isManager] = useLoaderData(); 
     const loc = 'In curia form'; 
 
     const { method } = props;
     const creating = method === 'create';
 
     console.log(loc, 'curia', curiaObj); 
+    console.log(loc, 'isManager', isManager);
     const navigate = useNavigate();
 
-    const qualifiedToDelete = curiaObj? curiaObj.creator === user.id: false;
 
     const defaultName = curiaObj? curiaObj.name: ''
     const defaultEmail = curiaObj? curiaObj.email: ''
@@ -92,7 +93,7 @@ const CuriaForm = (props) => {
                     }
                 };
                 let curiaResponse;
-                if (method === 'create') {
+                if (creating) {
                     curiaResponse = await axios.post(`${BASEURL}curia/curia/`, curiaForm, config);
                 } else {
                     curiaResponse = await axios.put(`${BASEURL}curia/curia/${curiaObj.id}/`, curiaForm, config);
@@ -115,7 +116,7 @@ const CuriaForm = (props) => {
         }
     }
 
-    const pageTitle = method == 'create' ? "Create a curia" : "Edit your curia";
+    const pageTitle = creating ? "Create a curia" : "Edit your curia";
 
     return (
         <div>
@@ -270,22 +271,36 @@ const CuriaForm = (props) => {
                         
 
             <div className="row">
-                <div className="col">
-                    <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
-                </div>
-                <div className="col">
-                    <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
-                </div>
                 {
-                    (qualifiedToDelete && method=='edit')
-                    ? <div className="col">
-                        <Link 
-                            to='' 
+                    (creating)? 
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    </>: 
+                    <></>
+                }
+                
+                {
+                    (isManager && !creating) ? 
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    <div className="col">
+                        <Link to='' 
                             className='btn btn-outline-danger col-12 rounded rounded-5'
                             onClick={handleDelete}
                         >Delete</Link>
                     </div>
-                    : <></>
+                    </>
+                    : <></> 
                 }
             </div>
 
@@ -301,14 +316,14 @@ export default CuriaForm
 
 
 export const curiaFormLoader = async ({params}) => {
-    let curiaObj, user; 
+    let curiaObj, isManager; 
 
     // Get curia id 
     const {cid} = params;
     console.log('In curia form loader, cid', cid); 
 
     // Get curia object 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -322,20 +337,21 @@ export const curiaFormLoader = async ({params}) => {
                 console.log('In curia form loader, curia', curiaObj);
             }
             
-            const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
-            user = userResponse.data;
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary', config); 
+            const legionary = legionaryResponse.data;
+
+            // const curiaeResponse = await axios.get(`${BASEURL}curia/curia/?uid=${legionary.id}`, config); 
+            // const curiae = removeRepeatedFromArray(curiaeResponse.data);  
+            // const curiaeIds = curiae.map(item => item.id); 
+            // console.log(loc, 'curiae', curiae, curiaeIds.includes(curiaObj.id))
+
+            isManager = curiaObj.managers.includes(legionary.id); 
+
 
         } else {
             console.log("Sign in to get praesidia paradisei")
         }
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view praesidia")
-            // setErrStatus(401); 
-        } else {
-            console.error("Error fetching curia:", err);
-        }
-    } finally {
-        return [curiaObj, user]; 
-    }
+    
+        return [curiaObj, isManager]; 
+    // }
 }

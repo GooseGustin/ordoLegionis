@@ -1,7 +1,7 @@
 import axios from 'axios';
-import React from 'react'
-import { NavLink, Link, useLoaderData } from 'react-router-dom'
-import {parseObjectKeys} from '../../../functionVault'
+import React, { useEffect } from 'react'
+import { NavLink, Link, useLoaderData, useNavigate } from 'react-router-dom'
+import {parseObjectKeys, removeRepeatedFromArray, removeRepeatedObjectsFromArray} from '../../../functionVault'
 
 import Vexillium from "../../../../assets/Vexillium_Legionis.png"
 
@@ -119,7 +119,7 @@ const RenderAchievements = ({ achvObj }) => {
     return (
         objKeys.map(item => {
             const name = achievementNames[item]; 
-            console.log('check 1', achvObj, item, name)
+            // console.log('check 1', achvObj, item, name)
             if (name) {
                 return (
                     <tr key={name}>
@@ -164,7 +164,6 @@ const RenderMembership = ({ memberObj, includeIntermediate }) => {
         {objKeys.map(item => {
             const name = membershipTitles[item]; 
             if (name) {
-                // console.log('check 1', memberObj, name, memberObj[item])
                 return (
                     <tr key={name}>
                         <td>{name}</td>
@@ -235,7 +234,16 @@ function getTerm(app_date, sub_date) {
 }
 
 const Preview = () => {
-    const [curia, praesidium, report] = useLoaderData(); 
+    const [curia, praesidium, report, isMember, isManager] = useLoaderData(); 
+    const navigate = useNavigate();
+
+    // useEffect(() => {
+    //     if (!isMember) {
+    //         // leave this page if not member
+    //         navigate('/praesidium');
+    //     }
+    // }, []);
+
     const loc = "In preview mode"; 
     console.log(loc, report)
 
@@ -313,7 +321,7 @@ const Preview = () => {
         return sum; 
     }
 
-    const convertFinSummaryForFrontend = (finSummaryObj) => {
+    const convertFinSummaryForFrontend = (finSummaryObj) => {1
         let finSummaryArray = []; 
         const num = finSummaryObj.acf.length; 
         // log('Convert fin summary for frontend', finSummaryObj, num);
@@ -408,7 +416,83 @@ const Preview = () => {
         return statement
     }
 
+    const handleDownload = async () => {
+        try {
+            const token = localStorage.getItem('accessToken'); 
+            if (!token) {
+                throw Error('Token not found. Sign in to download')
+            }
+            const config = {
+                headers: {
+                    "Authorization": `Bearer ${token}` , 
+                    "Content-Type": "application/json", 
+                    // "X-CSRFToken": getCookie("csrftoken"),
+                }, 
+                responseType: "blob" // Important for handling binary data
+            };
+            console.log("Downloading report", report.report_number)
+            const packet = {
+                pid: praesidium.id, 
+                cid: curia.id, 
+                rid: report.id, 
+                membership: report.membership,
+                financial_summary: report.financial_summary, 
+                work_summary: report.work_summary, 
+                fxn_attendances: report.fxn_attendances
+            }
+            const response = await axios.post(BASEURL + "reports/download", packet, config);
+            const url = window.URL.createObjectURL(new Blob([response.data])); 
+            const link = document.createElement('a'); 
+            link.href = url; 
+            const docName = `Report ${report.report_number} of ${praesidium.name}.docx`
+            link.setAttribute('download', docName); 
+            document.body.appendChild(link); 
+            link.click();
+            link.parentNode.removeChild(link); 
+            // window.open(url, '_blank'); // Open the file in a new tab
+            // console.log("Download complete")
+            // const response = await fetch(
+            //     BASEURL + "reports/download", 
+            //     {
+            //         method: "POST", 
+            //         headers: {
+            //             "Authorization": `Bearer ${token}` , 
+            //             "Content-Type": "application/json", 
+            //             "X-CSRFToken": getCookie("csrftoken"),
+            //         }, 
+            //         body: JSON.stringify(packet)
+            //     }
+            // ); 
+            // if (!response.ok) {
+            //     console.error("Failed to download report"); 
+            //     return; 
+            // }
+
+            // Convert response to blob 
+            // const blob = await response.blob(); 
+            // const url = window.URL.createObjectURL(blob); 
+
+            // // Create a temporary <a> element to trigger download 
+            // const a = document.createElement("a"); 
+            // a.href = url; 
+            // a.download = "Legion_Report.docx"; 
+            // document.body.appendChild(a); 
+            // a.click()
+            // document.body.removeChild(a);
+            
+        } catch (err) {
+            console.log(err)
+        }
+        
+    }
+
     const finances = convertFinSummaryForFrontend(report.financial_summary);
+    let financesCopy = finances 
+    let last_others = financesCopy[finances.length-1].expenses.others
+    last_others.push({'Production of report': finances[0].report_production})
+    financesCopy[finances.length-1].expenses.others = removeRepeatedObjectsFromArray(last_others); 
+    // financesCopy[finances.length-1].expenses.others.push({'Production of report': finances[0].report_production})
+    console.log('Converted finances for frontend', finances)
     const currency = '\u20A6';
 
     const fin_bf = report.financial_summary.acf[0];
@@ -876,7 +960,7 @@ const Preview = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="row mb-4 mt-5"> {/* Spiritual Director's Comment */}
+                        <div className="row mb-4 mt-4"> {/* Spiritual Director's Comment */}
                             <p><strong>Spiritual director's comment:  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........ ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........ ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  ....... ........  </strong></p>
                         </div>
                         <div className="row mb-4"> {/* Spiritual Director's Signature */}
@@ -924,7 +1008,7 @@ const Preview = () => {
                                 </thead>
                                 <tbody>
                                     { 
-                                        finances.map((item, key) => {
+                                        financesCopy.map((item, key) => {
                                             // console.log("Check 2", item);
                                             return (
                                             <tr key={item.id}>
@@ -1083,7 +1167,7 @@ const Preview = () => {
                                     <div className="col"><strong>______________________</strong></div>
                                 </div>
                                 <div className="row text-center pe-5">
-                                    <div className="col"><strong>Name</strong></div>
+                                    <div className="col"><strong>{report.auditor_1}</strong></div>
                                 </div>
                                 <div className="row text-center pe-5">
                                     <div className="col"><strong>Auditor 1</strong></div>
@@ -1094,7 +1178,7 @@ const Preview = () => {
                                     <div className="col"><strong>______________________</strong></div>
                                 </div>
                                 <div className="row text-center pe-5">
-                                    <div className="col"><strong>Name</strong></div>
+                                    <div className="col"><strong>{report.auditor_2}</strong></div>
                                 </div>
                                 <div className="row text-center pe-5">
                                     <div className="col"><strong>Auditor 2</strong></div>
@@ -1102,6 +1186,14 @@ const Preview = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div className="my-4 ms-3">
+                <div className="row">
+                    {/* <div className="col-12"> */}
+                        <button className="btn btn-outline-info" onClick={handleDownload}>Download</button>
+                    {/* </div> */}
                 </div>
             </div>
         </div>
@@ -1122,9 +1214,10 @@ export const reportPreviewLoader = async ({ params }) => {
     */
     const loc = "In report preview loader"; 
     let curia, praesidium, report, prepData; 
+    let isMember = false, isManager = false; 
 
     const {pid, rid} = params; 
-    try {
+    // try {k
         const token = localStorage.getItem('accessToken'); 
         if (token) {
             const config = {
@@ -1171,28 +1264,22 @@ export const reportPreviewLoader = async ({ params }) => {
             prepData = prepDataResponse.data;
 
             report.work_summary = prepData.work_summaries; 
-            console.log(loc, 'prepdata', prepData)
-            console.log(loc, 'report 1', report)
+            // console.log(loc, 'prepdata', prepData)
+            // console.log(loc, 'report 1', report)
+
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            const legionary = legionaryResponse.data;
+
+            // console.log(' praesidium.members',  praesidium.members, legionary.id)
+            isMember = praesidium.members.includes(legionary.id)
+            isManager = praesidium.managers.includes(legionary.id)
 
         } else {
             console.log("Sign in to get workSummary")
         }
 
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view workSummarys")
-            // setErrStatus(401); 
-            errorStatus = 401;
-        } else {
-            console.error("Error fetching worksummary or praesidium:", err);                    
-            errorStatus = err.status; 
-
-        }
-    } finally {
-        // console.log(loc, 'report 2', report);
-
-        return [curia, praesidium, report]; 
-    }
+        return [curia, praesidium, report, isMember, isManager]; 
+    // }
 }
 
  

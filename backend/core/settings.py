@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-y&(7puj5ea_ik)#$ko-#9yski71u_=bm$y8*ujd0t@ji=wnnlw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']  #, '127.0.0.1:8000']
 
 
 # Application definition
@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'works', 
     'finance', 
     'reports', 
+    'contact',
 ]
 
 MIDDLEWARE = [
@@ -203,5 +204,16 @@ SIMPLE_JWT = {
 # # White listing the localhost:5173 port
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
+    "http://127.0.0.1:5173",
 ]
-# CORS_ALLOW_CREDENTIALS = True 
+CORS_ALLOW_CREDENTIALS = True 
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",  # Your frontend during development
+    "http://127.0.0.1:5173",  # Just in case
+]
+
+CSRF_COOKIE_SECURE = False  # Set to True only for HTTPS
+# CSRF_COOKIE_HTTPONLY = True 
+# CSRF_COOKIE_PATH = '/'
+# CSRF_USE_SESSIONS = False

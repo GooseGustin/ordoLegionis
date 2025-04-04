@@ -95,7 +95,7 @@ export const questionDetailLoader = async ({ params }) => {
     const { id } = params; // id of question for edit 
     
     let obj, user, answers; 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -122,14 +122,14 @@ export const questionDetailLoader = async ({ params }) => {
         } else {
             console.log("Sign in to get questions")
         }
-    } catch(err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view praesidia")
-        } else {
-            console.error("Error fetching curia:", err);
-        }
-    }
-    console.log('Answers....', answers)
+    // } catch(err) {
+    //     if (err.status === 401) {
+    //         console.log("The session is expired. Please sign in again to view praesidia")
+    //     } else {
+    //         console.error("Error fetching curia:", err);
+    //     }
+    // }
+    // console.log('Answers....', answers)
     return [obj, user, answers];
 }
 

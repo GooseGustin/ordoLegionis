@@ -1,6 +1,6 @@
 import axios from "axios"
 import { useEffect, useState } from 'react'
-import { NavLink, Link, useLoaderData } from "react-router-dom"
+import { NavLink, Link, useLoaderData, useNavigate } from "react-router-dom"
 import { parseObjectKeys } from "../../../functionVault";
 import Calendar from '../../../components/Calendar'
 
@@ -9,14 +9,18 @@ const BASEURL = "http://localhost:8000/api/";
 
 
 const MeetingList = () => {
-    const [praesidium, meetingsList] = useLoaderData();
-    // const membershipKeys = parseObjectKeys(meetings.membership); 
-    // const achievementKeys = parseObjectKeys(meeting)
+    const [praesidium, meetingsList, isMember, isManager] = useLoaderData();
+    
+    const navigate = useNavigate();
 
     const [meetings, setMeetings] = useState(meetingsList);
     const [selectedDate, setSelectedDate] = useState(null);
 
     useEffect(() => {
+        if (!isMember) {
+            // leave this page if not member
+            navigate('/praesidium');
+        }
         if (!selectedDate) return; // Don't fetch if no date is selected
 
         const fetchMeetings = async () => {
@@ -68,6 +72,7 @@ const MeetingList = () => {
                         </span>
                         <span className="description">Praesidium</span>
                     </NavLink>
+                    {isManager? 
                     <NavLink className="nav-link" to='../meeting/create'>
                         <span className="icon">
                             <i className="bi bi-clipboard"></i>
@@ -75,6 +80,7 @@ const MeetingList = () => {
                         </span>
                         <span className="description">New meeting</span>
                     </NavLink>
+                    : <></>}
 
                     {/* settings  */}
                     <NavLink className="nav-link" to=''>
@@ -129,11 +135,10 @@ export default MeetingList
 export const meetingListLoader = async ({ params }) => {
     const { pid } = params;
     const loc = "In the meeting list loader fxn";
-    let praesidium;
-    let meetings = [];
+    let praesidium, isMember, isManager, meetings = [];
 
     console.log(loc);
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -153,25 +158,18 @@ export const meetingListLoader = async ({ params }) => {
             const meetingsResponse = await axios.post(BASEURL + 'meetings/filter_meetings', packet, config);
             meetings = meetingsResponse.data; 
 
-            // // Add the curia details to the praesidium data
-            // praesidium.curiaDetails = curiaResponse.data;
+
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary_info', config); 
+            const legionary = legionaryResponse.data;
+
+            isMember = praesidium.members.includes(legionary.id)
+            isManager = praesidium.managers.includes(legionary.id); 
 
         } else {
             console.log("Sign in to get workLists")
         }
 
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view workLists")
-            // setErrStatus(401); 
-            // errorStatus = 401;
-        } else {
-            console.error("Error fetching workLists or praesidium:", err);
-            // errorStatus = err.status;
-
-        }
-    } finally {
-        return [praesidium, meetings];
-    }
+        return [praesidium, meetings, isMember, isManager];
+    // }
 
 }

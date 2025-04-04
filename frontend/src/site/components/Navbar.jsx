@@ -7,34 +7,89 @@ const BASEURL = 'http://localhost:8000/api/';
 
 const Navbar = () => {
     const navigate = useNavigate();
+    const isLoggedIn = true; 
+    
+    // const [isAuthorized, setIsAuthorized] = useState(null);
+    
+    // useEffect(() => {
+    //     auth().catch(() => setIsAuthorized(false))
+    // }, [])
 
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-    // useEffect(async () => {
-    //     // Attempt a request to the backend. A failure with status code of 401 would indicate a session expiry
-    //     try {   
-    //         const token = localStorage.getItem('accessToken');
-    //         if (token) {
-    //             const config = {
-    //                 headers: {
-    //                     "Authorization": `Bearer ${token}`
-    //                 }
-    //             };
-
-    //             const userResponse = await axios.get(BASEURL + 'accounts/user/', config); 
-    //             setIsLoggedIn(true); 
-    //             console.log("user is logged in"); 
-    //         }
-    //     } catch (err) {
-    //         if (err.status_code == 401) {
-    //             setIsLoggedIn(false);
-    //             console.log("User is logged out"); 
+    // const refreshToken = async () => {
+    //     const refreshToken = localStorage.getItem(refreshToken) 
+    //     try {
+    //         const res = await axios.post(BASEURL + 'token/refresh/', {
+    //             refresh: refreshToken
+    //         })
+    //         if (res.status === 200) {
+    //             localStorage.setItem(refreshToken, res.data.access)
+    //             setIsAuthorized(true)
     //         } else {
-    //             console.log(err);
+    //             setIsAuthorized(false)
     //         }
+
+    //     } catch (error) {
+    //         console.log(error);
+    //         setIsAuthorized(false)
+    //     }
+    // }
+
+    // const auth = async () => {
+    //     const token = localStorage.getItem(accessToken) 
+    //     if (!token) {
+    //         setIsAuthorized(false)
+    //         return 
+    //     }
+    //     const decoded = jwtDecode(token)
+    //     const tokenExpiration = decoded.exp 
+    //     const now = Date.now() / 1000 
+
+    //     if (tokenExpiration < now) {
+    //         await refreshToken() 
+    //     } else {
+    //         setIsAuthorized(true) 
     //     }
 
-    // }, [])
+    // }
+
+    // const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    // useEffect(() => { 
+
+    //     const getUser = async () => {
+    //         let loggedIn = false; 
+    //         const loc = "In the navbar loader fxn";
+    //         console.log(loc); 
+    //         try {
+    //             const token = localStorage.getItem('accessToken'); 
+    //             if (token) {
+    //                 const config = {
+    //                     headers: {
+    //                         "Authorization": `Bearer ${token}` 
+    //                     }
+    //                 };
+    //                 // filter by user id
+    //                 const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
+    //                 user = userResponse.data;
+    //                 if (user) loggedIn = true; 
+    //                 // console.log(loc, 'is logged in', loggedIn)
+
+    //             } else {
+    //                 // console.log("Sign in to use site")
+    //                 throw Error(); 
+    //             }
+            
+    //         } catch (err) {
+    //             if (err.status == 401) {
+    //                 loggedIn = false; 
+    //             }
+    //         } finally {
+    //             setIsLoggedIn(loggedIn); 
+    //         }
+    //     }
+    //     console.log('In get user hook', isLoggedIn)
+    //     getUser();
+    // }, [isLoggedIn])
 
     const handleLogout = async () => {
         try {
@@ -52,7 +107,7 @@ const Navbar = () => {
                     )
                 localStorage.removeItem("accessToken")
                 localStorage.removeItem("refreshToken")
-                setIsLoggedIn(false); 
+                // setIsLoggedIn(false); 
                 // setUsername('');
                 console.log('Logging out');
                 navigate('/account/login');
@@ -68,7 +123,7 @@ const Navbar = () => {
             <nav class="navbar navbar-expand-lg bg-light fixed-top navbar-dark bg-dark"> 
                 <div class="container"> 
                     {/* Logo */} 
-                    <Link class="navbar-brand text-white fs-4 text-decoration-none"><img src={Logo} alt="" className='nav-logo'/> OrdoLegionis</Link> 
+                    <Link class="navbar-brand text-white fs-4 text-decoration-none" to="/praesidium"><img src={Logo} alt="" className='nav-logo'/> OrdoLegionis</Link> 
 
                     {/* Toggle button  */} 
                     <button class="navbar-toggler shadow-none border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"> 
@@ -86,13 +141,13 @@ const Navbar = () => {
                         {/* Sidebar body */}
                         <div class="offcanvas-body d-flex flex-column flex-lg-row p-4 p-lg-0">
                             <ul class="navbar-nav justify-content-center align-items-center flex-grow-1 fs-5 flex-grow-1 pe-3">
-                                <li class="nav-item mx-2">
+                                {/* <li class="nav-item mx-2">
                                     <NavLink class="nav-link text-white text-decoration-none" aria-current="page" to="/">Home</NavLink>
                                 </li>
                                 <li class="nav-item mx-2">
                                     <NavLink class="nav-link text-white text-decoration-none" to="/praesidium">Praesidia</NavLink>
-                                </li>
-                                <li class="nav-item mx-2">
+                                </li> */}
+                                {/* <li class="nav-item mx-2">
                                     <NavLink class="nav-link text-white text-decoration-none" to="/resources">Resources</NavLink>
                                 </li>
                                 <li class="nav-item mx-2">
@@ -100,7 +155,7 @@ const Navbar = () => {
                                 </li>
                                 <li class="nav-item mx-2">
                                     <NavLink class="nav-link text-white text-decoration-none" to="/pricing">Pricing</NavLink>
-                                </li>
+                                </li> */}
                             </ul>
 
                             {/* <form class="d-flex mt-3" role="search">
@@ -110,17 +165,30 @@ const Navbar = () => {
 
                             {/* Login / Sign up */}
                             <div className="d-flex flex-column flex-lg-row justify-content-center align-items-center gap-3">
-                                <NavLink to='account/login' className='text-white text-decoration-none'>Login</NavLink>
-                                <NavLink 
-                                    to='account/register' 
-                                    className='text-white text-decoration-none px-3 py-1 ms-2 rounded-4'
-                                    style={{backgroundColor: '#f94ca4'}}
-                                >Sign up</NavLink>
-                                <NavLink 
-                                    // to='account/logout' 
-                                    onClick={handleLogout}
-                                    className='text-white text-decoration-none'
-                                >Logout</NavLink>
+                                {!isLoggedIn 
+                                ? (
+                                    <>
+                                    <NavLink 
+                                        to='account/login' 
+                                        className='text-succesds text-decoration-none'
+                                        style={{color: '#09fcf4'}}
+                                        >Login</NavLink>
+                                    <NavLink 
+                                        to='account/register' 
+                                        className='text-infho text-decoration-none ' // px-3 py-1 ms-2 rounded-4'
+                                        style={{color: '#09fcf4'}}
+                                    >Sign up</NavLink>
+                                    <NavLink 
+                                        onClick={handleLogout}
+                                        className='text-white text-decoration-none'
+                                    >Logout</NavLink>
+                                    </>
+                                )
+                                :  <NavLink 
+                                        onClick={handleLogout}
+                                        className='text-white text-decoration-none'
+                                    >Logout</NavLink>
+                                }   
                             </div>
                         </div>
                     </div> 
@@ -132,45 +200,3 @@ const Navbar = () => {
 
 export default Navbar
 
-
-
-        // <div className=''>
-        //     <nav className="navbar navbar-expand-lg navbar-dark bg-dark border border-dark mb-2">
-        //         <div className="container-fluid">
-        //             <div className="navbar-brand">OrdoLegionis</div>
-        //             <ul className="navbar-nav gx-1">
-        //                 <li className="nav-item"><NavLink className="nav-link" to='#'>Account</NavLink></li>
-        //                 <li className="nav-item"><NavLink className="nav-link" to='#'>Login</NavLink></li>
-        //                 <li className="nav-item"><NavLink className="nav-link" to='#'>Profile</NavLink></li>
-        //             </ul>
-        //         </div>
-        //     </nav>
-
-        //     <ul className="nav nav-tabs justify-content-center">
-        //         <li className="nav-item">
-        //             <NavLink className="nav-link" aria-current="page" to="/">
-        //                 Home
-        //             </NavLink>
-        //         </li>
-        //         <li className="nav-item">
-        //             <NavLink className="nav-link" to="/praesidium">
-        //                 Praesidium
-        //             </NavLink>
-        //         </li>
-        //         <li className="nav-item">
-        //             <NavLink className="nav-link" to="/resources">
-        //                 Resources
-        //             </NavLink>
-        //         </li>
-        //         <li className="nav-item">
-        //             <NavLink className="nav-link" to="/store">
-        //                 Store
-        //             </NavLink>
-        //         </li>
-        //         <li className="nav-item">
-        //             <NavLink className="nav-link" to="/pricing">
-        //                 Pricing
-        //             </NavLink>
-        //         </li>
-        //     </ul>
-        // </div>

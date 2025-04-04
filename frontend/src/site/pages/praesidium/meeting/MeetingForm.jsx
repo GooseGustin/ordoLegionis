@@ -7,10 +7,17 @@ const BASEURL = "http://127.0.0.1:8000/api/";
 
 const MeetingForm = (props) => {
     const loc = "In meeting form"; 
-    const [praesidium, workList, works, meetingObj, recordObj, objNotes] = useLoaderData();
+    const [praesidium, workList, works, meetingObj, recordObj, objNotes, isMember, isManager] = useLoaderData();
     const { method } = props;
-    // console.log('method', method)
+    const creating = method === 'create';
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isMember) {
+            // leave this page if not member
+            navigate('/praesidium');
+        }
+    }, []);
 
     console.log(loc, 'worklist', workList)
 
@@ -167,11 +174,6 @@ const MeetingForm = (props) => {
     const pageTitle = method === 'create' ? "Create a meeting" : "Edit your meeting";
     const [btnTitle, setBtnTitle] = useState(method == 'create' ? "Create" : "Edit");
 
-    // if (method === 'create') {
-    //     setBtnTitle('Create')
-    // } else {
-    //     setBtnTitle('Edit')
-    // }
 
     const handleExpensesChange = (e) => {
         const [name, type] = e.target.name.split('_'); 
@@ -249,6 +251,32 @@ const MeetingForm = (props) => {
             officers_meeting_attendance: officersMeetingAttendance, 
             officers_curia_attendance: officersCuriaAttendance
         })
+    }
+
+
+    const handleDelete = async () => {
+        try {
+            const token = localStorage.getItem('accessToken'); 
+            if (token) {
+                console.log('Delete the meeting');
+                const config = {
+                    headers: {
+                        "Authorization": `Bearer ${token}` 
+                    }
+                }; 
+                const res = await axios.delete(BASEURL+"meetings/meetings/"+ meetingObj.id +"/", config); 
+                console.log("Successfully deleted"); 
+                navigate("../")
+            }  else {
+                console.log("Sign in to delete the announcement")
+            }
+        } catch (err) {
+            if (err.status === 401) {
+                console.log("The session is expired. Please sign in again to delete this announcement")
+            } else {
+                console.error("Error deleting the announcement:", err);
+            }
+        }
     }
 
     const submitMeeting = async (e) => {
@@ -422,6 +450,7 @@ const MeetingForm = (props) => {
                         </span>
                         <span className="description">Praesidium</span>
                     </NavLink>
+                    {isManager? 
                     <NavLink className="nav-link" to='../create'>
                         <span className="icon">
                             <i className="bi bi-grid bi-clipboard"></i>
@@ -429,6 +458,7 @@ const MeetingForm = (props) => {
                         </span>
                         <span className="description">New meeting</span>
                     </NavLink>
+                    : <></>}
                     <NavLink className="nav-link" to='../'>
                         <span className="icon">
                             <i className="bi bi-grid bi-clipboard"></i>
@@ -852,14 +882,37 @@ const MeetingForm = (props) => {
                         onChange={handleNotesChange}></textarea>
                 </div>
 
+                {isManager?
                 <div className="row">
+                {
+                    (creating)? 
+                    <>
                     <div className="col-6">
                         <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
                     </div>
                     <div className="col">
                         <Link to="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
                     </div>
+                    </>
+                    : 
+                    <>
+                    <div className="col-6">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    <div className="col">
+                        <Link to='' 
+                            className='btn btn-outline-danger col-12 rounded rounded-5'
+                            onClick={handleDelete}
+                        >Delete</Link>
+                    </div>
+                    </>
+                }
                 </div>
+                : <></>
+                }
 
 
             </form>
@@ -879,8 +932,9 @@ export const meetingFormLoader = async ({params}) => {
     // console.log(loc, pid, params);
     // console.log(loc, 'mid', mid);
     let praesidium, workList, works, meeting, record, notes; 
+    let isMember = false, isManager = false; 
 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -929,19 +983,19 @@ export const meetingFormLoader = async ({params}) => {
                 count++;
             })
             workList.details = workListWithIds;
+
+            const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary_info', config); 
+            const legionary = legionaryResponse.data;
+
+            isMember = praesidium.members.includes(legionary.id)
+            isManager = praesidium.managers.includes(legionary.id); 
+
         } else {
             console.log("Sign in to get praesidia paradisei")
         }
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view praesidia")
-            // setErrStatus(401); 
-        } else {
-            console.error("Error fetching praesidia:", err);
-        }
-    } finally {
-        return [praesidium, workList, works, meeting, record, notes]; 
-    }
+        
+        return [praesidium, workList, works, meeting, record, notes, isMember, isManager]; 
+    // }
 
 }
 

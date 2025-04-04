@@ -11,5 +11,7 @@ router.register('achievement', AchievementViewSet)
 urlpatterns = router.urls 
 
 urlpatterns += [
-    path('get_report_prep_data', ReportPrepGetView.as_view(), name='get-report-prep-data')
+    path('get_report_prep_data', ReportPrepGetView.as_view(), name='get-report-prep-data'), 
+    path('download', GenerateReportView.as_view(), name='download')
+    # path('download', generate_report_view, name='download'),
 ]

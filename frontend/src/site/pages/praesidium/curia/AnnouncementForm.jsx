@@ -1,18 +1,27 @@
 import axios from 'axios';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, NavLink, useLoaderData, useNavigate } from 'react-router-dom';
+import { removeRepeatedFromArray } from '../../../functionVault';
 
 const BASEURL = "http://localhost:8000/api/";
 
 const AnnouncementForm = (props) => {
-    const navigate = useNavigate(); 
     const { method } = props; 
-    const [announcementObj, curia] = useLoaderData(); 
+    const [announcementObj, curia, isMember, isManager] = useLoaderData(); 
 
     const creating = method=='create';
-    const qualifiedToDelete = !creating;
+    // const isMember = true;
 
-    // const [title, setTitle] = useState(); 
+    
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        // Leave this page if you're not a manager 
+        if (!isManager) {
+            navigate('/praesidium'); 
+        }
+                
+    }, [])
 
     console.log("in announcement form", announcementObj); 
     // console.log('curia', curia)
@@ -251,23 +260,38 @@ const AnnouncementForm = (props) => {
                 
             
             <div className="row mt-3">
-                <div className="col">
-                    <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
-                </div>
-                <div className="col">
-                    <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
-                </div>
                 {
-                    (qualifiedToDelete && method=='edit')
-                    ? <div className="col">
-                        <Link 
-                            to='' 
+                    (creating)? 
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    </>: 
+                    <></>
+                }
+                
+                {
+                    (isManager && !creating) ? 
+                    <>
+                    <div className="col">
+                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
+                    </div>
+                    <div className="col">
+                        <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
+                    </div>
+                    <div className="col">
+                        <Link to='' 
                             className='btn btn-outline-danger col-12 rounded rounded-5'
                             onClick={handleDelete}
                         >Delete</Link>
                     </div>
-                    : <></>
+                    </>
+                    : <></> 
                 }
+                
             </div>
         </form>
         </div>
@@ -283,8 +307,8 @@ export const announcementFormLoader = async ({ params }) => {
     const { cid, id } = params; // id of announcement for edit 
     console.log('In announcement form loader, cid, id', cid, id); 
     
-    let curia, obj; 
-    try {
+    let curia, announcementObj, isMember = false, isManager=false; 
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -294,32 +318,43 @@ export const announcementFormLoader = async ({ params }) => {
             };
             if (cid) {
 
-                // const cid = obj.curia; 
+                // const cid = announcementObj.curia; 
                 const curiaResponse = await axios.get(BASEURL + `curia/curia/${cid}`, config);
                 curia = curiaResponse.data; 
 
                 if (id) {
 
                     const response = await axios.get(BASEURL + `curia/announcements/${id}`, config);
-                    obj = response.data; 
-                    console.log('In announcement form loader, announcement', obj);
+                    announcementObj = response.data; 
+                    console.log('In announcement form loader, announcement', announcementObj);
                 }
+
+                const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary_info', config); 
+                const legionary = legionaryResponse.data;
+    
+                const curiaeResponse = await axios.get(`${BASEURL}curia/curia/?uid=${legionary.id}`, config); 
+                const curiae = removeRepeatedFromArray(curiaeResponse.data); 
+                const curiaeIds = curiae.map(item => item.id); 
+                // console.log(loc, 'curiae', curiae, curiaeIds.includes(curia.id))
+    
+                isMember = curiaeIds.includes(curia.id)
+                isManager = curia.managers.includes(legionary.id); 
 
         }  else {
             console.log("Sign in to get announcements")
         }
     }
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view praesidia")
-            // setErrStatus(401); 
-        } else {
-            console.error("Error fetching curia:", err);
-        }
-    } finally {
-        // console.log('Finally', obj, curia)
-        return [obj, curia];
+    // } catch (err) {
+    //     if (err.status === 401) {
+    //         console.log("The session is expired. Please sign in again to view praesidia")
+    //         // setErrStatus(401); 
+    //     } else {
+    //         console.error("Error fetching curia:", err);
+    //     }
+    // } finally {
+        // console.log('Finally', announcementObj, curia)
+        return [announcementObj, curia, isMember, isManager];
 
-    }
+    // }
 }
 

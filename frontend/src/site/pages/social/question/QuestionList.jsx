@@ -79,7 +79,7 @@ export const questionListLoader = async ({ params }) => {
     // const { cid } = params;
     let questions;
 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -93,10 +93,10 @@ export const questionListLoader = async ({ params }) => {
             console.log('Sign in to access questions')
 
         }
-    } catch (err) {
-        console.log("Error", err)
-    } finally {
+    // } catch (err) {
+    //     console.log("Error", err)
+    // } finally {
         return questions
-    }
+    // }
 
 }

@@ -38,7 +38,7 @@ export default function Login() {
             localStorage.setItem('accessToken', response.data.tokens.access)
             localStorage.setItem('refreshToken', response.data.tokens.refresh)
             setTimeout(function() { setSuccessMessage(""); }, 2000);
-            // navigate("/");
+            navigate("/praesidium");
         } catch (err) {
             console.log("Error during login", err.response?.data)
             if (err.response && err.response.data) {

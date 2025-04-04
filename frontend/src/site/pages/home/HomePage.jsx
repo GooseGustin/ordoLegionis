@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Link, NavLink, useLoaderData } from "react-router-dom"
+import { Link, NavLink, useLoaderData, useNavigate } from "react-router-dom"
 // import Navbar from "../../components/Navbar"
 
 const BASEURL = "http://localhost:8000/api/"; 
@@ -16,6 +16,16 @@ const shuffle = function (list) {
 
 const HomePage = () => {
     const loc = "In home page";
+
+    // const navigate = useNavigate();
+    // const homeReady = false; 
+
+    // useEffect(() => {
+    //     if (!homeReady) {
+    //         // leave this page if not member
+    //         navigate('/praesidium');
+    //     }
+    // }, []);
 
     const [posts, questions, requests, announcements, reminders] = useLoaderData();
     
@@ -140,7 +150,7 @@ export const homeLoader = async () => {
 
     const loc = "In the home loader fxn";
     console.log(loc); 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken'); 
         if (token) {
             const config = {
@@ -184,18 +194,19 @@ export const homeLoader = async () => {
 
         } else {
             console.log("Sign in to get workLists")
+            throw Error("Not signed in")
         }
-    } catch (err) {
-        if (err.status === 401) {
-            console.log("The session is expired. Please sign in again to view workLists")
-            // setErrStatus(401); 
-            errorStatus = 401;
-        } else {
-            console.error("Error fetching workLists or praesidia:", err);                    
-            errorStatus = err.status; 
+    // } catch (err) {
+    //     if (err.status === 401) {
+    //         console.log("The session is expired. Please sign in again to view workLists")
+    //         // setErrStatus(401); 
+    //         errorStatus = 401;
+    //     } else {
+    //         console.error("Error fetching workLists or praesidia:", err);                    
+    //         errorStatus = err.status; 
 
-        }
-    } finally {
+    //     }
+    // } finally {
         return [posts, questions, requests, announcements, reminders]; 
-    }
+    // }
 }

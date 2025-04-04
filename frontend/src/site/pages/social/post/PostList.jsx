@@ -79,7 +79,7 @@ export const postListLoader = async ({ params }) => {
     // const { cid } = params;
     let posts;
 
-    try {
+    // try {
         const token = localStorage.getItem('accessToken');
         if (token) {
             const config = {
@@ -89,14 +89,15 @@ export const postListLoader = async ({ params }) => {
             };
             const postsResponse = await axios.get(`${BASEURL}social/posts/`, config);
             posts = postsResponse.data;
+            return posts
         } else {
             console.log('Sign in to access posts')
 
         }
-    } catch (err) {
-        console.log("Error", err)
-    } finally {
-        return posts
-    }
+    // } catch (err) {
+    //     console.log("Error", err)
+    // } finally {
+        
+    // }
 
 }
