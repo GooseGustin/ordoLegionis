@@ -54,6 +54,7 @@ class Report(models.Model):
     work_total_and_average = models.JSONField(default=dict)
 
     include_intermediate = models.BooleanField(default=True)
+    include_empty_achievements = models.BooleanField(default=True)
     patricians_start = models.CharField(max_length=8, default='Jan 2024', null=True, blank=True) 
     patricians_end = models.CharField(max_length=8, default='Dec 2024', null=True, blank=True)
     audited = models.BooleanField(default=False)

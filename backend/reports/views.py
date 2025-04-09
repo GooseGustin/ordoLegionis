@@ -228,7 +228,9 @@ class ReportPrepGetView(APIView):
             )
 
         # Remove duplicates
+        month_year_combo = removeDuplicates(month_year_combo)
         fin_summaries = removeDuplicates(month_year_combo)
+        # print('initialised fin_summaries', fin_summaries, '\n', month_year_combo)
 
         # Initialise
         for item in fin_summaries: 
@@ -249,7 +251,7 @@ class ReportPrepGetView(APIView):
         
         acf_set = set() # Track first occurrence of ACF for each month
 
-        for meeting in meetings_within_range: 
+        for meeting in meetings_within_range[1:]: 
             [year, month, _] = getMonth(meeting.date)
             # print("year and month", year, month)
             item_array = [i for i in fin_summaries if (i['month']==months[month-1] and i['year']==year)]
@@ -288,8 +290,8 @@ class ReportPrepGetView(APIView):
                     )
 
             # print('month', month, sbc) 
-            if month == 4: 
-                print(f"\n {months[month-1]} sbc", sbc, fin_summaries[ind]['sbc'], fin_summaries[ind]['expenses'])
+            # if month == 4: 
+            #     print(f"\n {months[month-1]} sbc", sbc, fin_summaries[ind]['sbc'], fin_summaries[ind]['expenses'])
 
         # Get first acf
         # first_meeting = meetings_within_range[0]

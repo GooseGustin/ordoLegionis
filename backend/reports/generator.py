@@ -6,6 +6,7 @@ from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.shared import Inches, Pt
 from docx.oxml import ns, OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsmap, nsdecls
+from api.function_vault import removeDuplicates
 from math import ceil
 from datetime import date
 
@@ -42,7 +43,7 @@ def get_term(app_date, sub_date):
     subDate = date(*[int(i) for i in sub_date.split('-')])
     years = subDate.year - appDate.year
     has_anniversary_passed = (subDate.month > appDate.month) or (subDate.month == appDate.month and subDate.month >= appDate.day)
-    if has_anniversary_passed:
+    if not has_anniversary_passed:
         years-=1
     term = years//3 + 1
     if term <= 3: 
@@ -112,6 +113,11 @@ def calc_praesidium_expenses(monthly_finance_obj, tag=''):
 
 def get_audit_total(name, report):
     finances = report['financial_summary']
+    
+    others = finances['expenses']['others']
+    finances['expenses']['others'] = list(map(lambda arr: removeDuplicates(arr), others))
+    print("getting audit others", others)
+
     total = 0
     
     if name == 'sbc':
@@ -140,7 +146,7 @@ def get_monthly_breakdown(monthly_finance_obj, CURRENCY):
             statement.append(f"{key.capitalize()}: {CURRENCY}{expenses[key]}")
     
     others = expenses.get('others', [])
-    for item in others:
+    for item in removeDuplicates(others):
         for key in parse_object_keys(item):
             statement.append(f"{key}: {CURRENCY}{item[key]}")
     
@@ -321,7 +327,7 @@ def generate_report_docx(curia, praesidium, report):
 
     p = doc.add_paragraph("", style="List Number")
     p.add_run("Day/Time/Venue of Meeting: ").bold = True 
-    p.add_run(f"{praesidium['address']}, {praesidium['meeting_time']}")
+    p.add_run(f"{praesidium['meeting_time']}, {praesidium['address']}")
 
     p = doc.add_paragraph("", style="List Number")
     p.add_run("Period of Report ").bold = True 
@@ -329,7 +335,7 @@ def generate_report_docx(curia, praesidium, report):
 
     p = doc.add_paragraph("", style="List Number")
     p.add_run("Date, Names and Praesidium of Last Curia Visitors: ").bold = True 
-    p.add_run(f"{report['last_curia_visitors']} on {format_date(report['last_curia_visit_date'])[0]}")
+    p.add_run(f"{format_date(report['last_curia_visit_date'])[0]} by {report['last_curia_visitors']}")
 
     pres_term = get_term(praesidium["pres_app_date"], report["submission_date"])
     vp_term = get_term(praesidium['vp_app_date'], report['submission_date']) 
@@ -366,7 +372,7 @@ def generate_report_docx(curia, praesidium, report):
             report['officers_curia_attendance']['President'], 
             report['no_curia_meetings_held']['President'], 
             f"{report['officers_curia_attendance']['President']} out of {report['no_curia_meetings_held']['President']}", 
-            f"{report['previous_curia_attendance']['President']} out of {report['no_curia_meetings_held_previous']['President']}"  if report['no_curia_meetings_held_previous']['President'] else NON 
+            f"{report['previous_curia_attendance']['President']} out of {report['no_curia_meetings_held_previous']['President']}" if report['no_curia_meetings_held_previous']['President'] else NON 
         ), 
         (
             'Vice President',
@@ -520,20 +526,39 @@ def generate_report_docx(curia, praesidium, report):
 
 
     doc.add_paragraph('')
+    # p = doc.add_paragraph("", style="List Number") 
+    # p.add_run("Meetings and Attendance").bold = True 
+    # p = doc.add_paragraph("")
+    # p.add_run("No. of meetings expected to be held: ").bold = True 
+    # p.add_run(f"{report['no_meetings_expected']}")
+    # p = doc.add_paragraph("")
+    # p.add_run("No. of meetings held: ").bold = True 
+    # p.add_run(f"{report['no_meetings_held']}")
+    # p = doc.add_paragraph("")
+    # p.add_run("Average attendance per meeting: ").bold = True 
+    # p.add_run(f"{report['avg_attendance']}")
+    # p = doc.add_paragraph("")
+    # p.add_run("Reason for poor attendance: ").bold = True 
+    # p.add_run(f"{report['poor_attendance_reason']}")
+    # #####################################################
     p = doc.add_paragraph("", style="List Number") 
     p.add_run("Meetings and Attendance").bold = True 
-    p = doc.add_paragraph("")
-    p.add_run("No. of meetings expected to be held: ").bold = True 
-    p.add_run(f"{report['no_meetings_expected']}")
-    p = doc.add_paragraph("")
-    p.add_run("No. of meetings held: ").bold = True 
-    p.add_run(f"{report['no_meetings_held']}")
-    p = doc.add_paragraph("")
-    p.add_run("Average attendance per meeting: ").bold = True 
-    p.add_run(f"{report['avg_attendance']}")
-    p = doc.add_paragraph("")
+    
+    no_of_rows = 2
+    table = doc.add_table(rows=no_of_rows, cols=3)
+    table.style = "Table Grid"
+    for row in table.rows: 
+        row.height = Pt(15)    
+    set_cell_content(table.cell(0,0), "No. Expected Meetings", True)
+    set_cell_content(table.cell(0,1), "No. Held Meetings", True)
+    set_cell_content(table.cell(0,2), "Average Meeting Attendance", True)
+    set_cell_content(table.cell(1,0), f"{report['no_meetings_expected']}", True)
+    set_cell_content(table.cell(1,1), f"{report['no_meetings_held']}", True)
+    set_cell_content(table.cell(1,2), f"{report['avg_attendance']}", True)
+    p = doc.add_paragraph("\n")
     p.add_run("Reason for poor attendance: ").bold = True 
     p.add_run(f"{report['poor_attendance_reason']}")
+    # #####################################################
 
     # Works
     active_works = list(filter(lambda item: item['active'], report['work_summary']))
@@ -550,6 +575,10 @@ def generate_report_docx(curia, praesidium, report):
     p2.add_run('Others: ').bold = True
     p2.add_run(', '.join([work['type'] for work in other_works]))
 
+
+    doc.add_paragraph('')
+    p = doc.add_paragraph("", style="List Number") 
+    p.add_run("Efforts Made").bold = True 
 
     # Active works 
     no_of_rows = ceil(len(active_works) / 2)
@@ -641,9 +670,8 @@ def generate_report_docx(curia, praesidium, report):
     if other_key_pairs:
         achievement_mapping.update({'others': other_key_pairs[0]})
         achievements.update({'others': other_key_pairs[1]})
-    num_rows = len(achievements)
-    
-    # print('other_key_paris', other_key_pairs, achievements, achievement_mapping)
+    include_empties = report['include_empty_achievements']
+    num_rows = len(achievements) if include_empties else 1
 
     doc.add_paragraph('')
     p = doc.add_paragraph("", style="List Number") 
@@ -651,19 +679,32 @@ def generate_report_docx(curia, praesidium, report):
     table = doc.add_table(rows=num_rows, cols=3)
     table.style = "Table Grid"
     for i, key in enumerate(achievements.keys()):
-        row = table.rows[i]
-        row.height = Pt(15)
-        bold = True if i == 0 else False
-        set_cell_content(row.cells[0], achievement_mapping[key], bold)
-        set_cell_content(row.cells[1], str(achievements[key][0]), bold)
-        set_cell_content(row.cells[2], str(achievements[key][1]), bold)
+        is_empty_row = (achievements[key][0], achievements[key][1]) == (0,0)
+        if (not include_empties and not is_empty_row): 
+            row = table.rows[i]
+            row.height = Pt(15)
+            bold = True if i == 0 else False
+            set_cell_content(row.cells[0], achievement_mapping[key], bold)
+            set_cell_content(row.cells[1], str(achievements[key][0]), bold)
+            set_cell_content(row.cells[2], str(achievements[key][1]), bold)
+        elif include_empties: 
+            row = table.rows[i]
+            row.height = Pt(15)
+            bold = True if i == 0 else False
+            set_cell_content(row.cells[0], achievement_mapping[key], bold)
+            set_cell_content(row.cells[1], str(achievements[key][0]), bold)
+            set_cell_content(row.cells[2], str(achievements[key][1]), bold)
 
 
     # Plans for extension
     doc.add_paragraph('')
     p = doc.add_paragraph("", style="List Number") 
-    p.add_run("Plans for Extension Work").bold = True 
-    doc.add_paragraph(report['extension_plans'])
+    p.add_run("Plans for Extension Work: ").bold = True 
+    p.add_run(report['extension_plans'])
+    
+    # p = doc.add_paragraph("")
+    # p.add_run("Reason for poor attendance: ").bold = True 
+    # p.add_run(f"{report['poor_attendance_reason']}")
 
     # Functions 
     doc.add_paragraph('')
@@ -708,7 +749,7 @@ def generate_report_docx(curia, praesidium, report):
         set_cell_content(row.cells[4], str(fxn['previous_year_attendance']))
 
 
-    # Finance
+    '''Finance'''
     finances = report['financial_summary']
     total_income = finances['acf'][0] + sum(finances['sbc'])
     income_dict = {
@@ -718,6 +759,9 @@ def generate_report_docx(curia, praesidium, report):
         "Total Income": total_income
     }
     others = finances['expenses']['others']
+    # print("Summing others", others)
+    others = list(map(lambda arr: removeDuplicates(arr), others))
+    # print("Summing others unique", others)
     remittance = sum(finances['expenses']['remittance'])
     bouquet = sum(finances['expenses']['bouquet'])
     stationery = sum(finances['expenses']['stationery'])
@@ -725,7 +769,7 @@ def generate_report_docx(curia, praesidium, report):
     extension = sum(finances['expenses']['extension'])
     production = finances['report_production']
     others = sum([val for arr in others for obj in arr for (_, val) in obj.items()])
-    total_expenses = remittance + bouquet + stationery + altar + extension + production + others
+    total_expenses = remittance + bouquet + stationery + altar + extension + others  # production included
     expenses_dict = {
         "Expenditure": NULL,
         "Monthly Remittance": remittance, 
@@ -734,7 +778,7 @@ def generate_report_docx(curia, praesidium, report):
         "Altar": altar, 
         "Extension": extension, 
         "Production of Report": production, 
-        "Others": others,
+        "Others": others - production,
         "Total Expenses": total_expenses, 
         "Surplus Funds to Curia": total_income - total_expenses, 
         "Balance at Hand": finances['balance_at_hand']
@@ -769,6 +813,7 @@ def generate_report_docx(curia, praesidium, report):
             # handle expenditure 
             keys, vals = list(expenses_dict.keys()), list(expenses_dict.values())
             key, val = keys[i-income_shift], vals[i-income_shift]
+            # print('key, val, expenditure', key, val)
             bold = True if ('Expenditure' in key or 'Total' in key or 'Surplus' in key) else False
             set_cell_content(row.cells[0], str(key), bold)
             set_cell_content(row.cells[1], str(val))
@@ -831,6 +876,9 @@ def generate_report_docx(curia, praesidium, report):
 
     '''Auditor's Report'''
     finances = convert_fin_summary_for_frontend(report['financial_summary'])
+    finances[-1]['expenses']['others'] = removeDuplicates(finances[-1]['expenses']['others'])
+    finances[-1]['balance'] = finances[-1]['balance_at_hand']
+    # print('auditors finances', finances)
     doc.add_page_break()
     p = doc.add_paragraph()
     r = p.add_run("Auditor's Report")
@@ -890,6 +938,8 @@ def generate_report_docx(curia, praesidium, report):
     num_rows = len(finances) + 2
     cols = 7
     finances = report['financial_summary']
+    finances['expenses']['others'] = list(map(lambda arr: removeDuplicates(arr), finances['expenses']['others']))
+
     total_income = finances['acf'][0] + sum(finances['sbc'])
     income_dict = {
         "Income": NULL, 
@@ -912,7 +962,7 @@ def generate_report_docx(curia, praesidium, report):
     r.font.size = Pt(12)
     p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-    num_rows = len(income_dict)+len(expenses_dict)
+    num_rows = len(income_dict)+len(expenses_dict)+1
     income_shift = len(income_dict)  + 1
 
     table = doc.add_table(rows=num_rows, cols=3)
@@ -956,6 +1006,8 @@ def generate_report_docx(curia, praesidium, report):
 
     # Breakdown 
     finances = convert_fin_summary_for_frontend(report['financial_summary'])
+    finances[-1]['expenses']['others'] = removeDuplicates(finances[-1]['expenses']['others'])
+    # print('breakdown finances', finances)
     doc.add_page_break()
     doc.add_paragraph()
     p = doc.add_paragraph()
@@ -977,9 +1029,9 @@ def generate_report_docx(curia, praesidium, report):
     set_cell_content(row.cells[3], f'Amount ({CURRENCY})', True)
 
     finances_copy = finances.copy()
-    print('\nfinances', finances)
-    finances_copy[-1]['expenses']['others'].append({'Production of report': finances[0]['report_production']})
-    print('copy', finances_copy)
+    # print('\nfinances', finances)
+    # finances_copy[-1]['expenses']['others'].append({'Production of report': finances[0]['report_production']})
+    # print('copy', finances_copy)
 
     for i, item in enumerate(finances): 
         # print(i, item)

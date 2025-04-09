@@ -1,12 +1,7 @@
-# def removeDuplicates(array): 
-#     arrayCopy = array.copy()
-#     for item in array: 
-#         if arrayCopy.count(item) > 1: 
-#             arrayCopy.remove(item)
-#     return arrayCopy
 
 def removeDuplicates(arr): 
-    for i in arr.copy(): 
-        if arr.count(i) > 1:
-            arr.remove(i)
-    return arr
+    arr_copy = arr.copy()
+    for i in arr_copy: 
+        if arr_copy.count(i) > 1:
+            arr_copy.remove(i)
+    return arr_copy
