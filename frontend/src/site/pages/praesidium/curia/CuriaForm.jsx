@@ -1,9 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link, NavLink, useLoaderData, useNavigate } from "react-router-dom"
-import { removeRepeatedFromArray } from "../../../functionVault";
-
-const BASEURL = "http://localhost:8000/api/";
+import { BASEURL } from "../../../functionVault";
 
 const CuriaForm = (props) => {
     const [curiaObj, isManager] = useLoaderData(); 
@@ -128,8 +126,7 @@ const CuriaForm = (props) => {
                     (
                     <NavLink className="nav-link" to='../'>
                         <span className="icon">
-                            <i className="bi bi-grid"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-shield"></i>
                         </span>
                         <span className="description">Curia</span>
                     </NavLink>
@@ -137,20 +134,18 @@ const CuriaForm = (props) => {
                 }
 
 
-                {/* settings  */}
-                <NavLink className="nav-link" to=''>
+                {/* help  */}
+                <NavLink className="nav-link" to='help'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-question"></i> 
                     </span>
                     <span className="description">Help</span>
                 </NavLink>
 
                 {/* contact  */}
-                <NavLink className="nav-link" to=''>
+                <NavLink className="nav-link" to='/contact'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-message"></i>
                     </span>
                     <span className="description">Contact</span>
                 </NavLink>
@@ -335,19 +330,12 @@ export const curiaFormLoader = async ({params}) => {
                 const curiaResponse = await axios.get(BASEURL + `curia/curia/${cid}`, config);
                 curiaObj = curiaResponse.data; 
                 console.log('In curia form loader, curia', curiaObj);
+
+                const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary', config); 
+                const legionary = legionaryResponse.data;
+                isManager = curiaObj.managers.includes(legionary.id); 
             }
             
-            const legionaryResponse = await axios.get(BASEURL + 'accounts/legionary', config); 
-            const legionary = legionaryResponse.data;
-
-            // const curiaeResponse = await axios.get(`${BASEURL}curia/curia/?uid=${legionary.id}`, config); 
-            // const curiae = removeRepeatedFromArray(curiaeResponse.data);  
-            // const curiaeIds = curiae.map(item => item.id); 
-            // console.log(loc, 'curiae', curiae, curiaeIds.includes(curiaObj.id))
-
-            isManager = curiaObj.managers.includes(legionary.id); 
-
-
         } else {
             console.log("Sign in to get praesidia paradisei")
         }

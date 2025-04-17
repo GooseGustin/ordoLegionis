@@ -2,8 +2,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import Logo from "../../assets/Ordo Legionis - Mark.svg"
-
-const BASEURL = 'http://localhost:8000/api/';
+import { BASEURL } from '../functionVault';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -156,6 +155,12 @@ const Navbar = () => {
                                 <li class="nav-item mx-2">
                                     <NavLink class="nav-link text-white text-decoration-none" to="/pricing">Pricing</NavLink>
                                 </li> */}
+                                <li class="nav-item mx-2">
+                                    <NavLink class="nav-link text-white text-decoration-none fs-5" to="/notifications">
+                                    <span className="icon">
+                                        <i class="fa-solid fa-bell"></i>
+                                    </span></NavLink>
+                                </li>
                             </ul>
 
                             {/* <form class="d-flex mt-3" role="search">
@@ -181,13 +186,20 @@ const Navbar = () => {
                                     <NavLink 
                                         onClick={handleLogout}
                                         className='text-white text-decoration-none'
-                                    >Logout</NavLink>
+                                    >
+                                        <span className="icon">
+                                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                        </span> <span></span></NavLink>
                                     </>
                                 )
                                 :  <NavLink 
                                         onClick={handleLogout}
-                                        className='text-white text-decoration-none'
-                                    >Logout</NavLink>
+                                        className='nav-link text-white text-decoration-none'
+                                    >
+                                        <span className="icon">
+                                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                        </span> 
+                                    </NavLink>
                                 }   
                             </div>
                         </div>

@@ -1,54 +1,55 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link, NavLink, useLoaderData, useNavigate } from "react-router-dom";
-
-const BASEURL = 'http://localhost:8000/api/';
+import { BASEURL } from "../../functionVault";
 
 const PraesidiumForm = (props) => {
     const loc = "In praesidium form";
 
     const { method } = props; 
     // curiae options should be filtered based on state and country 
-    const [obj, curiae, isManager] = useLoaderData();
+    const [praesidiumObj, curiae, isManager] = useLoaderData();
     const navigate = useNavigate();
     
-    console.log(loc, 'praesidium', obj, method)
+    console.log(loc, 'praesidium', praesidiumObj, method)
     console.log(loc, 'curiae', curiae); 
 
     const creating = method==='create';
     // const isManager = !creating;
 
-    // isManager = obj? obj.managers.includes(user.id): false;
+    // isManager = praesidiumObj? praesidiumObj.managers.includes(user.id): false;
     console.log("user is qualified to delete this praesidium", isManager); 
 
 
     // define defaults
     const states = [
-        'Plateau', 'Sokoto', 'Abia', 'Abeokuta', 'Benin', 'Benue', 
-        'Lagos', 'Abuja', 'Ibadan'
+        'Abia', 'Abuja', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 
+        'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 
+        'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 
+        'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'
     ]
     const countries = [
-        'Nigeria', 'Ghana', 'South Africa', 'Italy', 'Dublin'
+        'Nigeria'  // , 'Ghana', 'South Africa', 'Italy', 'Dublin'
     ]
-    const defaultName = obj? obj.name: 'Our Lady Health of the Sick'
-    const defaultState = obj? obj.state: 'Plateau'
-    const defaultCountry = obj? obj.country: 'Nigeria'
-    const defaultParish = obj? obj.parish: "St. Paul's Catholic Church, Lamingo"
-    const defaultCuria = obj? obj.curia: 1 // null
-    const defaultAddress = obj? obj.address: 'Inside the church'
-    const defaultMeetingTime = obj? obj.meeting_time: 'Every Saturday at 7:30 AM'
-    const defaultInaugDate = obj? obj.inaug_date: '2025-01-05' // null 
-    const defaultSD = obj? obj.spiritual_director: 'Fr. Michael Moses'
-    const defaultSDAppDate = obj? obj.spiritual_director_app_date: '2025-01-05'
-    const defaultPresident = obj? obj.president: 'Jules'
-    const defaultPresAppDate = obj? obj.pres_app_date: '2025-01-11' // null
-    const defaultVicePresident = obj? obj.vice_president: 'Verne'
-    const defaultVPAppDate = obj? obj.vp_app_date: '2025-01-05' // null
-    const defaultSecretary = obj? obj.secretary: 'Odysius'
-    const defaultSecAppDate = obj? obj.sec_app_date: '2025-01-12' // null
-    const defaultTreasurer = obj? obj.treasurer: 'Thor'
-    const defaultTresAppDate = obj? obj.tres_app_date:'2025-01-05' // null
-    const defaultNextDeadline = obj? obj.next_report_deadline: '2025-03-09' // null
+    const defaultName = praesidiumObj? praesidiumObj.name: ''
+    const defaultState = praesidiumObj? praesidiumObj.state: 'Plateau'
+    const defaultCountry = praesidiumObj? praesidiumObj.country: 'Nigeria'
+    const defaultParish = praesidiumObj? praesidiumObj.parish: ""
+    const defaultCuria = praesidiumObj? praesidiumObj.curia: 1 // null
+    const defaultAddress = praesidiumObj? praesidiumObj.address: ''
+    const defaultMeetingTime = praesidiumObj? praesidiumObj.meeting_time: ''
+    const defaultInaugDate = praesidiumObj? praesidiumObj.inaug_date: '' // null 
+    const defaultSD = praesidiumObj? praesidiumObj.spiritual_director: ''
+    const defaultSDAppDate = praesidiumObj? praesidiumObj.spiritual_director_app_date: ''
+    const defaultPresident = praesidiumObj? praesidiumObj.president: ''
+    const defaultPresAppDate = praesidiumObj? praesidiumObj.pres_app_date: '' // null
+    const defaultVicePresident = praesidiumObj? praesidiumObj.vice_president: ''
+    const defaultVPAppDate = praesidiumObj? praesidiumObj.vp_app_date: '' // null
+    const defaultSecretary = praesidiumObj? praesidiumObj.secretary: ''
+    const defaultSecAppDate = praesidiumObj? praesidiumObj.sec_app_date: '' // null
+    const defaultTreasurer = praesidiumObj? praesidiumObj.treasurer: ''
+    const defaultTresAppDate = praesidiumObj? praesidiumObj.tres_app_date:'' // null
+    const defaultNextDeadline = praesidiumObj? praesidiumObj.next_report_deadline: '' 
 
 
     const [praesidiumForm, setPraesidiumForm] = useState({
@@ -71,8 +72,8 @@ const PraesidiumForm = (props) => {
         treasurer: defaultTreasurer, 
         tres_app_date: defaultTresAppDate, 
         next_report_deadline: defaultNextDeadline, 
-        reports: obj? obj.reports: [], 
-        work_list: obj? obj.work_list: []
+        reports: praesidiumObj? praesidiumObj.reports: [], 
+        work_list: praesidiumObj? praesidiumObj.work_list: []
     })
 
     const handleChange = (e) => {
@@ -93,7 +94,7 @@ const PraesidiumForm = (props) => {
                         "Authorization": `Bearer ${token}` 
                     }
                 }; 
-                const res = await axios.delete(BASEURL+"praesidium/praesidium/"+obj.id+"/", config); 
+                const res = await axios.delete(BASEURL+"praesidium/praesidium/"+praesidiumObj.id+"/", config); 
                 console.log("Successfully deleted"); 
                 navigate(creating? "../": '../../')
             }  else {
@@ -133,7 +134,7 @@ const PraesidiumForm = (props) => {
                     console.log("Initialising worklist", workListResponse.data); 
                     navigate(`../${praesidiumResponse.data.id}`);
                 } else {
-                    praesidiumResponse = await axios.put(`${BASEURL}praesidium/praesidium/${obj.id}/`, praesidiumForm, config);
+                    praesidiumResponse = await axios.put(`${BASEURL}praesidium/praesidium/${praesidiumObj.id}/`, praesidiumForm, config);
                 }
                 
                 const praesidiumFeedback = praesidiumResponse.data; 
@@ -162,31 +163,28 @@ const PraesidiumForm = (props) => {
                     
                 <NavLink className="nav-link" to='../'>
                     <span className="icon">
-                        <i className="bi bi-grid"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-shield-halved"></i>
                     </span>
                     {
                     !creating? 
                     <span>Praesidium</span>: 
-                    <span>Praesidium list</span>
+                    <span>Praesidia</span>
                     }
                 </NavLink>
 
 
                 {/* help  */}
-                <NavLink className="nav-link" to=''>
+                <NavLink className="nav-link" to='help'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-question"></i> 
                     </span>
                     <span className="description">Help</span>
                 </NavLink>
 
                 {/* contact  */}
-                <NavLink className="nav-link" to=''>
+                <NavLink className="nav-link" to='/contact'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-message"></i>
                     </span>
                     <span className="description">Contact</span>
                 </NavLink>
@@ -251,7 +249,7 @@ const PraesidiumForm = (props) => {
 
                     </div>
                     <div className="row col-10 col-lg-10 col-md-10 col-sm-10">
-                        <label htmlFor="curia">
+                        <label htmlFor="parish">
                             <span className="">Parish</span>
                             <input 
                                 type="text" 
@@ -287,33 +285,29 @@ const PraesidiumForm = (props) => {
                         </label>
                     </div>
                     <div className="row col-10 col-lg-10 col-md-10 col-sm-10">
+                        
                         <label htmlFor="curia">
                             <span className="">Curia</span>
+                            {
+                            curiae[0]? 
                             <select name="curia" id="" 
                                 className="form-control border border-dark"
                                 onChange={handleChange}>
-                            {curiae[0]
-                            ? curiae.map(curia =>
-                                obj
-                                    ? (
-                                        <option
-                                            value={curia.id}
-                                            key={curia.id}
-                                            // selected={curia.id == defaultCuria ? true : false}
-                                            defaultValue={defaultCuria}
-                                        >{curia.name}</option>
+                                {curiae.map(curia =>
+                                    <option
+                                        value={curia.id}
+                                        key={curia.id}
+                                        defaultValue={defaultCuria}
+                                    >{curia.name}, {curia.parish}</option>
                                     )
-                                    : (
-                                        <option
-                                            value={curia.id}
-                                            key={curia.id}
-                                        >{curia.name}</option>
-                                    )
-                                )
-                            : <option value="">Sign in to select curia</option>
-                            } 
+                                } 
+                            </select>: 
+                            <select className="form-control border border-dark">
+                                <option value="">No options. Please create a curia first</option>
                             </select>
+                            }
                         </label>
+                        
                     </div>
                 </div> 
             </div> {/* Location */}
@@ -475,7 +469,7 @@ const PraesidiumForm = (props) => {
 
             <div className="row">
                 {
-                    (creating) ? // Creating?
+                    (creating && curiae[0]) ? // Creating?
                     <>
                     <div className="col">
                         <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
@@ -488,7 +482,7 @@ const PraesidiumForm = (props) => {
                     <></>
                 }
                 {
-                    (!creating && isManager) ? 
+                    (!creating && isManager && curiae[0]) ? 
                     <>
                     <div className="col">
                         <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
@@ -530,19 +524,22 @@ export const praesidiumFormLoader = async ({params}) => {
     // Get curia praesidiumObject 
     // try {
     const token = localStorage.getItem('accessToken');
+    // console.log('token', token)
     if (token) {
         const config = {
             headers: {
                 "Authorization": `Bearer ${token}`
             }
         };
-        if (pid) {
+        
+        const curiaResponse = await axios.get(BASEURL + 'curia/curia', config);
+        curiaList = curiaResponse.data; 
+        console.log('curia response', curiaResponse)
+
+        if (pid) { // Editing an existing praesidium
             const praesidiumResponse = await axios.get(BASEURL + `praesidium/praesidium/${pid}`, config);
             praesidiumObj = praesidiumResponse.data; 
             console.log('In praesidium form loader, praesidium', praesidiumObj);
-            const curiaResponse = await axios.get(BASEURL + 'curia/curia/', config);
-            curiaList = curiaResponse.data; 
-            
             
             const legionaryResponse = await axios.get(BASEURL + 'accounts/user', config); 
             const legionary = legionaryResponse.data;

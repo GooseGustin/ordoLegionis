@@ -1,11 +1,8 @@
 import axios from 'axios';
-import React, { useEffect } from 'react'
-import { NavLink, Link, useLoaderData, useNavigate } from 'react-router-dom'
-import {parseObjectKeys, removeRepeatedFromArray, removeRepeatedObjectsFromArray} from '../../../functionVault'
-
+import { NavLink, useLoaderData, useNavigate } from 'react-router-dom'
+import {parseObjectKeys, removeRepeatedObjectsFromArray} from '../../../functionVault'
 import Vexillium from "../../../../assets/Vexillium_Legionis.png"
-
-const BASEURL = 'http://localhost:8000/api/'; 
+import { BASEURL } from "../../../functionVault";
 
 const formatDate = (date) => {
     // console.log("in format date", date)
@@ -26,7 +23,7 @@ const RenderCuriaAttendance = ({ report }) => {
             <td>{item}</td>
             <td>{report.no_curia_meetings_held[item]}</td>
             <td>{report.officers_curia_attendance[item]}</td>
-            <td>{report.previous_curia_attendance[item]}</td>
+            <td>{report.previous_curia_attendance[item]} out of {report.no_curia_meetings_held_previous[item]}</td>
         </tr>
     ))
 }
@@ -38,7 +35,7 @@ const RenderPraesidiumAttendance = ({ report }) => {
             <td>{item}</td>
             <td>{report.no_praesidium_meetings_held[item]}</td>
             <td>{report.officers_meeting_attendance[item]}</td>
-            <td>{report.previous_meeting_attendance[item]}</td>
+            <td>{report.previous_meeting_attendance[item]} out of {report.no_praesidium_meetings_held_previous[item]}</td>
         </tr>
     ))
 }
@@ -59,7 +56,8 @@ const RenderWorksInCells = ({ summary, active, work_total_and_average }) => {
                         let totalNo = 0;
                         metrics.forEach((item) => {
                             // console.log('Dont add no of homes', item); 
-                            if (item !== 'No. of homes' || item !== 'No. of Homes' || item !== 'No of homes') {
+                            if (!item.includes('home')) { // || !item.includes('Homes') || item !== 'No of homes') {
+                                // console.log('adding', item);
                                 totalNo += work.details[item]; 
                             }
                         })
@@ -102,7 +100,7 @@ const RenderWorksInCells = ({ summary, active, work_total_and_average }) => {
 };
 
 
-const RenderAchievements = ({ achvObj }) => {
+const RenderAchievements = ({ achvObj, includeEmpties }) => {
     // current: no_baptized; previous: no_baptized__previous
     const achievementNames = {
         'no_baptized': 'Baptized', 
@@ -118,16 +116,28 @@ const RenderAchievements = ({ achvObj }) => {
     if (objKeys.includes('id')) objKeys.shift(); // remove id 
     return (
         objKeys.map(item => {
+            const isEmptyRow = achvObj[item][0] == 0 && achvObj[item][1] == 0;
             const name = achievementNames[item]; 
-            // console.log('check 1', achvObj, item, name)
+            // console.log('check 1', achvObj, item, name, isEmptyRow, achvObj[item])
             if (name) {
-                return (
-                    <tr key={name}>
-                        <td>{name}</td>
-                        <td className='text-center'>{achvObj[item][0]}</td>
-                        <td className='text-center'>{achvObj[item][1]}</td>
-                    </tr>
-                )
+                if (!includeEmpties && !isEmptyRow) {
+                    return (
+                        <tr key={name}>
+                            <td>{name}</td>
+                            <td className='text-center'>{achvObj[item][0]}</td>
+                            <td className='text-center'>{achvObj[item][1]}</td>
+                        </tr>
+                    )
+                } else if (includeEmpties) {
+                    return (
+                        <tr key={name}>
+                            <td>{name}</td>
+                            <td className='text-center'>{achvObj[item][0]}</td>
+                            <td className='text-center'>{achvObj[item][1]}</td>
+                        </tr>
+                    )
+                }
+
             } else {
                 const name = parseObjectKeys(achvObj[item])[0]; 
                 if (name) {
@@ -306,9 +316,11 @@ const Preview = () => {
 
     const sumUpOthers = (arrOfArrOfObjs) => {
         let sum = 0; 
-        // console.log('summing others', arrOfArrOfObjs); 
-        for (let i in arrOfArrOfObjs) {
-            const arrOfObjs = arrOfArrOfObjs[i]; 
+        console.log('summing others', arrOfArrOfObjs); 
+        const othersArray = arrOfArrOfObjs.map(item => removeRepeatedObjectsFromArray(item));
+        console.log('othersArray', othersArray)
+        for (let i in othersArray) {
+            const arrOfObjs = othersArray[i]; 
             for (let j in arrOfObjs) {
                 const obj = arrOfObjs[j]; 
                 for (let key in obj) {
@@ -350,20 +362,25 @@ const Preview = () => {
     }
 
     const calcPraesidiumExpenses = (monthlyFinanceObj, tag='') => {
+        // console.log("In calc praesidium expenses", monthlyFinanceObj)
         try {
             let {bouquet, stationery, altar, extension, others} = monthlyFinanceObj.expenses; 
             let othersSum = 0; 
+            // console.log('others', others)
+            others = removeRepeatedObjectsFromArray(others);
             for (let i in others) {
                 let othersKeys = parseObjectKeys(others[i]); 
                 for (let j in othersKeys) {
                     const val = others[i][othersKeys[j]];
                     othersSum += val; 
+                    // console.log('val, sum', val, othersSum);
                 }
             }
             return bouquet + stationery + altar + extension + othersSum; 
         } catch (err) {
             let others = monthlyFinanceObj;
             let othersSum = 0; 
+            others = removeRepeatedObjectsFromArray(others);
             for (let i in others) {
                 let othersKeys = parseObjectKeys(others[i]); 
                 for (let j in othersKeys) {
@@ -492,7 +509,7 @@ const Preview = () => {
     last_others.push({'Production of report': finances[0].report_production})
     financesCopy[finances.length-1].expenses.others = removeRepeatedObjectsFromArray(last_others); 
     // financesCopy[finances.length-1].expenses.others.push({'Production of report': finances[0].report_production})
-    console.log('Converted finances for frontend', finances)
+    console.log('Converted finances for frontend', finances, financesCopy)
     const currency = '\u20A6';
 
     const fin_bf = report.financial_summary.acf[0];
@@ -504,7 +521,7 @@ const Preview = () => {
     const fin_ext = sumUp(report.financial_summary.expenses.extension); 
     const fin_alt = sumUp(report.financial_summary.expenses.altar); 
     const fin_rep = report.financial_summary.report_production; 
-    const fin_others = sumUpOthers(report.financial_summary.expenses.others); 
+    const fin_others = sumUpOthers(report.financial_summary.expenses.others) - fin_rep; 
     const fin_total_exp = fin_rem + fin_bouq + fin_stat + fin_ext + fin_alt + fin_others + fin_rep; 
     const fin_surplus = fin_total_income - fin_total_exp; 
     // const fin_bal 
@@ -516,32 +533,31 @@ const Preview = () => {
             <nav className="nav flex-column">
                 <NavLink className="nav-link" to='../'>
                     <span className="icon">
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-chart-simple"></i>
                     </span>
                     <span className="description">Report</span>
                 </NavLink>
                 <NavLink className="nav-link" to='../../../'>
                     <span className="icon">
-                        <i className="bi bi-grid"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-shield-halved"></i> 
                     </span>
                     <span className="description">Praesidium</span>
                 </NavLink>
 
-                {/* settings  */}
-                <NavLink className="nav-link" to=''>
+
+
+                {/* help  */}
+                <NavLink className="nav-link" to='help'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-question"></i> 
                     </span>
                     <span className="description">Help</span>
                 </NavLink>
 
                 {/* contact  */}
-                <NavLink className="nav-link" to=''>
+                <NavLink className="nav-link" to='/contact'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-message"></i>
                     </span>
                     <span className="description">Contact</span>
                 </NavLink>
@@ -682,7 +698,7 @@ const Preview = () => {
                             <table className="table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>Membership</th>
+                                        <th>Category</th>
                                         <th className='text-center'>Senior</th>
                                         {includeIntermediate && <th className='text-center'>Intermediate</th>}
                                         <th className='text-center'>Junior</th>
@@ -775,7 +791,7 @@ const Preview = () => {
                                     
                                 </thead>
                                 <tbody>
-                                    <RenderAchievements achvObj={defaultAchievements} />
+                                    <RenderAchievements achvObj={defaultAchievements} includeEmpties={report.include_empty_achievements} />
                                     {otherAchievementName? otherAchievementName.trim() ? 
                                     (
                                         <tr>
@@ -887,13 +903,13 @@ const Preview = () => {
                                     </tr>
                                     <tr>
                                         <td className='table-index'>iv.</td>
-                                        <td className='description'>Altar Expenses</td>
+                                        <td className='description'>Altar</td>
                                         <td className='amount'>{fin_alt}</td>
                                         <td className='amount'></td>
                                     </tr>
                                     <tr>
                                         <td className='table-index'>v.</td>
-                                        <td className='description'>Extension Expenses</td>
+                                        <td className='description'>Extension</td>
                                         <td className='amount'>{fin_ext}</td>
                                         <td className='amount'></td>
                                     </tr>
@@ -1129,7 +1145,7 @@ const Preview = () => {
                                 </thead>
                                 <tbody>
                                     { 
-                                        finances.map((item, key) => {
+                                        financesCopy.map((item, key) => {
                                             // console.log("Check 2", item);
                                             return (
                                             <tr key={item.id}>
@@ -1153,7 +1169,7 @@ const Preview = () => {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="row mb-4"> {/* Analysis */}
+                        <div className="row mb-4"> {/* Conclusion */}
                             <p><strong>Observations:</strong></p>
                             <p><br /></p>
                             <p><strong>Recommendations:</strong></p>
@@ -1263,7 +1279,15 @@ export const reportPreviewLoader = async ({ params }) => {
             const prepDataResponse = await axios.post(BASEURL + "reports/get_report_prep_data", packet, config);
             prepData = prepDataResponse.data;
 
-            report.work_summary = prepData.work_summaries; 
+            report.work_summary = [];
+                for (let i in report.work_summaries) {
+                    // console.log(loc, 'index of fxn attendances', i, report.function_attendances[i])
+                    const workSummaryInd = report.work_summaries[i];
+                    const summaryResponse = await axios.get(BASEURL + `works/summaries/${workSummaryInd}`, config);
+                    report.work_summary.push(summaryResponse.data); 
+                }
+            console.log(loc, 'work summary', report)
+            // report.work_summary = prepData.work_summaries; 
             // console.log(loc, 'prepdata', prepData)
             // console.log(loc, 'report 1', report)
 

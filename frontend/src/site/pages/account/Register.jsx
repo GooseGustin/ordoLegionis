@@ -1,13 +1,14 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import axios from 'axios' 
+import { BASEURL } from "../../functionVault";
 
 export default function Register() {
     const [formData, setFormData] = useState({
-        username:'', 
-        email:'', 
-        password1:'', 
-        password2:'' 
+        username:'testuser', 
+        email:'testuser@gmail.com', 
+        password1:'#fightC1ub#', 
+        password2:'#fightC1ub#' 
     });
 
     const navigate = useNavigate();
@@ -35,18 +36,23 @@ export default function Register() {
 
         try {
             const response = await axios.post("http://localhost:8000/api/accounts/register/", formData);
-            console.log("Success!", response.data) 
+            console.log("Successful registration!", response.data) 
             setSuccessMessage("Registration Successful!"); 
+
+            const loginForm = {
+                email: formData.email, password: formData.password1
+            }; 
+            const loginResponse = await axios.post(`${BASEURL}accounts/login/`, loginForm);
+            console.log("Logged in", loginResponse.data)
+            // setSuccessMessage("Login Successful!");
+            localStorage.setItem('accessToken', loginResponse.data.tokens.access)
+            localStorage.setItem('refreshToken', loginResponse.data.tokens.refresh)
+
             setTimeout(function() { setSuccessMessage(""); }, 2000);
-            navigate("../../");
+
+            navigate("/praesidium");
         } catch (err) {
-            console.log("Error during registration", err.response.data)
-            
-            // if (err.status === 400) {
-            //     console.log("The session is expired. Please sign in again to operate on questions")
-            // } else {
-            //     console.log("Error during registration", err.response.data) 
-            // }
+            console.log("Error during registration", err, err.response?.data)
             if (err.response && err.response.data) {
                 Object.keys(err.response.data).forEach(field => {
                     const errorMessages = err.response.data[field]; 
@@ -55,6 +61,7 @@ export default function Register() {
                     }
                 })
             }
+            setTimeout(function() { setError(""); }, 2000);
         } finally {
             setIsLoading(false);
         }
@@ -64,66 +71,69 @@ export default function Register() {
     <div className="container p-5 mt-5 row justify-content-center align-items-center">
         <div className="col-3"></div>
         <div className="col container mt-5 text-center border border-info rounded shadow p-5">
-        {error && <p style={{color:'red'}}>{error}</p>}
-        {successMessage && <p style={{color:'green'}}>{successMessage}</p>}
+            {error && <p className="mt-5 text-danger">{error}</p>}
+            {successMessage && <p className="mt-5 text-success">{successMessage}</p>}
 
-        <h2 className="mb-5">Register</h2>
-        <form>
-            <div className="row">
-                <div className="col-12">
-                    <label>Username
-                        <input 
-                            type="text" name="username" 
-                            className="form-control border border-dark"
-                            value={formData.username} 
-                            onChange={handleChange} />
-                    </label>
+            <h2 className="mb-5">Register</h2>
+            <form>
+                <div className="row">
+                    <div className="col-12">
+                        <label>Username
+                            <input 
+                                type="text" name="username" 
+                                className="form-control border border-dark"
+                                value={formData.username} 
+                                onChange={handleChange} />
+                        </label>
+                    </div>
+                    <div className="col-12">
+                        <label>Email
+                            <input 
+                                type="text" name="email" id=""
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="form-control border border-dark"
+                            />
+                        </label>
+                    </div>
+                    <div className="col-12">
+                        <label>Enter password
+                            <input 
+                                type="password" name="password1" 
+                                value={formData.password1}
+                                onChange={handleChange} 
+                                className="form-control border border-dark"
+                            />
+                        </label>
+                    </div>
+                    <div className="col-12">
+                        <label>Confirm password
+                            <input 
+                                type="password" name="password2" 
+                                value={formData.password2} 
+                                onChange={handleChange} 
+                                className="form-control border border-dark"
+                            />
+                        </label>
+                    </div>
                 </div>
-                <div className="col-12">
-                    <label>Email
-                        <input 
-                            type="text" name="email" id=""
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="form-control border border-dark"
-                        />
-                    </label>
+                <div className="row">
+                    <div className="col">
+                    <button 
+                        type="submit" 
+                        onClick={handleSubmit} 
+                        disabled={isLoading}
+                        className="btn btn-outline-success"
+                    >Register</button>
+                    </div>
                 </div>
-                <div className="col-12">
-                    <label>Enter password
-                        <input 
-                            type="password" name="password1" 
-                            value={formData.password1}
-                            onChange={handleChange} 
-                            className="form-control border border-dark"
-                        />
-                    </label>
-                </div>
-                <div className="col-12">
-                    <label>Confirm password
-                        <input 
-                            type="password" name="password2" 
-                            value={formData.password2} 
-                            onChange={handleChange} 
-                            className="form-control border border-dark"
-                        />
-                    </label>
-                </div>
+            </form>
+            <div className="login mt-2">
+                <p>Already have an account? <Link to='../login'>Login here</Link></p>
             </div>
-            <div className="row">
-                <div className="col">
-                <button 
-                    type="submit" 
-                    onClick={handleSubmit} 
-                    disabled={isLoading}
-                    className="btn btn-outline-success"
-                >Register</button>
-                </div>
-            </div>
-        </form>
 
         </div>
-        {/* <div className="col-3 col-lg-12"></div> */}
+        <div className="col-3"></div>
         
         <hr />
     </div>

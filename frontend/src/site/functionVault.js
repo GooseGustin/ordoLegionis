@@ -1,3 +1,5 @@
+export const BASEURL = "http://localhost:8000/api/";
+
 export function findAll(arr, x) {
     var results = [], 
     len = arr.length,
@@ -73,3 +75,13 @@ export function getFormattedDate(praesidiumDate) {
     // console.log('Formatted date', dateOutput);
     return dateOutput;
 }
+
+export function shuffle(list) {
+    // For each element in the array, swap with a randomly chosen lower element
+    var len = list.length;
+    for (var i = len - 1; i > 0; i--) {
+        var r = Math.floor(Math.random() * (i + 1)), temp; // Random number
+        temp = list[i], list[i] = list[r], list[r] = temp; // Swap
+    }
+    return list;
+};

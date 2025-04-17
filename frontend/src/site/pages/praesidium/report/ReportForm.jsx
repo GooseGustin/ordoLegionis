@@ -2,8 +2,8 @@ import { NavLink, Link, useLoaderData, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { parseObjectKeys } from "../../../functionVault";
+import { BASEURL } from "../../../functionVault";
 
-const BASEURL = "http://localhost:8000/api/";
 const log = console.log; 
 
 const RenderCuriaAttendanceRow = ({reportFormData, handleAttendanceChange}) => {
@@ -366,6 +366,12 @@ const ReportForm = ({ method }) => {
             initialFxnAttendances: 
         initialFxnAttendances
 
+    const defaultWorkSummaries = (report && report.workSummaries[0]) ? report.workSummaries: prepData.work_summaries
+    const workSummariesIDMapping = (report && report.workSummaries) ? Object.fromEntries(
+        report.workSummaries.map(item => [item.type, item.id])
+    ): undefined; 
+    console.log('work summaries id mapping', workSummariesIDMapping)
+
     const defaultPatriciansStart = report? report.patricians_start: ''; 
     const defaultPatriciansEnd = report? report.patricians_end: ''; 
     const defaultAudited = report? report.audited: false; 
@@ -432,22 +438,25 @@ const ReportForm = ({ method }) => {
         membership_details: defaultMembership, 
         achievements: defaultAchievements, 
         function_attendances: defaultFxnAttendance, 
-        work_summaries: prepData.work_summaries, 
+        work_summaries: defaultWorkSummaries, 
         work_total_and_average: report? report.work_total_and_average: {}, 
         financial_summary: finSummary? convertFinSummaryForFrontend(finSummary) :prepData.financial_summary,
         report_production: finSummary? finSummary.report_production: 0,
         balance_at_hand: finSummary? finSummary.balance_at_hand: 0,
         include_intermediate: report? report.include_intermediate: true, 
+        include_empty_achievements: report? report.include_empty_achievements: true,
         patricians_start: defaultPatriciansStart, 
         patricians_end: defaultPatriciansEnd,
         read_and_accepted: defaultAccepted
     })
     console.log("\ninitial reportFormData", reportFormData); 
 
-    let workSummaries = prepData.work_summaries; 
-    for (let i in workSummaries) {
-        let item = workSummaries[i]; 
-        item.id = i;
+    let workSummaries = (report && report.workSummaries)? report.workSummaries: prepData.work_summaries; 
+    if (!report) {
+        for (let i in workSummaries) {
+            let item = workSummaries[i]; 
+            item.id = i;
+        }
     }
 
     let financialSummary = finSummary? reportFormData.financial_summary :prepData.financial_summary; 
@@ -539,6 +548,7 @@ const ReportForm = ({ method }) => {
         const startDate = reportFormData.last_submission_date;
         const endDate = reportFormData.submission_date; 
         console.log("Start and end dates", startDate, endDate);
+        console.log("Entering auto fill, reportFormData", reportFormData)
         const packet = {
             pid: praesidium.id, 
             startDate: startDate, 
@@ -554,9 +564,9 @@ const ReportForm = ({ method }) => {
                 };
                 const prepDataResponse = await axios.post(BASEURL+'reports/get_report_prep_data', packet, config)
                 const prepDataLocal = prepDataResponse.data;
-                console.log("In autofill, comparing finances of reportFormData and updated prepData", 
-                    reportFormData.financial_summary, prepDataLocal.financial_summary
-                    );
+                // console.log("In autofill, comparing finances of reportFormData and updated prepData", 
+                //     reportFormData.financial_summary, prepDataLocal.financial_summary
+                //     );
                 // setPrepData(prepDataLocal); 
                 setReportFormData({
                     ...reportFormData, 
@@ -565,7 +575,7 @@ const ReportForm = ({ method }) => {
                     last_submission_date: startDate, 
                     submission_date: endDate
                 })
-                // console.log("In autofill, Updated prep data", prepDataLocal)
+                console.log("In autofill, Updated prep data", prepDataLocal.work_summaries, reportFormData.work_summaries)
 
                 workSummaries = prepDataLocal.work_summaries; 
                 for (let i in workSummaries) {
@@ -957,6 +967,7 @@ const ReportForm = ({ method }) => {
 
                     // create work summaries
                     for (let i in reportFormData.work_summaries) {
+                        console.log('Creating work summary', reportFormData.work_summaries[i])
                         let summaryResponse = await axios.post(
                             BASEURL + "works/summaries/", 
                             {
@@ -1015,6 +1026,23 @@ const ReportForm = ({ method }) => {
                         )
                     }
                     console.log('Succesfully edited fxn attenances');
+
+                    // edit work summaries
+                    for (let i in reportFormData.work_summaries) {
+                        const work = reportFormData.work_summaries[i];
+                        const summaryInstance = {
+                            ...reportFormData.work_summaries[i], 
+                            id: workSummariesIDMapping[work.type],
+                            report: report.id
+                        }  
+                        console.log('Editing work summary', work, summaryInstance)
+                        let summaryResponse = await axios.put(
+                            BASEURL + `works/summaries/${summaryInstance['id']}/`, 
+                            summaryInstance, 
+                            config
+                        )
+                    }
+
                 }
                 const reportData = reportResponse.data; 
                 
@@ -1046,25 +1074,25 @@ const ReportForm = ({ method }) => {
                 <nav className="nav flex-column">
                     <NavLink className="nav-link" to='../../'>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-shield-halved"></i>
                         </span>
                         <span className="description">Praesidium</span>
                     </NavLink>
                     <NavLink className="nav-link" to='../'>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-chart-simple"></i>
                         </span>
                         <span className="description">Reports</span>
                     </NavLink>
                     <NavLink className="nav-link" to='../../meeting'>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-calendar-days"></i>
                         </span>
                         <span className="description">Meetings</span>
                     </NavLink>
                     <NavLink className="nav-link" to='../../worklist'>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-bars"></i>
                         </span>
                         <span className="description">Work List</span>
                     </NavLink>
@@ -1073,27 +1101,27 @@ const ReportForm = ({ method }) => {
                         ? 
                         <NavLink className="nav-link" to='preview'>
                             <span className="icon">
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-eye"></i>
                             </span>
                             <span className="desciption">Preview</span>
                         </NavLink>
                         : <></>
                     }
 
+
+
                     {/* help  */}
-                    <NavLink className="nav-link" to=''>
+                    <NavLink className="nav-link" to='help'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-question"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
 
                     {/* contact  */}
-                    <NavLink className="nav-link" to=''>
+                    <NavLink className="nav-link" to='/contact'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-message"></i>
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>
@@ -1151,7 +1179,8 @@ const ReportForm = ({ method }) => {
                                 name="report_period" id="report_period"
                                 className='form-control-sm rounded rounded-3 border border-dark '
                                 onChange={handleReportChange}
-                                value={reportFormData.report_period} 
+                                value={reportFormData.no_meetings_expected}
+                                // value={reportFormData.report_period} 
                             />
                         </label>
                     </div>
@@ -1630,6 +1659,19 @@ const ReportForm = ({ method }) => {
                 {/* Achievements */}
                 <div className="row border border-dark rounded rounded-3 p-3 my-2">
                     <p className="fs-3 text-primary">Achievements</p>
+                    <div className="row my-2 text-dark">
+                        <div className="col">
+                            <label htmlFor="include_empty_achievements">
+                                Include empty achievement rows in report: 
+                                <input type="checkbox" 
+                                    name="include_empty_achievements" id="" 
+                                    className="form-check-input ms-2"
+                                    defaultChecked={reportFormData.include_intermediate? 'checked': ''}
+                                    onChange={handleReportCheck}
+                                />
+                            </label>
+                        </div>
+                    </div>
                     <table className="table-bordered">
                         <thead>
                             <tr>
@@ -1681,8 +1723,16 @@ const ReportForm = ({ method }) => {
                 <div className="row border border-dark rounded rounded-3 p-3 my-2">
                     <p className="fs-3 text-primary">Works</p>
                     {
-                        workSummaries.map(summary => {
-                            // console.log('check 3', summary.type); 
+                        // workSummaries.map(summary => {
+                        reportFormData.work_summaries.map(summary => {
+                            // const workObj = reportFormData.work_summaries.filter(item => item.type === summary.type)[0]
+                            let ind; 
+                            for (let i in workSummaries) {
+                                if (summary.type === reportFormData.work_summaries[i]['type']) {
+                                    ind = i;
+                                }
+                            }
+                            console.log('check 3', summary, reportFormData.work_summaries[ind])
                             return (
                                 <div key={summary.id}>
                                 <div className="row row-cols-lg-2 row-cols-md-2 border mx-1 p-3" key={summary.id}>
@@ -1704,7 +1754,7 @@ const ReportForm = ({ method }) => {
                                             type="number" name={summary.type + "__no_assigned"} id=""
                                             className='form-control-sm rounded rounded-3 border border-dark'
                                             onChange={handleWorkChange}
-                                            defaultValue={summary.no_assigned}
+                                            value={summary.no_assigned}
                                         />
                                     </label>
                                 </div>
@@ -1715,7 +1765,7 @@ const ReportForm = ({ method }) => {
                                             type="number" name={summary.type + "__no_done"} id=""
                                             className='form-control-sm rounded rounded-3 border border-dark'
                                             onChange={handleWorkChange}
-                                            defaultValue={summary.no_done}
+                                            value={summary.no_done}
                                         />
                                     </label>
                                 </div>
@@ -1730,7 +1780,7 @@ const ReportForm = ({ method }) => {
                                                         type="number" 
                                                         name={`${summary.type}__${item}`} id="" 
                                                         className="form-control border border-dark"
-                                                        defaultValue={summary.details[item]}
+                                                        value={summary.details[item]}
                                                         onChange={handleWorkChange}
                                                     />
                                                 </label>
@@ -2116,24 +2166,6 @@ const ReportForm = ({ method }) => {
                 </div>
                 : <></>
                 }
-                {/* <div className="row mt-5">
-                    <div className="col">
-                        <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">{btnTitle}</button>
-                    </div>
-                    <div className="col">
-                        <Link to="../../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
-                    </div>
-                    {
-                    (isManager && (method==='edit'))
-                    ? <div className="col">
-                        <Link to='' 
-                            className='btn btn-outline-danger col-12 rounded rounded-5'
-                            onClick={handleDelete}
-                        >Delete</Link>
-                    </div>
-                    : <></>
-                    }
-                </div> */}
 
                 </form>
 
@@ -2162,15 +2194,14 @@ export const reportFormLoader = async ({ params }) => {
             };
             console.log(loc, pid); 
             const praesidiumResponse = await axios.get(BASEURL+ `praesidium/praesidium/${pid}`, config);
-            if (!praesidiumResponse.ok) {console.log("Didn't get the praesidium from backend")}
-            else {console.log("Did get the praesidium from the backend")}
+            
 
             praesidium = praesidiumResponse.data; 
 
             if (rid) {
                 const reportResponse = await axios.get(BASEURL + `reports/report/${rid}`, config); 
-                if (!reportResponse.ok) {console.log("Didn't get the report from backend")}
-                else {console.log("Did get the report from the backend")}
+                // if (!reportResponse.ok) {console.log("Didn't get the report from backend")}
+                // else {console.log("Did get the report from the backend")}
                 report = reportResponse.data; 
                 const membershipResponse = await axios.get(BASEURL + `reports/membership/${report.membership_details}`, config)
                 report.membership = membershipResponse.data; 
@@ -2183,6 +2214,15 @@ export const reportFormLoader = async ({ params }) => {
                     const attendanceResponse = await axios.get(BASEURL + `reports/attendance/${fxnInd}`, config);
                     report.fxn_attendances.push(attendanceResponse.data); 
                 }
+
+                report.workSummaries = [];
+                for (let i in report.work_summaries) {
+                    // console.log(loc, 'index of fxn attendances', i, report.function_attendances[i])
+                    const workSummaryInd = report.work_summaries[i];
+                    const summaryResponse = await axios.get(BASEURL + `works/summaries/${workSummaryInd}`, config);
+                    report.workSummaries.push(summaryResponse.data); 
+                }
+
                 const finSummaryResponse = await axios.get(`${BASEURL}finance/summaries/${report.financial_summary}`, config);
                 finSummary = finSummaryResponse.data; 
             }

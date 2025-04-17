@@ -2,8 +2,7 @@ import axios from "axios"
 import { useLoaderData, useNavigate } from "react-router-dom"
 import { NavLink, Link } from "react-router-dom";
 import { removeRepeatedFromArray } from "../../../functionVault";
-
-const BASEURL = "http://localhost:8000/api/";
+import { BASEURL } from "../../../functionVault";
 
 const AnnouncementList = () => {
     const [announcements, isMember, isManager] = useLoaderData();
@@ -18,7 +17,7 @@ const AnnouncementList = () => {
                     {isMember? 
                     <NavLink className="nav-link" to='../'>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        <i class="fa-solid fa-shield"></i>
                         </span>
                         <span className="description">Curia</span>
                     </NavLink>
@@ -26,26 +25,26 @@ const AnnouncementList = () => {
                     {isManager? 
                     <NavLink className="nav-link" to='create'>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        <i class="fa-solid fa-plus"></i>
                         </span>
                         <span className="description">New announcement</span>
                     </NavLink>
                     : <></>}
 
-                    {/* settings  */}
-                    <NavLink className="nav-link" to=''>
+
+
+                    {/* help  */}
+                    <NavLink className="nav-link" to='help'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        <i class="fa-solid fa-question"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
 
                     {/* contact  */}
-                    <NavLink className="nav-link" to=''>
+                    <NavLink className="nav-link" to='/contact'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        <i class="fa-solid fa-message"></i>
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>

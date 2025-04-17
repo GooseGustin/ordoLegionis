@@ -2,9 +2,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import { Link, NavLink, useLoaderData, useNavigate } from "react-router-dom"
 import Navbar from "../../components/Navbar"
-import { removeRepeatedFromArray } from "../../functionVault";
-
-const BASEURL = "http://localhost:8000/api/"; 
+import { BASEURL, removeRepeatedFromArray } from "../../functionVault";
 
 const shuffle = function (list) {
     // For each element in the array, swap with a randomly chosen lower element
@@ -43,8 +41,7 @@ const PraesidiaList = () => {
                 <nav className="nav flex-column">
                     <NavLink className="nav-link" to='create'>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
-                            <i className="bi bi-grid"></i>
+                        <i class="fa-solid fa-shield-halved"></i>
                         </span>
                         <span className="description"> 
                             New Praesidium
@@ -52,26 +49,24 @@ const PraesidiaList = () => {
                     </NavLink>
                     <NavLink className="nav-link" to='../curia/create'>
                         <span className="icon">
-                            <i className="bi bi-clipboard"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-shield"></i>
                         </span>
                         <span className="description">New Curia</span>
                     </NavLink>
 
-                    {/* settings  */}
-                    <NavLink className="nav-link" to=''>
+
+                    {/* help  */}
+                    <NavLink className="nav-link" to='help'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-question"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
 
                     {/* contact  */}
-                    <NavLink className="nav-link" to=''>
+                    <NavLink className="nav-link" to='/contact'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-message"></i>
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>
@@ -123,7 +118,8 @@ const PraesidiaList = () => {
                 <div className="container my-5">
                     <div className="row ">
                             <div className="col">
-                                <span>You are logged out. Please login <Link to="../account/login">here</Link> to view your praesidia</span>
+                                <p>You are not a member of any praesida or have not created any praesidia or curia.</p>
+                                <p>Go to Help for a short and easy guide to setup.</p>
                             </div>
                         </div>
                     </div>
@@ -154,11 +150,11 @@ export const praesidiaListLoader = async () => {
             // filter by user id
             const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
             user = userResponse.data;
-            const curiaResponse = await axios.get(`${BASEURL}curia/curia/?uid=${user.id}`, config); 
             
-            curiae = removeRepeatedFromArray(curiaResponse.data.map(curia => {
+            const curiaResponse = await axios.get(`${BASEURL}curia/curia/?uid=${user.id}`, config); 
+            curiae = curiaResponse.data.map(curia => {
                 return {...curia, type: 'curia'};
-            })); 
+            }); 
             console.log(loc, 'curia', curiae)
 
             const praesidiaResponse = await axios.get(`${BASEURL}praesidium/praesidium/?uid=${user.id}`, config);

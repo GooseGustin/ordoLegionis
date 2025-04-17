@@ -1,9 +1,8 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { NavLink, Link, useLoaderData, useNavigate } from 'react-router-dom'
-import { findAll, parseObjectKeys, removeRepeatedFromArray } from '../../../functionVault';
-
-const BASEURL = "http://127.0.0.1:8000/api/"; 
+import { removeRepeatedFromArray } from '../../../functionVault';
+import { BASEURL } from "../../../functionVault";
 
 const MeetingForm = (props) => {
     const loc = "In meeting form"; 
@@ -445,49 +444,43 @@ const MeetingForm = (props) => {
                 <nav className="nav flex-column">
                     <NavLink className="nav-link" to='../../'>
                         <span className="icon">
-                            <i className="bi bi-grid"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-shield-halved"></i> 
                         </span>
                         <span className="description">Praesidium</span>
                     </NavLink>
                     {isManager? 
                     <NavLink className="nav-link" to='../create'>
                         <span className="icon">
-                            <i className="bi bi-grid bi-clipboard"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        <i class="fa-solid fa-plus"></i>
                         </span>
                         <span className="description">New meeting</span>
                     </NavLink>
                     : <></>}
                     <NavLink className="nav-link" to='../'>
                         <span className="icon">
-                            <i className="bi bi-grid bi-clipboard"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        <i class="fa-solid fa-calendar-days"></i>
                         </span>
                         <span className="description">Meetings</span>
                     </NavLink>
                     <NavLink className="nav-link" to='../../worklist'>
                         <span className="icon">
-                            <i className="bi bi-bell"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-bars"></i>
                         </span>
                         <span className="description">Work List</span>
                     </NavLink>
 
                     {/* help  */}
-                    <NavLink className="nav-link" to=''>
+                    <NavLink className="nav-link" to='help'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-question"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
 
                     {/* contact  */}
-                    <NavLink className="nav-link" to=''>
+                    <NavLink className="nav-link" to='/contact'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-message"></i>
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>
@@ -500,6 +493,11 @@ const MeetingForm = (props) => {
             <form onSubmit={submitMeeting}>
 
                 <p className="fs-4">Praesidium: {praesidium.name}</p>
+
+                    {!workList.details[0] && (
+                        <p className="fs-5 mt-2 text-danger">Go to Work List to select works</p>
+                    )}
+                        
 
                 <div className="row">
                     <div className="col">
@@ -868,7 +866,7 @@ const MeetingForm = (props) => {
                         })}
                     </div>
                 </fieldset>
-                : <p>Go to Work List to select works</p>
+                : <p className='text-danger'>Go to Work List to select works</p>
                 }
                 </div>
 

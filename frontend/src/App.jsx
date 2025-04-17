@@ -42,6 +42,9 @@ import ReminderList, { reminderListLoader } from './site/pages/praesidium/remind
 import ReminderDetail from './site/pages/praesidium/reminder/ReminderDetail'
 import Preview, { reportPreviewLoader } from './site/pages/praesidium/report/Preview'
 import ErrorElement from './site/pages/ErrorElement'
+import Help from './site/pages/help_and_contact/Help'
+import Feedback from './site/pages/help_and_contact/Feedback'
+import Notifications from './site/pages/social/Notifications'
 
 function App() {
     const router = createBrowserRouter(
@@ -53,13 +56,6 @@ function App() {
                     loader={homeLoader}
                     errorElement={<ErrorElement action={'view'} obj={'posts, questions, or prayer requests'}/>}
                 /> */}
-                <Route 
-                    index 
-                    element={<PraesidiaList />} 
-                    loader={praesidiaListLoader}
-                    errorElement={<ErrorElement action={'view'} obj={'praesidia'}/>}
-                />
-
                 <Route path='account'>
                     <Route 
                         path='login'
@@ -70,6 +66,24 @@ function App() {
                         element={<Register />}
                     />
                 </Route>
+
+                <Route 
+                    index 
+                    element={<PraesidiaList />} 
+                    loader={praesidiaListLoader}
+                    errorElement={<ErrorElement action={'view'} obj={'praesidia'}/>}
+                />
+                <Route 
+                    path="help" 
+                    element={<Help pageKey="praesidia_list" />} 
+                />
+
+                <Route 
+                    path="notifications" 
+                    element={<Notifications />} 
+                    loader={homeLoader}
+                    errorElement={<ErrorElement action={'view'} obj={'notifications'}/>}
+                />
                 
                 <Route path="social">
                     <Route path='post' errorElement={<ErrorElement action={'posts'}/>}>
@@ -154,6 +168,10 @@ function App() {
                             />
                         </Route>
                     </Route>
+                    <Route 
+                        path="help" 
+                        element={<Help pageKey="social_list" />} 
+                    />
                 </Route>
                 
                 <Route path="praesidium">
@@ -164,10 +182,19 @@ function App() {
                         errorElement={<ErrorElement action={'view'} obj={'praesidia'}/>}
                     />
                     <Route 
+                        path="help" 
+                        element={<Help pageKey="praesidium_list" />} 
+                    />
+                    <Route 
                         path="create"
                         element={<PraesidiumForm method='create' />} 
                         loader={praesidiumFormLoader}
                         errorElement={<ErrorElement action={'create'} obj={'praesidia'}/>}
+                    />
+                    
+                    <Route 
+                        path="create/help" 
+                        element={<Help pageKey={"praesidium_form"} method={'create'} />} 
                     />
                     <Route path=':pid' >
                         <Route  // Praedidium details 
@@ -177,10 +204,18 @@ function App() {
                             errorElement={<ErrorElement action={'view'} obj={'this praesidium'}/>}
                         />
                         <Route 
+                            path="help" 
+                            element={<Help pageKey={"praesidium_details"} />} 
+                        />
+                        <Route 
                             path="edit"
                             element={<PraesidiumForm method='edit' />} 
                             loader={praesidiumFormLoader}
                             errorElement={<ErrorElement action={'edit'} obj={'this praesidium'}/>}
+                        />
+                        <Route 
+                            path="edit/help" 
+                            element={<Help pageKey={"praesidium_form"} method={'edit'} />} 
                         />
                         {/* Meeting(s) of the praedidium */}
                         <Route path='meeting'>
@@ -190,21 +225,35 @@ function App() {
                                 loader={meetingListLoader}
                                 errorElement={<ErrorElement action={'view'} obj={'meetings'}/>}
                             />
+                            <Route 
+                                path="help" 
+                                element={<Help pageKey={"meeting_list"} />} 
+                            />
                             {/* Create and edit meeting */}
-                            <Route 
-                                path='create' 
-                                element={<MeetingForm method='create'/>} 
-                                loader={meetingFormLoader} 
-                                errorElement={<ErrorElement action={'create'} obj={'meetings'}/>}
-                            />
-                            <Route 
-                                path=':mid' 
-                                element={<MeetingForm method='edit'/>} 
-                                loader={meetingFormLoader} 
-                                errorElement={<ErrorElement action={'edit'} obj={'this meeting'}/>}
-                            />
-                            {/* Meeting edit (and details) */}
-                            {/* <Route path='edit' element={<MeetingForm method='edit' />} /> */}
+                            <Route path='create'>
+                                <Route 
+                                    index
+                                    element={<MeetingForm method='create'/>} 
+                                    loader={meetingFormLoader} 
+                                    errorElement={<ErrorElement action={'create'} obj={'meetings'}/>}
+                                />
+                                <Route 
+                                    path="help" 
+                                    element={<Help pageKey={"meeting_form"}  />} 
+                                />
+                            </Route>
+                            <Route path=':mid'>
+                                <Route 
+                                    index
+                                    element={<MeetingForm method='edit'/>} 
+                                    loader={meetingFormLoader} 
+                                    errorElement={<ErrorElement action={'edit'} obj={'this meeting'}/>}
+                                />
+                                <Route 
+                                    path="help" 
+                                    element={<Help pageKey="meeting_form" />} 
+                                />
+                            </Route>
                            
                         </Route>
 
@@ -217,11 +266,21 @@ function App() {
                                 errorElement={<ErrorElement action={'view'} obj={'reminders'}/>}
                             />
                             <Route 
-                                path='create'
-                                element={<ReminderForm method='create' />}
-                                loader={reminderFormLoader}
-                                errorElement={<ErrorElement action={'create'} obj={'reminders'}/>}
+                                path="help" 
+                                element={<Help pageKey="reminder_list" />} 
                             />
+                            <Route path='create'>
+                                <Route 
+                                    index
+                                    element={<ReminderForm method='create' />}
+                                    loader={reminderFormLoader}
+                                    errorElement={<ErrorElement action={'create'} obj={'reminders'}/>}
+                                />
+                                <Route 
+                                    path="help" 
+                                    element={<Help pageKey="reminder_form" />} 
+                                />
+                            </Route>
                             <Route path=':id'>
                                 <Route 
                                     index
@@ -230,11 +289,21 @@ function App() {
                                     errorElement={<ErrorElement action={'view'} obj={'this reminder'}/>}
                                 />
                                 <Route 
-                                    path='edit'
-                                    element={<ReminderForm method='edit' />}
-                                    loader={reminderFormLoader}
-                                    errorElement={<ErrorElement action={'edit'} obj={'this reminder'}/>}
+                                    path="help" 
+                                    element={<Help pageKey="reminder_details" />} 
                                 />
+                                <Route path='edit'>
+                                    <Route 
+                                        index
+                                        element={<ReminderForm method='edit' />}
+                                        loader={reminderFormLoader}
+                                        errorElement={<ErrorElement action={'edit'} obj={'this reminder'}/>}
+                                    />
+                                    <Route 
+                                        path="help" 
+                                        element={<Help pageKey="reminder_form" />} 
+                                    />
+                                </Route>
                             </Route>
                         </Route>
 
@@ -247,11 +316,21 @@ function App() {
                                 errorElement={<ErrorElement action={'view'} obj={'reports'}/>}
                                 />
                             <Route 
-                                path='create' 
-                                element={<ReportForm method='create' />}
-                                loader={reportFormLoader}
-                                errorElement={<ErrorElement action={'create'} obj={'reports'}/>}
+                                path="help" 
+                                element={<Help pageKey="report_list" />} 
+                            />
+                            <Route path='create'>
+                                <Route 
+                                    index
+                                    element={<ReportForm method='create' />}
+                                    loader={reportFormLoader}
+                                    errorElement={<ErrorElement action={'create'} obj={'reports'}/>}
+                                    />
+                                <Route 
+                                    path="help" 
+                                    element={<Help pageKey="report_form" />} 
                                 />
+                            </Route>
                             <Route path=":rid">
                                 <Route 
                                     index 
@@ -260,37 +339,64 @@ function App() {
                                     errorElement={<ErrorElement action={'edit'} obj={'this report'}/>}
                                 />
                                 <Route 
-                                    path="preview"
-                                    element={<Preview />}
-                                    loader={reportPreviewLoader}
-                                    errorElement={<ErrorElement action={'view'} obj={'this report preview'}/>}
+                                    path="help" 
+                                    element={<Help pageKey="report_form" />} 
                                 />
+                                <Route path="preview">
+                                    <Route 
+                                        index
+                                        element={<Preview />}
+                                        loader={reportPreviewLoader}
+                                        errorElement={<ErrorElement action={'view'} obj={'this report preview'}/>}
+                                    />
+                                    <Route 
+                                        path="help" 
+                                        element={<Help pageKey="report_preview" />} 
+                                    />
+                                </Route>
                             </Route>
                         </Route>
 
                         {/* Create and edit worklist */}
-                        <Route 
-                            path='worklist' 
-                            element={<WorkListForm method='edit' />} 
-                            loader={workListFormLoader}
-                            errorElement={<ErrorElement action={'view'} obj={'worklists'}/>}
-                        />
-                        <Route
-                            path='create_work'
-                            element={<WorkCreate />}
-                            loader={workListFormLoader}
-                            errorElement={<ErrorElement action={'create'} obj={'works'}/>}
-                        />
+                        <Route path='worklist'>
+                            <Route 
+                                index
+                                element={<WorkListForm method='edit' />} 
+                                loader={workListFormLoader}
+                                errorElement={<ErrorElement action={'view'} obj={'worklists'}/>}
+                            />
+                            <Route 
+                                path="help" 
+                                element={<Help pageKey="worklist_form" />} 
+                            />
+                        </Route>
+                        <Route path='create_work'>
+                            <Route index
+                                element={<WorkCreate />}
+                                loader={workListFormLoader}
+                                errorElement={<ErrorElement action={'create'} obj={'works'}/>}
+                            />
+                            <Route 
+                                path="help" 
+                                element={<Help pageKey="create_work_form" />} 
+                            />
+                        </Route>
                     </Route>
                 </Route>
 
                 <Route path="curia">
-                    <Route  // create curia
-                        path="create"
-                        element={<CuriaForm method='create' />}
-                        loader={curiaFormLoader}
-                        errorElement={<ErrorElement action={'create'} obj={'curiae'}/>}
-                    />
+                    <Route path="create">
+                        <Route 
+                            index
+                            element={<CuriaForm method='create' />}
+                            loader={curiaFormLoader}
+                            errorElement={<ErrorElement action={'create'} obj={'curiae'}/>}
+                        />
+                        <Route 
+                            path="help" 
+                            element={<Help pageKey="curia_form" />} 
+                        />
+                    </Route>
                     <Route path=":cid" > // curia detail and edit
                         <Route 
                             index // curia detail
@@ -298,25 +404,45 @@ function App() {
                             loader={curiaDetailLoader}
                             errorElement={<ErrorElement action={'view'} obj={'this curia'}/>}
                         />
-                        <Route  // curia edit
-                            path="edit"
-                            element={<CuriaForm method='edit' />}
-                            loader={curiaFormLoader}
-                            errorElement={<ErrorElement action={'edit'} obj={'this curia'}/>}
+                        <Route 
+                            path="help" 
+                            element={<Help pageKey="curia_details" />} 
                         />
+                        <Route path="edit">
+                            <Route 
+                                index
+                                element={<CuriaForm method='edit' />}
+                                loader={curiaFormLoader}
+                                errorElement={<ErrorElement action={'edit'} obj={'this curia'}/>}
+                            />
+                            <Route 
+                                path="help" 
+                                element={<Help pageKey="curia_form" />} 
+                            />
+                        </Route>
                         <Route path='announcement'>
                             <Route
                                 index 
                                 element={<AnnouncementList />}
                                 loader={announcementListLoader}
-                            errorElement={<ErrorElement action={'view'} obj={'announcements'}/>}
+                                errorElement={<ErrorElement action={'view'} obj={'announcements'}/>}
                             />
                             <Route 
-                                path='create'
-                                element={<AnnouncementForm method='create' />} 
-                                loader={announcementFormLoader} 
-                                errorElement={<ErrorElement action={'create'} obj={'announcements'}/>}
+                                path="help" 
+                                element={<Help pageKey="announcement_list" />} 
                             />
+                            <Route path='create'>
+                                <Route 
+                                    index
+                                    element={<AnnouncementForm method='create' />} 
+                                    loader={announcementFormLoader} 
+                                    errorElement={<ErrorElement action={'create'} obj={'announcements'}/>}
+                                />
+                                <Route 
+                                    path="help" 
+                                    element={<Help pageKey="announcement_form" />} 
+                                />
+                            </Route>
                             <Route path=':id'>
                                 <Route 
                                     index 
@@ -325,11 +451,21 @@ function App() {
                                     errorElement={<ErrorElement action={'view'} obj={'this announcement'}/>}
                                 />
                                 <Route 
-                                    path="edit"
-                                    element={<AnnouncementForm method='edit' />}
-                                    loader={announcementFormLoader} 
-                                    errorElement={<ErrorElement action={'edit'} obj={'this announcement'}/>}
+                                    path="help" 
+                                    element={<Help pageKey="announcement_details" />} 
                                 />
+                                <Route path="edit">
+                                    <Route 
+                                        index
+                                        element={<AnnouncementForm method='edit' />}
+                                        loader={announcementFormLoader} 
+                                        errorElement={<ErrorElement action={'edit'} obj={'this announcement'}/>}
+                                    />
+                                    <Route 
+                                        path="help" 
+                                        element={<Help pageKey="announcement_form" />} 
+                                    />
+                                </Route>
                             </Route>
                         </Route>
                     </Route>
@@ -360,6 +496,8 @@ function App() {
                         loader={praesidiaListLoader}
                     />
                 </Route>
+
+                <Route path='contact' element={<Feedback />} />
 
                 <Route path='*' element={<NotFound />} />
             </Route>

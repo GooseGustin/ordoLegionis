@@ -49,7 +49,9 @@ class UserLoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True) 
 
     def validate(self, data): 
+        print("In login validate method", data)
         user = authenticate(**data) 
+        print("user", user)
         if user and user.is_active: 
             return user 
         else: 

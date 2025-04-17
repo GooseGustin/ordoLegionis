@@ -28,9 +28,9 @@ class PraesidiumSerializer(serializers.ModelSerializer):
             user = request.user 
             legionary = Legionary.objects.get(user=user)
             validated_data['managers'] = []
-            validated_data['managers'].extend([legionary.id])
+            validated_data['managers'].extend([legionary])
             validated_data['members'] = []
-            validated_data['members'].extend([legionary.id])
+            validated_data['members'].extend([legionary])
             validated_data['iden'] = getIden(validated_data['name']) # iden remains the same even though the praesidium or curia name is changd
         return super().create(validated_data)
 

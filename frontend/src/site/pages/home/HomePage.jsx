@@ -1,18 +1,8 @@
 import axios from "axios";
 import { Link, NavLink, useLoaderData, useNavigate } from "react-router-dom"
-// import Navbar from "../../components/Navbar"
-
-const BASEURL = "http://localhost:8000/api/"; 
-
-const shuffle = function (list) {
-    // For each element in the array, swap with a randomly chosen lower element
-    var len = list.length;
-    for (var i = len - 1; i > 0; i--) {
-        var r = Math.floor(Math.random() * (i + 1)), temp; // Random number
-        temp = list[i], list[i] = list[r], list[r] = temp; // Swap
-    }
-    return list;
-};
+import { removeRepeatedObjectsFromArray } from "../../functionVault";
+import { shuffle } from "../../functionVault";
+import { BASEURL } from "../../functionVault";
 
 const HomePage = () => {
     const loc = "In home page";
@@ -62,7 +52,7 @@ const HomePage = () => {
                     {/* settings  */}
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-question"></i>
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
@@ -70,7 +60,7 @@ const HomePage = () => {
                     {/* contact  */}
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-message"></i>
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>
@@ -138,7 +128,6 @@ const HomePage = () => {
 
 export default HomePage
 
-
 export const homeLoader = async () => {
     // Get posts, questions, prayer_requests, announcements, reminders
     let posts = []; 
@@ -158,13 +147,28 @@ export const homeLoader = async () => {
                     "Authorization": `Bearer ${token}` 
                 }
             };
+            // filter by user id
+            const userResponse = await axios.get(BASEURL + 'accounts/user', config); 
+            const user = userResponse.data;
+            
+            const curiaResponse = await axios.get(`${BASEURL}curia/curia/?uid=${user.id}`, config); 
+            const curiae = curiaResponse.data.map(curia => {
+                return {...curia, type: 'curia'};
+            }); 
+            console.log(loc, 'curia', curiae)
+
+            const praesidiaResponse = await axios.get(`${BASEURL}praesidium/praesidium/?uid=${user.id}`, config);
+            const praesidia = removeRepeatedObjectsFromArray(praesidiaResponse.data.map(praesidium => {
+                return {...praesidium, type: 'praesidium'};
+            })); 
+            console.log(loc, 'praesidia', praesidia)
+
             const postResponse = await axios.get(BASEURL + "social/posts/", config); 
             const questionResponse = await axios.get(BASEURL + "social/questions/", config); 
             const requestResponse = await axios.get(BASEURL + "social/requests/", config); 
-            const announcementResponse = await axios.get(BASEURL + "curia/announcements/", config); 
-            const reminderResponse = await axios.get(BASEURL + "praesidium/reminders/", config); 
-            const praesidiaResponse = await axios.get(BASEURL+ "praesidium/praesidium/", config);
-            
+
+            // const praesidiaResponse = await axios.get(BASEURL+ "praesidium/praesidium/", config);
+
             posts = postResponse.data.map(post => {
                 return {
                     ...post, type: 'post'
@@ -180,33 +184,27 @@ export const homeLoader = async () => {
                     ...request, type: 'request'
                 }
             }); 
-            announcements = announcementResponse.data.map(announcement => {
-                return {
-                    ...announcement, type: 'announcement'
-                };
-            }); 
-            reminders = reminderResponse.data.map(reminder => {
-                return {
-                    ...reminder, type: 'reminder'
-                };
-            }); 
-            praesidia = praesidiaResponse.data; 
+
+            for (let curia of curiae) {
+                const announcementResponse = await axios.get(BASEURL + `curia/announcements/?cid=${curia.id}`, config); 
+                for (let announcement of announcementResponse.data) {
+                    announcements.push({
+                        ...announcement, type: 'announcement'
+                    });
+                }
+            }
+            for (let praesidium of praesidia) {
+                const reminderResponse = await axios.get(BASEURL + `praesidium/reminders/?pid=${praesidium.id}`, config);
+                for (let reminder of reminderResponse.data) {
+                    reminders.push({
+                        ...reminder, type: 'reminder'
+                    });
+                }
+            } 
 
         } else {
             console.log("Sign in to get workLists")
             throw Error("Not signed in")
         }
-    // } catch (err) {
-    //     if (err.status === 401) {
-    //         console.log("The session is expired. Please sign in again to view workLists")
-    //         // setErrStatus(401); 
-    //         errorStatus = 401;
-    //     } else {
-    //         console.error("Error fetching workLists or praesidia:", err);                    
-    //         errorStatus = err.status; 
-
-    //     }
-    // } finally {
         return [posts, questions, requests, announcements, reminders]; 
-    // }
 }

@@ -14,6 +14,7 @@ from pathlib import Path
 from os import path 
 from datetime import timedelta
 import dj_database_url
+import os 
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,13 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y&(7puj5ea_ik)#$ko-#9yski71u_=bm$y8*ujd0t@ji=wnnlw'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']  #, '127.0.0.1:8000']
-
+ALLOWED_HOSTS  = os.environ.get('ALLOWED_HOSTS').split(' ')
 
 # Application definition
 
@@ -102,9 +102,9 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-DATABASES['default'] = dj_database_url.parse("postgresql://legion_app_django_render_user:f5nZpOiutL5fnsXcbV26PMkb7gmD727k@dpg-cvrduq2li9vc739cp6l0-a.frankfurt-postgres.render.com/legion_app_django_render")
-
+database_url = os.environ.get('DATABASE_URL')
+DATABASES['default'] = dj_database_url.parse(database_url)
+# "postgresql://legion_app_django_render_user:f5nZpOiutL5fnsXcbV26PMkb7gmD727k@dpg-cvrduq2li9vc739cp6l0-a.frankfurt-postgres.render.com/legion_app_django_render"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

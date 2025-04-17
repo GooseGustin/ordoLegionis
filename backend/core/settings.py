@@ -14,6 +14,11 @@ from pathlib import Path
 from os import path 
 from datetime import timedelta
 
+import dj_database_url
+import os 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,13 +28,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y&(7puj5ea_ik)#$ko-#9yski71u_=bm$y8*ujd0t@ji=wnnlw'
+SECRET_KEY = os.getenv("SECRET_KEY")
+# SECRET_KEY= 'django-insecure-y&(7puj5ea_ik)#$ko-#9yski71u_=bm$y8*ujd0t@ji=wnnlw'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
+# DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']  #, '127.0.0.1:8000']
-
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") # 
+# ALLOWED_HOSTS=['localhost', '127.0.0.1']
 
 # Application definition
 
@@ -61,6 +68,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
@@ -76,7 +84,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -101,6 +109,12 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+database_url = os.environ.get('DATABASE_URL')
+# DATABASES['default'] = dj_database_url.parse(database_url)
+# DATABASES = {
+#     # 'default': dj_database_url.config(default='sqlite:///db.sqlite3')
+#     'default': dj_database_url.parse(database_url)
+# }
 
 
 # Password validation
@@ -141,7 +155,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = path.join(BASE_DIR, 'staticfiles') 
 STATICFILES_DIRS = (path.join(BASE_DIR, 'static'), )
-
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/' 
 MEDIA_ROOT = path.join(BASE_DIR, 'media')
 

@@ -1,8 +1,6 @@
 import { useLoaderData, useNavigate, NavLink, Link } from "react-router-dom"
 import axios from "axios";
-import { getFormattedDate } from "../../functionVault";
-
-const BASEURL = "http://localhost:8000/api/";
+import { BASEURL, getFormattedDate } from "../../functionVault";
 
 
 const PraesidiumDetail = () => {
@@ -33,59 +31,55 @@ const PraesidiumDetail = () => {
                         <>
                         <NavLink className="nav-link" to='edit'>
                             <span className="icon">
-                                <i className="bi bi-grid"></i>
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-pencil"></i> 
                             </span>
                             <span className="description">Edit details</span>
                         </NavLink>
                         {isManager?
                         <NavLink className="nav-link" to='meeting/create'>
                             <span className="icon">
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-plus"></i> 
                             </span>
                             <span className="description">New meeting</span>
                         </NavLink>
                         : <></>}
                         <NavLink className="nav-link" to='meeting'>
                             <span className="icon">
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-calendar-days"></i>
                             </span>
                             <span className="description">Meetings</span>
                         </NavLink>
                         {isManager? 
                         <NavLink className="nav-link" to='reminder/create'>
                             <span className="icon">
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-plus"></i> 
                             </span>
                             <span className="description">New reminder</span>
                         </NavLink>
                         : <></>}
                         <NavLink className="nav-link" to='reminder'>
                             <span className="icon">
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-note-sticky"></i>
                             </span>
                             <span className="description">Reminders</span>
                         </NavLink>
                         <NavLink className="nav-link" to='report'>
                             <span className="icon">
-                                <i className="bi bi-grid"></i>
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-chart-simple"></i>
                             </span>
                             <span className="description">Reports</span>
                         </NavLink>
                         {isManager?
                         <NavLink className="nav-link" to='report/create'>
                             <span className="icon">
-                                <i className="bi bi-grid"></i>
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-plus"></i>
                             </span>
                             <span className="description">New report</span>
                         </NavLink>
                         : <></>}
                         <NavLink className="nav-link" to='worklist'>
                             <span className="icon">
-                                <i className="bi bi-grid"></i>
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                            <i class="fa-solid fa-bars"></i>
                             </span>
                             <span className="description">Work List</span>
                         </NavLink>
@@ -95,27 +89,25 @@ const PraesidiumDetail = () => {
                     }
                     <NavLink className="nav-link" to=''>
                         <span className="icon">
-                            <i className="bi bi-grid"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-briefcase"></i>
                         </span>
                         <span className="description">Management</span>
                     </NavLink>
 
 
-                    {/* settings  */}
-                    <NavLink className="nav-link" to=''>
+
+                    {/* help  */}
+                    <NavLink className="nav-link" to='help'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-question"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
 
                     {/* contact  */}
-                    <NavLink className="nav-link" to=''>
+                    <NavLink className="nav-link" to='/contact'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-message"></i>
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>

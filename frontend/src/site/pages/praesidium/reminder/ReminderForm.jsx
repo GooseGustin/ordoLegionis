@@ -1,8 +1,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { Link, NavLink, useLoaderData, useNavigate } from 'react-router-dom';
-
-const BASEURL = "http://localhost:8000/api/";
+import { BASEURL } from "../../../functionVault";
 
 const ReminderForm = (props) => {
     const { method } = props; 
@@ -128,7 +127,7 @@ const ReminderForm = (props) => {
         // }
     } 
         
-
+    const pageTitle = method == 'create'? 'Create a new reminder': 'Edit this reminder';
 
     return (
         <div className='create-work'>
@@ -137,32 +136,32 @@ const ReminderForm = (props) => {
             <nav className="nav flex-column">
                 <NavLink className="nav-link" to={creating ? '../../': '../../../'}>
                     <span className="icon">
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-shield-halved"></i> 
                     </span>
                     <span className="description">Praesidium</span>
                 </NavLink>
                 <NavLink className="nav-link" to={creating ? '../': '../../'}>
                     <span className="icon">
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-note-sticky"></i> 
                     </span>
                     <span className="description">Reminders</span>
                 </NavLink>
 
 
-                {/* settings  */}
-                <NavLink className="nav-link" to=''>
+
+
+                {/* help  */}
+                <NavLink className="nav-link" to='help'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-question"></i> 
                     </span>
                     <span className="description">Help</span>
                 </NavLink>
 
                 {/* contact  */}
-                <NavLink className="nav-link" to=''>
+                <NavLink className="nav-link" to='/contact'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-message"></i>
                     </span>
                     <span className="description">Contact</span>
                 </NavLink>
@@ -172,7 +171,7 @@ const ReminderForm = (props) => {
         {/* main content */}
         <div className="main-content">
             
-        <h2>Create a new reminder</h2>
+        <h2>{pageTitle}</h2>
         <form onSubmit={handleSubmitForm}>
             <div className="row">
                 <div className="col-6">
@@ -235,24 +234,6 @@ const ReminderForm = (props) => {
                     : <></> 
                 }
                 
-                {/* 
-                <div className="col">
-                    <button type="submit" className="btn btn-outline-success col-12 rounded rounded-5">Save</button>
-                </div>
-                <div className="col">
-                    <Link to="../" className="btn btn-outline-primary col-12 rounded rounded-5">Cancel</Link>
-                </div>
-                {
-                    (isManager && method=='edit')
-                    ? <div className="col">
-                        <Link 
-                            to='' 
-                            className='btn btn-outline-danger col-12 rounded rounded-5'
-                            onClick={handleDelete}
-                        >Delete</Link>
-                    </div>
-                    : <></>
-                } */}
             </div>
         </form>
         </div>

@@ -1,8 +1,7 @@
 import { NavLink, useLoaderData } from "react-router-dom"
 import axios from "axios";
 import { removeRepeatedFromArray } from "../../../functionVault";
-
-const BASEURL = "http://localhost:8000/api/"
+import { BASEURL } from "../../../functionVault";
 
 const CuriaDetail = () => {
     const [curia, praesidia, isMember, isManager] = useLoaderData();
@@ -19,14 +18,13 @@ const CuriaDetail = () => {
                     <>
                     <NavLink className="nav-link" to='edit'>
                         <span className="icon">
-                            <i className="bi bi-grid"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-pencil"></i>
                         </span>
                         <span className="description">Edit</span>
                     </NavLink>
                     <NavLink className="nav-link" to='announcement/create'>
                         <span className="icon">
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                        <i class="fa-solid fa-plus"></i>
                         </span>
                         <span className="description">New announcement</span>
                     </NavLink>
@@ -38,35 +36,33 @@ const CuriaDetail = () => {
                 <>
                 <NavLink className="nav-link" to='announcement/'>
                     <span className="icon">
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-bullhorn"></i>
                     </span>
                     <span className="description">Announcements</span>
                 </NavLink>
                 </>
                 : <></>}
 
-                <NavLink className="nav-link" to='../../praesidium'>
+                <NavLink className="nav-link" to=''>
                     <span className="icon">
-                        <i className="bi bi-grid"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-briefcase"></i>
                     </span>
                     <span className="description">Management</span>
                 </NavLink>
 
-                {/* settings  */}
-                <NavLink className="nav-link" to=''>
+
+                {/* help  */}
+                <NavLink className="nav-link" to='help'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-question"></i> 
                     </span>
                     <span className="description">Help</span>
                 </NavLink>
 
                 {/* contact  */}
-                <NavLink className="nav-link" to=''>
+                <NavLink className="nav-link" to='/contact'>
                     <span className="icon">
-                        <i className="bi bi-gear"></i>
-                        <i className="fa-solid fa-right-from-bracket fa-lg"></i> 
+                    <i class="fa-solid fa-message"></i>
                     </span>
                     <span className="description">Contact</span>
                 </NavLink>

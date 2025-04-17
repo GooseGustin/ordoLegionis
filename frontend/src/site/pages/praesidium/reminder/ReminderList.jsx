@@ -2,8 +2,7 @@ import axios from "axios"
 import { useEffect } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom"
 import { NavLink, Link } from "react-router-dom";
-
-const BASEURL = "http://localhost:8000/api/";
+import { BASEURL } from "../../../functionVault";
 
 const ReminderList = () => {
     const [reminders, isMember] = useLoaderData();
@@ -31,33 +30,32 @@ const ReminderList = () => {
                         <>
                         <NavLink className="nav-link" to='../'>
                             <span className="icon">
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                            <i class="fa-solid fa-shield-halved"></i>
                             </span>
                             <span className="description">Praesidium</span>
                         </NavLink>
                         <NavLink className="nav-link" to='create'>
                             <span className="icon">
-                                <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                            <i class="fa-solid fa-plus"></i>
                             </span>
                             <span className="description">New reminder</span>
                         </NavLink>
                         </>: <></>
                     }
 
-                    {/* settings  */}
-                    <NavLink className="nav-link" to=''>
+
+                    {/* help  */}
+                    <NavLink className="nav-link" to='help'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        <i class="fa-solid fa-question"></i> 
                         </span>
                         <span className="description">Help</span>
                     </NavLink>
 
                     {/* contact  */}
-                    <NavLink className="nav-link" to=''>
+                    <NavLink className="nav-link" to='/contact'>
                         <span className="icon">
-                            <i className="bi bi-gear"></i>
-                            <i className="fa-solid fa-right-from-bracket fa-lg"></i>
+                        <i class="fa-solid fa-message"></i>
                         </span>
                         <span className="description">Contact</span>
                     </NavLink>

@@ -1,12 +1,11 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import axios from 'axios'
-
-const BASEURL = "http://localhost:8000/api/";
+import { BASEURL } from "../../functionVault";
 
 export default function Login() {
     const [formData, setFormData] = useState({
-        email: 'goosegustin@gmail.com', // @
+        email: 'goosegustin@gmail.com', 
         password: '#fightC1ub#',
     });
 
@@ -100,6 +99,9 @@ export default function Login() {
                     </div>
                 </div>
             </form>
+            <div className="register">
+                <p>Don't have an account? <Link to='../register'>Register here</Link></p>
+            </div>
             </div>
             <div className="col-3"></div>
         </div>
